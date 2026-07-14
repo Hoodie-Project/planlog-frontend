@@ -1,0 +1,134 @@
+# Architecture
+
+## 1. 프론트엔드 아키텍처
+
+- 프레임워크: Next.js App Router
+- 언어: TypeScript
+- 스타일: Tailwind CSS
+- UI 컴포넌트: shadcn/ui 스타일의 로컬 컴포넌트
+- 서버 상태: TanStack Query
+- 클라이언트 상태: Zustand
+- 폼: React Hook Form + Zod
+
+## 2. 입력 → 처리 → 출력
+
+### 입력
+
+- 사용자 선택: 감성, 여행 타입, 날짜/시간, 출발 방식, 출발 지점
+- 사용자 액션: 코스 저장, 숙소 선택, 스탬프 획득, 기록 저장
+- 시스템 입력: 로그인 상태, 위치 권한, 심사자 모드, API 응답
+
+### 처리
+
+1. `React Hook Form + Zod`
+   - 무드 셀렉터 입력 검증
+   - 숙소 직접 입력 검증
+2. `Zustand`
+   - 코스 생성 입력값
+   - 심사자 모드
+   - 선택된 숙소와 현재 코스
+3. `TanStack Query`
+   - 추천 코스 조회
+   - 축제/숙소/장소 상세 조회
+   - 저장한 코스 및 기록 목록 조회
+4. View Model 계층
+   - 서버 응답을 화면 카드, 타임라인, 요약 칩용 데이터로 변환
+
+### 출력
+
+- 랜딩, 코스 결과, 코스 상세, 장소 상세, 저장한 코스, 나의 기록, 마이페이지
+- 모바일 전용 Active Trip과 Stamp Complete
+- 로그인 모달, 장소 변경 확인 모달, 숙소 선택 확인 모달
+
+## 3. 폴더 구조
+
+```text
+docs/
+  prd.md
+  architecture.md
+  progress.md
+src/
+  app/
+  components/
+    ui/
+  features/
+    course/
+    landing/
+    records/
+  lib/
+  store/
+```
+
+## 4. 라우팅 구조
+
+```text
+/                      랜딩
+/course/create         무드 셀렉터
+/course/result         코스 결과
+/course/saved          저장한 코스
+/records               나의 기록
+/records/[id]          기록 카드 상세
+/my                    마이페이지
+```
+
+## 5. API 경계
+
+초기 스캐폴딩은 목업 데이터 기반으로 구성한다. 이후 API 계약은 다음처럼 분리한다.
+
+- `GET /courses/recommendations`
+- `POST /courses/save`
+- `GET /courses/saved`
+- `GET /places/:id`
+- `POST /stamps/claim`
+- `POST /records`
+- `GET /records/me`
+- `GET /profile/me`
+
+## 6. 데이터 모델 초안
+
+### CoursePreferences
+
+- mood
+- tripStyle
+- arrivalDate
+- arrivalTime
+- transportMode
+- originLabel
+
+### GeneratedCourse
+
+- title
+- summaryTags
+- timeline[]
+- stats
+- recommendationReasons[]
+- accommodations[]
+
+### StampState
+
+- `NEED_PERMISSION`
+- `OUT_OF_RANGE`
+- `AVAILABLE`
+- `COMPLETED`
+- `REVIEWER_DEMO`
+
+## 7. 장애와 예외 처리
+
+- 로그인 필요 액션: 모달로 가드
+- 위치 권한 없음: 권한 요청 상태 노출
+- API 실패: 재시도 버튼과 대체 안내 문구 제공
+- 데이터 없음: 심사 모드용 기본 목업 코스 노출 가능
+
+## 8. HITL
+
+- 심사자 모드는 사람 검토를 위한 데모 경로다.
+- 운영 전 위치 인증과 저장 발급은 서버 검증이 필요하다.
+- 추천 이유 문구는 운영 시 데이터 규칙 검토가 필요하다.
+
+## 9. 보안 경계
+
+- OAuth 클라이언트 ID와 API Base URL은 `.env`를 통해 주입한다.
+- 위치 검증은 최종적으로 서버에서 재확인한다.
+- 저장/기록 API는 인증 세션 기반으로 보호한다.
+- Git에는 `.env`를 포함하지 않는다.
+
