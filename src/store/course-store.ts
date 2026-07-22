@@ -1,12 +1,47 @@
 import { create } from "zustand";
-import type { CoursePreferenceInput } from "@/lib/schemas";
+import { createJSONStorage, persist } from "zustand/middleware";
+import type { CoursePreferenceDraft } from "@/lib/schemas";
+import type { CourseDto } from "@/types/course";
 
 type CourseStore = {
-  preferences: CoursePreferenceInput | null;
-  setPreferences: (preferences: CoursePreferenceInput) => void;
+  preferences: CoursePreferenceDraft;
+  generatedCourse: CourseDto | null;
+  updatePreferences: (payload: Partial<CoursePreferenceDraft>) => void;
+  setGeneratedCourse: (course: CourseDto | null) => void;
+  resetPreferences: () => void;
 };
 
-export const useCourseStore = create<CourseStore>((set) => ({
-  preferences: null,
-  setPreferences: (preferences) => set({ preferences }),
-}));
+const defaultPreferences: CoursePreferenceDraft = {
+  mood: "",
+  tripStyle: "",
+  arrivalDate: "",
+  arrivalTime: "",
+  transportMode: "",
+  originLabel: "",
+};
+
+export const useCourseStore = create<CourseStore>()(
+  persist(
+    (set) => ({
+      preferences: defaultPreferences,
+      generatedCourse: null,
+      updatePreferences: (payload) =>
+        set((state) => ({
+          preferences: {
+            ...state.preferences,
+            ...payload,
+          },
+        })),
+      setGeneratedCourse: (generatedCourse) => set({ generatedCourse }),
+      resetPreferences: () => set({ preferences: defaultPreferences, generatedCourse: null }),
+    }),
+    {
+      name: "planlog-course-create",
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (state) => ({
+        preferences: state.preferences,
+        generatedCourse: state.generatedCourse,
+      }),
+    }
+  )
+);

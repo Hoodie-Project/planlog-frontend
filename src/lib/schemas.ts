@@ -9,5 +9,30 @@ export const coursePreferenceSchema = z.object({
   originLabel: z.string().min(1, "시작 지점을 입력해 주세요."),
 });
 
-export type CoursePreferenceInput = z.infer<typeof coursePreferenceSchema>;
+export const courseStep1Schema = coursePreferenceSchema.pick({
+  mood: true,
+});
 
+export const courseStep2Schema = coursePreferenceSchema.pick({
+  tripStyle: true,
+});
+
+export const courseStep3Schema = coursePreferenceSchema.pick({
+  arrivalDate: true,
+  arrivalTime: true,
+});
+
+export const courseStep4Schema = coursePreferenceSchema.pick({
+  transportMode: true,
+  originLabel: true,
+});
+
+export type CoursePreferenceInput = z.infer<typeof coursePreferenceSchema>;
+export type CoursePreferenceDraft = {
+  mood: string;
+  tripStyle: string;
+  arrivalDate: string;
+  arrivalTime: string;
+  transportMode: string;
+  originLabel: string;
+};

@@ -1,6 +1,6 @@
-import { MainShell } from "@/components/layout/main-shell";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MainShell } from "@/components/layout/MainShell";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { recordCards } from "@/lib/mock-data";
 
 export default function RecordDetailPage() {

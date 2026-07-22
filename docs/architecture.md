@@ -25,6 +25,10 @@
    - 숙소 직접 입력 검증
 2. `Zustand`
    - 코스 생성 입력값
+   - `step=1..4` 쿼리스트링 기반 무드 셀렉터 진행 상태와 초안 유지
+   - `sessionStorage` persist로 새로고침/탭 내 이동 복구
+   - 로그인 사용자 정보와 액세스 토큰
+   - `localStorage` persist 기반 로그인 상태 유지
    - 심사자 모드
    - 선택된 숙소와 현재 코스
 3. `TanStack Query`
@@ -39,6 +43,7 @@
 - 랜딩, 코스 결과, 코스 상세, 장소 상세, 저장한 코스, 나의 기록, 마이페이지
 - 모바일 전용 Active Trip과 Stamp Complete
 - 로그인 모달, 장소 변경 확인 모달, 숙소 선택 확인 모달
+- 보호 라우트 진입 시 로그인 모달 가드
 
 ## 3. 폴더 구조
 
@@ -48,8 +53,12 @@ docs/
   architecture.md
   progress.md
 src/
+  api/
+    auth/
+    courses/
   app/
   components/
+    auth/
     ui/
   features/
     course/
@@ -63,7 +72,10 @@ src/
 
 ```text
 /                      랜딩
-/course/create         무드 셀렉터
+/course/create?step=1  무드 셀렉터 1단계
+/course/create?step=2  무드 셀렉터 2단계
+/course/create?step=3  무드 셀렉터 3단계
+/course/create?step=4  무드 셀렉터 4단계 및 생성 호출
 /course/result         코스 결과
 /course/saved          저장한 코스
 /records               나의 기록
@@ -73,9 +85,10 @@ src/
 
 ## 5. API 경계
 
-초기 스캐폴딩은 목업 데이터 기반으로 구성한다. 이후 API 계약은 다음처럼 분리한다.
+초기 스캐폴딩은 목업 데이터 기반으로 시작하되, API 함수는 `src/api/<resource>/<action>.ts` 경계로 분리한다.
 
-- `GET /courses/recommendations`
+- `POST /api/courses/generate`
+- `GET /api/auth/me`
 - `POST /courses/save`
 - `GET /courses/saved`
 - `GET /places/:id`
@@ -94,6 +107,19 @@ src/
 - arrivalTime
 - transportMode
 - originLabel
+
+### CreateCourseRequest
+
+- zone
+- transport
+- style
+- spotCount
+- nights
+- travelDate
+- startMapX
+- startMapY
+- seed
+- debug
 
 ### GeneratedCourse
 
@@ -115,6 +141,7 @@ src/
 ## 7. 장애와 예외 처리
 
 - 로그인 필요 액션: 모달로 가드
+- 인증 미완성 단계에서는 mock 로그인 부트스트랩으로 대체하고 이후 OAuth SDK와 서버 세션으로 교체
 - 위치 권한 없음: 권한 요청 상태 노출
 - API 실패: 재시도 버튼과 대체 안내 문구 제공
 - 데이터 없음: 심사 모드용 기본 목업 코스 노출 가능
@@ -131,4 +158,3 @@ src/
 - 위치 검증은 최종적으로 서버에서 재확인한다.
 - 저장/기록 API는 인증 세션 기반으로 보호한다.
 - Git에는 `.env`를 포함하지 않는다.
-

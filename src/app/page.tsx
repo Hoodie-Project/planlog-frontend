@@ -1,39 +1,36 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { MainShell } from "@/components/layout/main-shell";
-import { Button } from "@/components/ui/button";
-import { festivalCards, howToMakeCourse, landingPreviews, landingStampIcons } from "@/lib/mock-data";
+import { MainShell } from "@/components/layout/MainShell";
+import { Button } from "@/components/ui/Button";
+import { festivalCards, howToMakeCourse, landingPreviews, landingStampCurve, landingStampIcons } from "@/lib/mock-data";
 
 export default function HomePage() {
   return (
     <MainShell>
       <section className="overflow-hidden bg-white">
-        <div className="mx-auto grid max-w-[1240px] gap-12 px-6 pb-24 pt-20 lg:grid-cols-[1fr_1.9fr]">
+        <div className="mx-auto grid max-w-[1240px] gap-8 px-4 pb-24 pt-20 lg:grid-cols-[380px_1fr] lg:px-0">
           <div className="pt-4">
-            <h1 className="text-[44px] font-extrabold leading-[1.35] tracking-tight text-slate-900 lg:text-[48px]">
-              감성과 도착 정보만 고르면
+            <h1 className="text-[48px] font-extrabold leading-[1.4] tracking-tight text-slate-900">
+              <span className="whitespace-nowrap">감성과 도착 정보만 고르면</span>
               <span className="block text-[#f30031]">강원도 여행 완성!</span>
             </h1>
-            <p className="mt-7 text-[26px] font-semibold leading-[1.45] tracking-tight text-slate-900">
+            <p className="mt-7 text-[28px] font-semibold leading-[1.4] tracking-tight text-slate-900">
               혼자 떠나는 강원도 여행을
               <br />
               계획부터 기록까지 가볍게 만들어드려요.
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
-              <Button asChild className="h-12 rounded-full bg-[#f30031] px-7 text-[18px] hover:bg-[#df032f]">
-                <Link href="/course/create">
-                  앱 다운로드
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+              <Button asChild className="h-12 rounded-full bg-[#f30031] px-7 text-[20px] hover:bg-[#df032f]">
+                <Link href="/course/create">앱 다운로드</Link>
               </Button>
             </div>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="overflow-hidden">
+            <div className="flex gap-4">
             {landingPreviews.map((preview) => (
-              <article key={preview.title} className="rounded-[20px] border border-[#ff96ab] bg-white p-5">
-                <h2 className="text-[18px] font-semibold leading-[1.4] text-slate-900">{preview.title}</h2>
-                <div className="mt-5 space-y-3 text-[15px] text-slate-900">
+                <article key={preview.title} className="w-[400px] shrink-0 rounded-[20px] border border-[#f30031] bg-white p-5">
+                <h2 className="text-[20px] font-semibold leading-[1.4] text-slate-900">{preview.title}</h2>
+                <div className="mt-5 space-y-3 text-[16px] text-slate-900">
                   {preview.items.map(([time, label, tags]) => (
                     <div key={`${preview.title}-${time}-${label}`} className="grid grid-cols-[52px_1fr] gap-4">
                       <span>{time}</span>
@@ -48,21 +45,22 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-6 border-t border-[#ffc5d1] pt-4 text-[13px] text-slate-900">
+                <div className="mt-6 border-t border-[#ffc5d1] pt-4 text-[16px] text-slate-900">
                   <span>
                     혼잡도: <strong className={preview.congestionTone}>{preview.congestion}</strong>
                   </span>
-                  <span className="ml-3">도보: 2.8km</span>
-                  <span className="ml-3">코스 소요시간: 6h 30m</span>
+                  <span className="ml-3">도보:2.8km</span>
+                  <span className="ml-3">코스 소요시간:6h 30m</span>
                 </div>
-              </article>
+                </article>
             ))}
+            </div>
           </div>
         </div>
       </section>
 
       <section className="bg-white py-10">
-        <div className="mx-auto max-w-[1240px] px-6">
+        <div className="mx-auto max-w-[1240px] px-4 lg:px-0">
           <div className="mb-7 flex items-baseline gap-2">
             <h2 className="text-[24px] font-bold text-slate-900">강원도 HOT 축제</h2>
             <p className="text-[15px] text-slate-600">바로 즐길 수 있는 이번주 축제</p>
@@ -92,7 +90,7 @@ export default function HomePage() {
       </section>
 
       <section className="bg-[#ffeaee] py-14">
-        <div className="mx-auto max-w-[1240px] px-6">
+        <div className="mx-auto max-w-[1240px] px-4 lg:px-0">
           <div className="mb-7 flex items-baseline gap-2">
             <h2 className="text-[24px] font-bold text-slate-900">코스 만드는 방법</h2>
             <p className="text-[15px] text-slate-600">플랜로그와 함께 여행코스를 만들어보세요</p>
@@ -117,9 +115,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-white py-16">
-        <div className="mx-auto max-w-[1240px] px-6 text-center">
-          <h2 className="text-[48px] font-extrabold leading-[1.35] tracking-tight text-slate-900">
+      <section className="relative overflow-hidden bg-white pb-12 pt-20">
+        <img
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-[178px] w-[1965px] max-w-none -translate-x-1/2"
+          src={landingStampCurve}
+        />
+        <div className="mx-auto max-w-[1240px] px-4 text-center lg:px-0">
+          <h2 className="text-[48px] font-extrabold leading-[1.4] tracking-tight text-slate-900">
             스탬프 투어로 완성하는
             <span className="block text-[#f30031]">나만의 지도</span>
           </h2>
@@ -129,12 +133,12 @@ export default function HomePage() {
             나만의 지도를 완성해보세요
           </p>
 
-          <div className="relative mx-auto mt-14 h-[420px] max-w-[1240px]">
+          <div className="relative mx-auto mt-10 h-[540px] max-w-[1240px]">
             {landingStampIcons.map((icon) => (
               <img key={icon.alt} alt={icon.alt} className={`absolute object-contain ${icon.className}`} src={icon.src} />
             ))}
 
-            <article className="absolute left-1/2 top-1/2 w-full max-w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-[#f30031] bg-white p-6 text-left">
+            <article className="absolute left-1/2 top-[300px] w-full max-w-[400px] -translate-x-1/2 rounded-[20px] border border-[#f30031] bg-white p-6 text-left">
               <div className="flex items-center gap-3">
                 <h3 className="text-[20px] font-semibold text-slate-900">나의 감성 지도</h3>
                 <span className="inline-flex h-6 items-center rounded-full border border-[#f30031] px-2 text-[12px] font-semibold text-[#f30031]">

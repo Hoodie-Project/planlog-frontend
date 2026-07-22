@@ -1,7 +1,12 @@
-import { MainShell } from "@/components/layout/main-shell";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+"use client";
+
+import { MainShell } from "@/components/layout/MainShell";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { useAuthStore } from "@/store/auth-store";
 
 export default function MyPage() {
+  const user = useAuthStore((state) => state.user);
+
   return (
     <MainShell>
       <div className="mx-auto max-w-5xl px-6 py-12">
@@ -12,8 +17,8 @@ export default function MyPage() {
               <CardTitle>프로필</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-xl font-semibold">하영님</p>
-              <p className="text-slate-600">Google 계정으로 로그인 중</p>
+              <p className="text-xl font-semibold">{user?.nickname ?? "게스트"}님</p>
+              <p className="text-slate-600">{user?.provider ?? "GUEST"} 계정으로 로그인 중</p>
               <div className="grid grid-cols-3 gap-3">
                 {["저장한 코스 4", "스탬프 12", "여행 기록 3"].map((item) => (
                   <div key={item} className="rounded-lg bg-slate-100 p-4 text-sm">
@@ -57,4 +62,3 @@ export default function MyPage() {
     </MainShell>
   );
 }
-

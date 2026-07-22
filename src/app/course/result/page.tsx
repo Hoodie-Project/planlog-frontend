@@ -1,18 +1,25 @@
+"use client";
+
 import Link from "next/link";
-import { MainShell } from "@/components/layout/main-shell";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MainShell } from "@/components/layout/MainShell";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { toCourseResultView } from "@/lib/course-create";
 import { currentCourse } from "@/lib/mock-data";
+import { useCourseStore } from "@/store/course-store";
 
 export default function CourseResultPage() {
+  const generatedCourse = useCourseStore((state) => state.generatedCourse);
+  const resultView = generatedCourse ? toCourseResultView(generatedCourse) : currentCourse;
+
   return (
     <MainShell>
       <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-2">
             <p className="text-sm font-medium text-cyan-700">코스를 만들고 있어요 → 생성 완료</p>
-            <h1 className="text-3xl font-semibold">{currentCourse.title}</h1>
-            <p className="text-slate-600">{currentCourse.summary}</p>
+            <h1 className="text-3xl font-semibold">{resultView.title}</h1>
+            <p className="text-slate-600">{resultView.summary}</p>
           </div>
           <div className="flex gap-3">
             <Button>저장하기</Button>
@@ -35,7 +42,7 @@ export default function CourseResultPage() {
               <CardTitle>일정표</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {currentCourse.timeline.map((item) => (
+              {resultView.timeline.map((item) => (
                 <div key={`${item.time}-${item.name}`} className="rounded-lg border p-4">
                   <div className="flex items-center justify-between">
                     <p className="font-medium">{item.time}</p>
@@ -57,7 +64,7 @@ export default function CourseResultPage() {
               <CardTitle>코스 요약 정보</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-2">
-              {Object.entries(currentCourse.stats).map(([key, value]) => (
+              {Object.entries(resultView.stats).map(([key, value]) => (
                 <div key={key} className="rounded-lg bg-slate-100 p-4">
                   <p className="text-sm text-slate-500">{key}</p>
                   <p className="mt-1 font-semibold text-slate-900">{value}</p>
@@ -71,7 +78,7 @@ export default function CourseResultPage() {
               <CardTitle>이 코스를 추천한 이유</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {currentCourse.reasons.map((reason) => (
+              {resultView.reasons.map((reason) => (
                 <div key={reason} className="rounded-lg border p-4 text-sm text-slate-700">
                   {reason}
                 </div>
@@ -83,4 +90,3 @@ export default function CourseResultPage() {
     </MainShell>
   );
 }
-
