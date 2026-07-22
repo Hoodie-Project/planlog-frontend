@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AppProviders } from "@/components/app-providers";
+import { AppProviders } from "@/components/AppProviders";
 
 export const metadata: Metadata = {
   title: "PLANLOG",
@@ -20,4 +20,3 @@ export default function RootLayout({
     </html>
   );
 }
-

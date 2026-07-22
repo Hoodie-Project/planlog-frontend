@@ -4,21 +4,21 @@ export const festivalCards = [
     location: "강릉",
     period: "06.14 - 06.21",
     badge: "전통문화",
-    image: "https://www.figma.com/api/mcp/asset/b4975994-9d8c-42a2-8e53-79af08ab3bb4",
+    image: "https://www.figma.com/api/mcp/asset/e7cd4169-de8b-401e-a684-db56c477b2bf",
   },
   {
     title: "속초 해양 페스티벌",
     location: "속초",
     period: "06.15 - 06.22",
     badge: "바다",
-    image: "https://www.figma.com/api/mcp/asset/56e2286f-ed39-45cb-89ff-5daadc714001",
+    image: "https://www.figma.com/api/mcp/asset/74754b94-2733-48b0-b2e1-4568b589540c",
   },
   {
     title: "평창 허브나라 축제",
     location: "평창",
     period: "06.13 - 07.05",
     badge: "자연",
-    image: "https://www.figma.com/api/mcp/asset/203f704b-a81c-4109-a958-e31485d60696",
+    image: "https://www.figma.com/api/mcp/asset/dffae259-8eac-4cb1-ad92-83c523f762f4",
   },
 ];
 
@@ -158,28 +158,30 @@ export const howToMakeCourse = [
 
 export const landingStampIcons = [
   {
-    src: "https://www.figma.com/api/mcp/asset/dbb4f4c0-9534-456e-a2b9-928c1c1e2a69",
+    src: "https://www.figma.com/api/mcp/asset/a2195a31-08ac-4627-955b-cab8c560d402",
     alt: "wave stamp",
-    className: "left-[7%] top-[22%] h-28 w-28 -rotate-6",
+    className: "left-[140px] top-[118px] h-[120px] w-[120px] -rotate-6",
   },
   {
-    src: "https://www.figma.com/api/mcp/asset/61663ef8-9759-4ffe-8a75-73bc08237385",
-    alt: "coffee stamp",
-    className: "left-[22%] top-[64%] h-28 w-28 -rotate-[21deg]",
+    src: "https://www.figma.com/api/mcp/asset/02da300e-735a-44e1-a1b5-d1cd5a133473",
+    alt: "purple stamp",
+    className: "left-[-6px] top-[252px] h-[120px] w-[120px] rotate-[10deg]",
   },
   {
-    src: "https://www.figma.com/api/mcp/asset/863f5097-bcd7-4520-9864-6386a975cf4f",
+    src: "https://www.figma.com/api/mcp/asset/ca5a919e-8a51-4f3d-8ce9-3f9b2360e0f5",
     alt: "forest stamp",
-    className: "left-[2%] top-[80%] h-28 w-28 rotate-[10deg]",
+    className: "left-[108px] top-[340px] h-[136px] w-[136px] -rotate-[21deg]",
   },
   {
-    src: "https://www.figma.com/api/mcp/asset/b1a91e99-09d3-4d31-b414-085af20b7d6f",
+    src: "https://www.figma.com/api/mcp/asset/cbd664a0-e908-4c12-acbc-4966284f5c20",
     alt: "photo stamp",
-    className: "right-[22%] top-[32%] h-28 w-28 rotate-[12deg]",
+    className: "right-[96px] top-[168px] h-[124px] w-[124px] rotate-[12deg]",
   },
   {
-    src: "https://www.figma.com/api/mcp/asset/7db3b379-b9ca-4a45-8b25-49cd2e086812",
-    alt: "dessert stamp",
-    className: "right-[5%] top-[64%] h-28 w-28 -rotate-[8deg]",
+    src: "https://www.figma.com/api/mcp/asset/9b7ab796-547e-433e-a0f7-5caeac06916b",
+    alt: "coffee stamp",
+    className: "right-[8px] top-[318px] h-[128px] w-[128px] -rotate-[8deg]",
   },
 ];
+
+export const landingStampCurve = "https://www.figma.com/api/mcp/asset/659b787d-c870-4dbd-b5f1-34d140d73e39";

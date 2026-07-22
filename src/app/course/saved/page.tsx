@@ -1,5 +1,5 @@
-import { MainShell } from "@/components/layout/main-shell";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MainShell } from "@/components/layout/MainShell";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { savedCourses } from "@/lib/mock-data";
 
 export default function SavedCoursePage() {
@@ -37,4 +37,3 @@ export default function SavedCoursePage() {
     </MainShell>
   );
 }
-

@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { MainShell } from "@/components/layout/main-shell";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MainShell } from "@/components/layout/MainShell";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { recordCards, zoneProgress } from "@/lib/mock-data";
 
 export default function RecordsPage() {
