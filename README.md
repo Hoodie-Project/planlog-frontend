@@ -24,7 +24,7 @@ cp .env .env.local
 npm run dev
 ```
 
-기본 주소는 `http://localhost:3000`입니다.
+기본 주소는 `http://localhost:4000`입니다.
 
 ## 주요 스크립트
 
@@ -49,4 +49,3 @@ npm run lint
 - 제품 약속: [docs/prd.md](/Users/shinhayeong/planlog-frontend/docs/prd.md)
 - 프론트엔드 구조: [docs/architecture.md](/Users/shinhayeong/planlog-frontend/docs/architecture.md)
 - 작업 진행 상태: [docs/progress.md](/Users/shinhayeong/planlog-frontend/docs/progress.md)
-
