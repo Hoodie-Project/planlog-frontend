@@ -1,7 +1,7 @@
 import type { AuthResponseDto } from "@/types/auth";
 
 // TODO : 로그인 기능 개발 시 해당 코드 삭제
-export let isLogin: true | false = false;
+export let isLogin: true | false = true;
 
 export const mockGoogleAuthResponse: AuthResponseDto = {
   accessToken: "mock-google-access-token",
