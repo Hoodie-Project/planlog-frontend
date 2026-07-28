@@ -1,29 +1,122 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import dayjs, { type Dayjs } from "dayjs";
+import "dayjs/locale/ko";
 import { useRouter, useSearchParams } from "next/navigation";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { generateCourse } from "@/api/courses/generate";
 import { MainShell } from "@/components/layout/MainShell";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
-import { Label } from "@/components/ui/Label";
 import { parseCourseCreateStep, toCreateCourseRequest } from "@/lib/course-create";
-import { originOptions, transportOptions, tripStyleOptions } from "@/lib/mock-data";
+import { originOptions, transportOptions } from "@/lib/mock-data";
 import { coursePreferenceSchema, courseStep1Schema, courseStep2Schema, courseStep3Schema, courseStep4Schema } from "@/lib/schemas";
 import { useCourseStore } from "@/store/course-store";
 
 const totalSteps = 4;
 type TransportOption = (typeof transportOptions)[number];
 const transportOptionSet = new Set<TransportOption>(transportOptions);
+const completedStepCheckIcon = "https://www.figma.com/api/mcp/asset/81572b10-cc1a-4e45-b0aa-bb8e887dc567";
+const step4ArrowDownIcon = "https://www.figma.com/api/mcp/asset/579f9c75-5999-4138-b1d6-d1965544c70e";
 const step1ThemeIcons = {
-  sea: "https://www.figma.com/api/mcp/asset/46e6793f-36a3-4191-8308-1cf7f5aa5cab",
-  snow: "https://www.figma.com/api/mcp/asset/dab87ad2-951d-47a9-b9cc-739453980d5b",
-  valley: "https://www.figma.com/api/mcp/asset/eae26ad2-dd6f-4fc3-a50e-11d4fdad9afb",
-  retro: "https://www.figma.com/api/mcp/asset/f9c6d1eb-0a0f-4d77-bf3e-ba90c4e961b9",
-  photo: "https://www.figma.com/api/mcp/asset/c77d03a5-777b-4542-97f8-6b2d956b315f",
+  sea: {
+    base: "https://www.figma.com/api/mcp/asset/2fa5500f-4fc2-4904-9235-e22b9bc58765",
+  },
+  snow: {
+    base: "https://www.figma.com/api/mcp/asset/0f101b8c-43b0-4e33-97b3-19792f1ad8ae",
+  },
+  valley: {
+    base: "https://www.figma.com/api/mcp/asset/d5f90146-c82b-41d8-a200-ab909f0405cc",
+    overlay: "https://www.figma.com/api/mcp/asset/b3e69e10-7210-4236-80a5-9d3020320ea9",
+    overlayClassName: "inset-[8.33%_0.01%_8.34%_0]",
+  },
+  retro: {
+    base: "https://www.figma.com/api/mcp/asset/12cfbd3f-4557-4482-9602-64e441ad0709",
+    overlay: "https://www.figma.com/api/mcp/asset/edbdd526-0cc4-4dd4-a442-7cc19a2cf373",
+    overlayClassName: "inset-[12.5%_8.34%_12.5%_16.66%]",
+  },
+  photo: {
+    base: "https://www.figma.com/api/mcp/asset/206d46f4-2c80-42b2-afa4-dbba2aa46a95",
+  },
+} as const;
+const step2CompanionIcons = {
+  solo: {
+    base: "https://www.figma.com/api/mcp/asset/2c21452c-b61b-42ac-bb98-bbfaac234699",
+    overlay: "https://www.figma.com/api/mcp/asset/ebc7c205-b835-48ec-9f3f-fd538e0f1788",
+    activeBase: "https://www.figma.com/api/mcp/asset/66983ef2-3f55-444e-93fd-23fd8ede2c3b",
+    activeOverlay: "https://www.figma.com/api/mcp/asset/4fcb6098-84d1-4559-9af3-5ca6196049f7",
+    overlayClassName: "inset-[16.67%]",
+  },
+  family: {
+    base: "https://www.figma.com/api/mcp/asset/68defb22-97ac-4f40-94c5-42803051876d",
+    activeBase: "https://www.figma.com/api/mcp/asset/1682858a-9ac8-47f0-8f44-6b7737f65bb5",
+  },
+  pet: {
+    base: "https://www.figma.com/api/mcp/asset/c57c8094-8451-4498-8ac4-99c844fe3d51",
+    activeBase: "https://www.figma.com/api/mcp/asset/b9178a2d-3b1a-4c62-84d8-9c5c5df35a95",
+  },
+  calm: {
+    base: "https://www.figma.com/api/mcp/asset/922fa991-f545-4287-a61f-e99cfb0c07fe",
+    activeBase: "https://www.figma.com/api/mcp/asset/b0640437-93d1-43a2-8138-12b564c6c727",
+  },
 } as const;
 
 const stepLabels = ["여행 테마", "동행자 유형", "여행 시작 날짜", "여행 시작 장소"];
+const step2Options = [
+  {
+    key: "혼자 떠나요",
+    label: "혼자 떠나요",
+    description: "나만의 속도로 천천히",
+    icon: step2CompanionIcons.solo,
+  },
+  {
+    key: "가족과 함께",
+    label: "가족과 함께",
+    description: "이동 부담이 적은 코스로",
+    icon: step2CompanionIcons.family,
+  },
+  {
+    key: "반려동물과 함께",
+    label: "반려동물과 함께",
+    description: "함께 갈 수 있는 장소 중심으로",
+    icon: step2CompanionIcons.pet,
+  },
+  {
+    key: "조용히 쉬고 싶어요",
+    label: "조용히 쉬고 싶어요",
+    description: "덜 붐비고 여유로운 장소로",
+    icon: step2CompanionIcons.calm,
+  },
+] as const;
+const step4TransportIcons = {
+  rail: "https://www.figma.com/api/mcp/asset/14ac95bc-4647-4053-b06d-db8a6d5929a6",
+  bus: "https://www.figma.com/api/mcp/asset/743bc989-8487-41e7-a000-bd2586c4d971",
+  car: "https://www.figma.com/api/mcp/asset/e032dbfc-9b09-4ecb-9b44-7a73b5f27358",
+} as const;
+const step4TransportOptions = [
+  {
+    key: "역에서 시작",
+    label: "역에서 시작해요",
+    description: "KTX·기차역 기준으로 코스 생성",
+    icon: step4TransportIcons.rail,
+  },
+  {
+    key: "터미널에서 시작",
+    label: "터미널에서 시작해요",
+    description: "버스터미널 기준으로 코스 생성",
+    icon: step4TransportIcons.bus,
+  },
+  {
+    key: "자동차로 이동",
+    label: "자동차로 이동해요",
+    description: "선택한 도시 중심으로 코스 생성",
+    icon: step4TransportIcons.car,
+  },
+] as const;
+
+dayjs.locale("ko");
 
 export function CourseCreateFlow() {
   const router = useRouter();
@@ -36,6 +129,11 @@ export function CourseCreateFlow() {
 
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [timePickerOpen, setTimePickerOpen] = useState(false);
+  const [step4DropdownOpen, setStep4DropdownOpen] = useState(false);
+  const dateFieldRef = useRef<HTMLButtonElement | null>(null);
+  const timeFieldRef = useRef<HTMLButtonElement | null>(null);
 
   const selectedTransport = transportOptionSet.has(preferences.transportMode as TransportOption)
     ? (preferences.transportMode as TransportOption)
@@ -44,6 +142,8 @@ export function CourseCreateFlow() {
     () => (selectedTransport ? originOptions[selectedTransport] : []),
     [selectedTransport]
   );
+  const isCarMode = preferences.transportMode === "자동차로 이동";
+  const step4SelectLabel = preferences.transportMode === "역에서 시작" ? "역 선택" : preferences.transportMode === "터미널에서 시작" ? "터미널 선택" : "도시 선택";
 
   const goStep = (nextStep: number) => {
     router.replace(`/course/create?step=${nextStep}`);
@@ -66,6 +166,33 @@ export function CourseCreateFlow() {
 
   const currentStepValidation = validateCurrentStep();
   const canProceed = currentStepValidation.success && !isSubmitting;
+  const arrivalDateValue = preferences.arrivalDate ? dayjs(preferences.arrivalDate) : null;
+  const arrivalTimeValue = preferences.arrivalTime ? dayjs(`2026-01-01T${preferences.arrivalTime}`) : null;
+
+  const handleArrivalDateChange = (value: Dayjs | null) => {
+    updatePreferences({
+      arrivalDate: value?.isValid() ? value.format("YYYY-MM-DD") : "",
+    });
+  };
+
+  const handleArrivalTimeChange = (value: Dayjs | null) => {
+    updatePreferences({
+      arrivalTime: value?.isValid() ? value.format("HH:mm") : "",
+    });
+  };
+
+  const handleTransportModeChange = (option: TransportOption) => {
+    setStep4DropdownOpen(false);
+    updatePreferences({
+      transportMode: option,
+      originLabel: "",
+    });
+  };
+
+  const handleOriginSelect = (value: string) => {
+    setStep4DropdownOpen(false);
+    updatePreferences({ originLabel: value });
+  };
 
   const handleNext = async () => {
     setError(null);
@@ -108,6 +235,7 @@ export function CourseCreateFlow() {
               {stepLabels.map((label, index) => {
                 const current = index + 1;
                 const active = current === step;
+                const completed = current < step;
 
                 return (
                   <div key={label} className="flex items-center gap-[5px]">
@@ -117,7 +245,11 @@ export function CourseCreateFlow() {
                           active ? "bg-[#f30031] text-white" : "bg-[#e5e5ec] text-[#999]"
                         }`}
                       >
-                        {current}
+                        {completed ? (
+                          <img alt="" aria-hidden="true" className="h-[14px] w-[14px]" src={completedStepCheckIcon} />
+                        ) : (
+                          current
+                        )}
                       </span>
                       <span className={active ? "text-[#111]" : "text-[#999]"}>{label}</span>
                     </div>
@@ -127,17 +259,17 @@ export function CourseCreateFlow() {
               })}
             </div>
 
-            <div className="flex flex-col gap-10">
-              <div className="w-[352px]">
-                <h1 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111]">
-                  오늘은 어떤 감성이 끌리나요?
-                </h1>
-                <p className="mt-1 text-[18px] leading-[1.4] tracking-[-0.45px] text-[#111]">
-                  원하는 감성을 선택하면 장소를 추천해드려요. (택 1)
-                </p>
-              </div>
+            {step === 1 ? (
+              <div className="flex flex-col gap-10">
+                <div className="w-[352px]">
+                  <h1 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111]">
+                    오늘은 어떤 감성이 끌리나요?
+                  </h1>
+                  <p className="mt-1 text-[18px] leading-[1.4] tracking-[-0.45px] text-[#111]">
+                    원하는 감성을 선택하면 장소를 추천해드려요. (택 1)
+                  </p>
+                </div>
 
-              {step === 1 ? (
                 <div className="flex gap-2">
                   {[
                     { key: "동해 바다", label: "동해 바다", icon: step1ThemeIcons.sea },
@@ -157,7 +289,12 @@ export function CourseCreateFlow() {
                         onClick={() => updatePreferences({ mood: option.key })}
                         type="button"
                       >
-                        <img alt="" aria-hidden="true" className="absolute left-[5px] top-[5px] h-6 w-6 object-contain" src={option.icon} />
+                        <span aria-hidden="true" className="absolute left-[5px] top-[5px] h-6 w-6 overflow-hidden">
+                          <img alt="" className="h-6 w-6 object-contain" src={option.icon.base} />
+                          {"overlay" in option.icon && option.icon.overlay ? (
+                            <img alt="" className={`absolute ${option.icon.overlayClassName ?? "inset-0"} h-6 w-6`} src={option.icon.overlay} />
+                          ) : null}
+                        </span>
                         <span
                           className={`absolute left-[5px] top-[33px] whitespace-nowrap text-[14px] font-semibold leading-[1.4] ${
                             active ? "text-[#ff1f4c]" : "text-[#111]"
@@ -169,105 +306,300 @@ export function CourseCreateFlow() {
                     );
                   })}
                 </div>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
           </div>
 
           {step === 2 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Step 2. 하나를 선택하면 여행 스타일에 맞춰 추천해드려요.</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-3 md:grid-cols-2">
-                {tripStyleOptions.map((option) => (
-                  <Label key={option.name} className="rounded-lg border bg-white p-4">
-                    <input
-                      checked={preferences.tripStyle === option.name}
-                      className="mr-3"
-                      onChange={() => updatePreferences({ tripStyle: option.name })}
-                      type="radio"
-                    />
-                    <span className="font-medium">{option.name}</span>
-                    <p className="mt-1 text-sm text-slate-500">{option.description}</p>
-                  </Label>
-                ))}
-              </CardContent>
-            </Card>
+            <div className="flex flex-col gap-16">
+              <div className="flex flex-col gap-10">
+                <div className="w-[352px]">
+                  <h1 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111]">
+                    이번 여행은 어떤 모습인가요?
+                  </h1>
+                  <p className="mt-1 text-[18px] leading-[1.4] tracking-[-0.45px] text-[#111]">
+                    일행 유무에 따라 여행 코스를 추천해드려요. (택 1)
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-[10px]">
+                  {step2Options.map((option) => {
+                    const active = preferences.tripStyle === option.key;
+
+                    return (
+                      <button
+                        key={option.key}
+                        className={`relative h-[60px] w-full rounded-2xl border text-left shadow-[0px_2px_6px_0px_rgba(17,17,17,0.08)] transition-colors ${
+                          active ? "border-[#ff1f4c] bg-[#ffeaee]" : "border-[#f1f1f5] bg-white"
+                        }`}
+                        onClick={() => updatePreferences({ tripStyle: option.key })}
+                        type="button"
+                      >
+                        <span aria-hidden="true" className="absolute left-[13px] top-[13px] h-8 w-8 overflow-hidden">
+                          <img
+                            alt=""
+                            className={`h-8 w-8 object-contain ${
+                              active
+                                ? "brightness-0 saturate-100% [filter:invert(19%)_sepia(100%)_saturate(4215%)_hue-rotate(336deg)_brightness(104%)_contrast(102%)]"
+                                : ""
+                            }`}
+                            src={option.icon.base}
+                          />
+                          {"overlay" in option.icon && option.icon.overlay ? (
+                            <img
+                              alt=""
+                              className={`absolute ${option.icon.overlayClassName ?? "inset-0"} h-8 w-8 ${
+                                active
+                                  ? "brightness-0 saturate-100% [filter:invert(19%)_sepia(100%)_saturate(4215%)_hue-rotate(336deg)_brightness(104%)_contrast(102%)]"
+                                  : ""
+                              }`}
+                              src={option.icon.overlay}
+                            />
+                          ) : null}
+                        </span>
+                        <span className="absolute left-[61px] top-[19px] flex items-center gap-2">
+                          <span
+                            className={`text-[14px] font-semibold leading-[1.4] ${
+                              active ? "text-[#ff1f4c]" : "text-[#111]"
+                            }`}
+                          >
+                            {option.label}
+                          </span>
+                          <span
+                            className={`text-[12px] leading-[1.4] tracking-[-0.3px] ${
+                              active ? "text-[#ff1f4c]" : "text-[#111]"
+                            }`}
+                          >
+                            {option.description}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           ) : null}
 
           {step === 3 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Step 3. 언제 여행을 시작하나요?</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="arrivalDate">도착 날짜</Label>
-                  <Input
-                    id="arrivalDate"
-                    onChange={(event) => updatePreferences({ arrivalDate: event.target.value })}
-                    type="date"
-                    value={preferences.arrivalDate}
-                  />
+            <LocalizationProvider adapterLocale="ko" dateAdapter={AdapterDayjs}>
+              <div className="flex flex-col gap-16">
+                <div className="flex flex-col gap-10">
+                  <div className="w-[431px]">
+                    <h1 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111]">
+                      언제 여행을 시작하나요?
+                    </h1>
+                    <p className="mt-1 text-[18px] leading-[1.4] tracking-[-0.45px] text-[#111]">
+                      선택한 시간을 기준으로 첫 장소와 이동 순서를 조정해요. (택 1)
+                    </p>
+                  </div>
+
+                  <div className="relative h-[190px] w-full">
+                    <div className="absolute left-0 right-0 top-0">
+                      <p className="text-[14px] font-bold leading-[1.4] tracking-[-0.35px] text-[#111]">여행지 도착 날짜</p>
+                      <button
+                        ref={dateFieldRef}
+                        className={`mt-3 h-[60px] w-full rounded-2xl border px-[19px] text-left shadow-[0px_2px_6px_0px_rgba(17,17,17,0.08)] transition-colors ${
+                          preferences.arrivalDate ? "border-[#ff1f4c]" : "border-[#f1f1f5]"
+                        }`}
+                        onClick={() => setDatePickerOpen(true)}
+                        type="button"
+                      >
+                        <span className={preferences.arrivalDate ? "text-[14px] text-[#ff1f4c]" : "text-[14px] text-[#999]"}>
+                          {arrivalDateValue?.isValid() ? arrivalDateValue.format("YYYY.MM.DD dddd") : "날짜를 선택해 주세요."}
+                        </span>
+                      </button>
+                    </div>
+
+                    <div className="absolute left-0 right-0 top-[108px]">
+                      <p className="text-[14px] font-bold leading-[1.4] tracking-[-0.35px] text-[#111]">여행지 도착 시간</p>
+                      <button
+                        ref={timeFieldRef}
+                        className={`mt-3 h-[60px] w-full rounded-2xl border px-[19px] text-left shadow-[0px_2px_6px_0px_rgba(17,17,17,0.08)] transition-colors ${
+                          preferences.arrivalTime ? "border-[#ff1f4c]" : "border-[#f1f1f5]"
+                        }`}
+                        onClick={() => setTimePickerOpen(true)}
+                        type="button"
+                      >
+                        <span className={preferences.arrivalTime ? "text-[14px] text-[#ff1f4c]" : "text-[14px] text-[#999]"}>
+                          {arrivalTimeValue?.isValid() ? arrivalTimeValue.locale("ko").format("A hh:mm") : "시간을 선택해 주세요."}
+                        </span>
+                      </button>
+                    </div>
+
+                    <DatePicker
+                      format="YYYY.MM.DD dddd"
+                      onChange={handleArrivalDateChange}
+                      onClose={() => setDatePickerOpen(false)}
+                      open={datePickerOpen}
+                      slotProps={{
+                        desktopPaper: {
+                          sx: {
+                            mt: 1,
+                          },
+                        },
+                        popper: {
+                          anchorEl: dateFieldRef.current,
+                          disablePortal: true,
+                          placement: "bottom-start",
+                        },
+                        textField: {
+                          sx: { display: "none" },
+                        },
+                      }}
+                      value={arrivalDateValue}
+                    />
+                    <TimePicker
+                      ampm
+                      format="A hh:mm"
+                      onChange={handleArrivalTimeChange}
+                      onClose={() => setTimePickerOpen(false)}
+                      open={timePickerOpen}
+                      slotProps={{
+                        desktopPaper: {
+                          sx: {
+                            mt: 1,
+                          },
+                        },
+                        popper: {
+                          anchorEl: timeFieldRef.current,
+                          disablePortal: true,
+                          placement: "bottom-start",
+                        },
+                        textField: {
+                          sx: { display: "none" },
+                        },
+                      }}
+                      value={arrivalTimeValue}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="arrivalTime">도착 시간</Label>
-                  <Input
-                    id="arrivalTime"
-                    onChange={(event) => updatePreferences({ arrivalTime: event.target.value })}
-                    step="1800"
-                    type="time"
-                    value={preferences.arrivalTime}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </LocalizationProvider>
           ) : null}
 
           {step === 4 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Step 4. 어디서 여행을 시작할까요?</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-3 md:grid-cols-3">
-                  {transportOptions.map((option) => (
-                    <Label key={option} className="rounded-lg border bg-white p-4">
-                      <input
-                        checked={preferences.transportMode === option}
-                        className="mr-3"
-                        onChange={() => updatePreferences({ transportMode: option, originLabel: originOptions[option][0] })}
-                        type="radio"
-                      />
-                      {option}
-                    </Label>
-                  ))}
+            <div className="flex flex-col gap-16">
+              <div className="flex flex-col gap-10">
+                <div className="w-[431px]">
+                  <h1 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111]">
+                    어디서 여행을 시작할까요?
+                  </h1>
+                  <p className="mt-1 text-[18px] leading-[1.4] tracking-[-0.45px] text-[#111]">
+                    이동 방식에 따라 시작 지점을 선택해요. (택 1)
+                  </p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="originLabel">시작 지점</Label>
-                  <Input
-                    id="originLabel"
-                    list="origins"
-                    onChange={(event) => updatePreferences({ originLabel: event.target.value })}
-                    placeholder="강릉역, 속초시외버스터미널, 강릉 등"
-                    value={preferences.originLabel}
-                  />
-                  <datalist id="origins">
-                    {originList.map((origin) => (
-                      <option key={origin} value={origin} />
-                    ))}
-                  </datalist>
+                <div className="flex flex-col gap-[10px]">
+                  {step4TransportOptions.map((option) => {
+                    const active = preferences.transportMode === option.key;
+
+                    return (
+                      <button
+                        key={option.key}
+                        className={`flex w-full items-center gap-4 rounded-2xl border p-[14px] text-left shadow-[0px_2px_6px_0px_rgba(17,17,17,0.08)] transition-colors ${
+                          active ? "border-[#f30031] bg-[#ffeaee]" : "border-[#f1f1f5] bg-white"
+                        }`}
+                        onClick={() => handleTransportModeChange(option.key)}
+                        type="button"
+                      >
+                        <img
+                          alt=""
+                          aria-hidden="true"
+                          className={`h-8 w-8 object-contain ${
+                            active
+                              ? "brightness-0 saturate-100% [filter:invert(19%)_sepia(100%)_saturate(4215%)_hue-rotate(336deg)_brightness(104%)_contrast(102%)]"
+                              : ""
+                          }`}
+                          src={option.icon}
+                        />
+                        <span className="flex items-center gap-2">
+                          <span className={`text-[14px] font-semibold leading-[1.4] ${active ? "text-[#f30031]" : "text-[#111]"}`}>
+                            {option.label}
+                          </span>
+                          <span className={`text-[12px] leading-[1.4] tracking-[-0.3px] ${active ? "text-[#f30031]" : "text-[#111]"}`}>
+                            {option.description}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
-              </CardContent>
-            </Card>
+
+                {selectedTransport ? (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[16px] font-bold leading-[1.4] tracking-[-0.4px] text-[#111]">{step4SelectLabel}</p>
+
+                    {isCarMode ? (
+                      <div className="grid grid-cols-4 overflow-hidden rounded-2xl border border-[#e5e5ec] bg-white shadow-[0px_1px_4px_-1px_rgba(17,17,17,0.08)]">
+                        {originList.map((origin) => {
+                          const active = preferences.originLabel === origin;
+
+                          return (
+                            <button
+                              key={origin}
+                              className={`flex h-[52px] items-center justify-center border-r border-t border-[#e5e5ec] px-5 text-[16px] tracking-[-0.4px] ${
+                                active ? "bg-[#ffeaee] font-semibold text-[#f30031]" : "text-[#505050]"
+                              } ${originList.indexOf(origin) < 4 ? "border-t-0" : ""} ${originList.indexOf(origin) % 4 === 3 ? "border-r-0" : ""}`}
+                              onClick={() => handleOriginSelect(origin)}
+                              type="button"
+                            >
+                              {origin}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <button
+                          className={`flex h-[60px] w-full items-center justify-between rounded-2xl border px-[19px] shadow-[0px_2px_6px_0px_rgba(17,17,17,0.08)] transition-colors ${
+                            preferences.originLabel ? "border-[#ff1f4c]" : "border-[#f1f1f5]"
+                          }`}
+                          onClick={() => setStep4DropdownOpen((prev) => !prev)}
+                          type="button"
+                        >
+                          <span className={preferences.originLabel ? "text-[14px] text-[#ff1f4c]" : "text-[14px] text-[#999]"}>
+                            {preferences.originLabel || "선택해 주세요."}
+                          </span>
+                          <img
+                            alt=""
+                            aria-hidden="true"
+                            className={`h-6 w-6 transition-transform ${step4DropdownOpen ? "rotate-180" : ""}`}
+                            src={step4ArrowDownIcon}
+                          />
+                        </button>
+
+                        {step4DropdownOpen ? (
+                          <div className="absolute left-0 top-[72px] z-20 w-full overflow-hidden rounded-2xl border border-[#ff1f4c] bg-white shadow-[0px_2px_3px_rgba(17,17,17,0.08)]">
+                            {originList.map((origin, index) => (
+                              <button
+                                key={origin}
+                                className={`flex h-[60px] w-full items-center px-[18px] text-left text-[16px] tracking-[-0.4px] text-[#111] ${
+                                  index === 1 ? "bg-[#f1f1f5]" : "bg-white"
+                                } ${index !== 0 ? "border-t border-[#e5e5ec]" : ""}`}
+                                onClick={() => handleOriginSelect(origin)}
+                                type="button"
+                              >
+                                {origin}
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           ) : null}
 
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
           <div className="flex items-center justify-between">
             <button
-              className="inline-flex h-9 items-center justify-center rounded-full bg-[#f1f1f5] px-5 text-[18px] tracking-[-0.45px] text-[#505050] disabled:opacity-50"
+              className={`inline-flex h-9 items-center justify-center rounded-full px-5 text-[18px] tracking-[-0.45px] transition-colors disabled:cursor-not-allowed ${
+                step === 1 ? "bg-[#f1f1f5] text-[#505050]" : "bg-[#ff1f4c] text-white"
+              }`}
               disabled={step === 1 || isSubmitting}
               onClick={() => goStep(step - 1)}
               type="button"
