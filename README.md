@@ -39,7 +39,7 @@ npm run lint
 
 - `main` 브랜치 배포 포트: `4000`
 - `dev` 브랜치 배포 포트: `4001`
-- GitHub Actions self-hosted runner가 `.github/workflows/deploy.yml`을 통해 `deploy.sh`를 실행합니다.
+- GitHub Actions self-hosted runner가 `.github/workflows/deploy.yml`을 통해 `/Users/macmini/planlog/planlog-frontend` 경로에서 `deploy.sh`를 실행합니다.
 
 맥미니에서 runner를 상시 실행 상태로 전환할 때는 `actions-runner` 폴더에서 아래 명령을 사용합니다.
 

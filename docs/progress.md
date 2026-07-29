@@ -21,6 +21,7 @@
 8. `deploy.sh`를 GitHub Actions checkout 기준으로 정리
 9. `.github/workflows/deploy.yml` 배포 workflow 추가
 10. README에 self-hosted runner 서비스 전환 절차 추가
+11. workflow 배포 기준 경로를 `/Users/macmini/planlog/planlog-frontend`로 고정
 
 ## 결정 사항
 
