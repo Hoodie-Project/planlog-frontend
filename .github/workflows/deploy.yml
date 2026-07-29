@@ -1,0 +1,45 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on:
+      - self-hosted
+      - macOS
+      - ARM64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install PM2
+        run: |
+          if ! command -v pm2 >/dev/null 2>&1; then
+            npm install -g pm2
+          fi
+
+      - name: Deploy application
+        env:
+          DEPLOY_BRANCH: ${{ github.ref_name }}
+        run: |
+          chmod +x ./deploy.sh
+          ./deploy.sh

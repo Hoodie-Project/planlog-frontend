@@ -35,6 +35,20 @@ npm run start
 npm run lint
 ```
 
+## 배포
+
+- `main` 브랜치 배포 포트: `4000`
+- `dev` 브랜치 배포 포트: `4001`
+- GitHub Actions self-hosted runner가 `.github/workflows/deploy.yml`을 통해 `deploy.sh`를 실행합니다.
+
+맥미니에서 runner를 상시 실행 상태로 전환할 때는 `actions-runner` 폴더에서 아래 명령을 사용합니다.
+
+```bash
+./svc.sh install
+./svc.sh start
+./svc.sh status
+```
+
 ## 사용 예시
 
 - 랜딩: `/`
