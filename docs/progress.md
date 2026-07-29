@@ -7,6 +7,7 @@
 - Next.js + TypeScript + Tailwind 기반 프론트엔드 스캐폴딩 생성 완료
 - 주요 화면용 목업 데이터와 라우트 초안 생성 완료
 - 코스 만들기 4단계 쿼리스트링 뼈대와 API fetch 레이어 생성 완료
+- GitHub Actions self-hosted runner 기반 배포 파이프라인 초안 추가 예정
 
 ## 이번 턴에서 한 작업
 
@@ -17,6 +18,9 @@
 5. 아키텍처/진행 문서에 상태 관리와 API 경계를 반영
 6. 로그인 모달 Figma 구현 및 보호 라우트 진입 가드 추가
 7. `zustand persist + localStorage` 기반 mock auth 스토어/유저 타입 추가
+8. `deploy.sh`를 GitHub Actions checkout 기준으로 정리
+9. `.github/workflows/deploy.yml` 배포 workflow 추가
+10. README에 self-hosted runner 서비스 전환 절차 추가
 
 ## 결정 사항
 
@@ -45,6 +49,7 @@
 3. `POST /api/courses/generate` 로딩/에러/재시도 UX 보강
 4. 결과 페이지를 실제 응답 구조 기준으로 상세 매핑
 5. 실제 OAuth 로그인과 `/api/auth/me` 연동으로 mock auth 제거
+6. 맥미니 `actions-runner`에서 `./svc.sh install && ./svc.sh start` 실행 후 서비스 상태 확인
 
 ## TODO
 

@@ -20,7 +20,6 @@ require_command() {
   fi
 }
 
-require_command git
 require_command npm
 require_command pm2
 require_command lsof
@@ -28,7 +27,9 @@ require_command lsof
 [[ -d "$APP_DIR" ]] || fail "app directory not found: $APP_DIR"
 [[ -f "$APP_DIR/package.json" ]] || fail "package.json not found in: $APP_DIR"
 
-CURRENT_BRANCH="$(git -C "$ROOT_DIR" branch --show-current)"
+CURRENT_BRANCH="${DEPLOY_BRANCH:-${GITHUB_REF_NAME:-$(git -C "$ROOT_DIR" branch --show-current 2>/dev/null || true)}}"
+
+[[ -n "$CURRENT_BRANCH" ]] || fail "deploy branch could not be resolved. set DEPLOY_BRANCH or run from a checked-out branch."
 
 case "$CURRENT_BRANCH" in
   main)
@@ -47,12 +48,6 @@ esac
 log "branch: $CURRENT_BRANCH"
 log "port: $PORT"
 log "process: $PROCESS_NAME"
-
-log "fetch latest code"
-git -C "$ROOT_DIR" fetch origin "$CURRENT_BRANCH"
-
-log "pull latest code with fast-forward only"
-git -C "$ROOT_DIR" pull --ff-only origin "$CURRENT_BRANCH"
 
 log "install dependencies"
 npm --prefix "$APP_DIR" ci
