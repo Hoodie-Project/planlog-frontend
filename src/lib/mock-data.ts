@@ -147,6 +147,48 @@ export const relatedCourseCards = [
   },
 ];
 
+export const recommendedAccommodations = [
+  {
+    id: "annk-stay",
+    badge: "감성힐링",
+    title: "안목 스테이",
+    area: "바다뷰",
+    price: "89,000원~",
+    tone: "text-[#49a6c7]",
+  },
+  {
+    id: "gangneung-guesthouse",
+    badge: "가성비",
+    title: "강릉 게스트하우스",
+    area: "역 5분",
+    price: "35,000원~",
+    tone: "text-[#243d6b]",
+  },
+  {
+    id: "gyeongpo-camping",
+    badge: "캠핑",
+    title: "경포 오토캠핑",
+    area: "해변",
+    price: "45,000원~",
+    tone: "text-[#4b965d]",
+  },
+];
+
+export const recommendedCourseReasons = [
+  "선택한 감성 '바다'와 일치하는 장소 4곳 포함",
+  "강릉역 기준 이동시간 30분 이내",
+  "오후 혼잡 피크 시간대 회피",
+  "이번 주 진행 중인 강릉 단오제와 가까움",
+];
+
+export const courseFeedbackOptions = ["더 여유로운 코스로", "걷는 시간 줄이기", "사진 명소 더 넣기", "축제 포함하기"];
+
+export const companionEmotionNotes = [
+  { rank: 1, mood: "평온함", quote: "혼자였지만 충분했던 하루", tone: "bg-[#f1ede2] text-[#8b7f57]" },
+  { rank: 2, mood: "설렘", quote: "바람이 기억나는 강릉", tone: "bg-[#e8f6ff] text-[#5c96b1]" },
+  { rank: 3, mood: "자유로움", quote: "계획보다 좋았던 우연", tone: "bg-[#eef8f6] text-[#5d9b8b]" },
+];
+
 export const recordsSummaryCards = [
   { label: "저장한 코스", value: "12", detail: "이번 달 +3" },
   { label: "완료한 스탬프", value: "18", detail: "바다존 5개" },

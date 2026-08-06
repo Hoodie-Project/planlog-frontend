@@ -45,7 +45,7 @@ export function MainShell({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="flex min-h-screen flex-col bg-white">
       <header className="sticky top-0 z-20 border-b border-slate-100 bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-20 max-w-[1240px] items-center justify-between px-4 lg:px-0">
           <Link className="text-2xl font-extrabold tracking-tight text-[#f30031]" href="/">
@@ -86,7 +86,11 @@ export function MainShell({ children }: { children: ReactNode }) {
           </nav>
         </div>
       </header>
-      <main>{children}</main>
+      <main className="flex-1">{children}</main>
+      <footer className="bg-white py-[25px] text-center text-[15px] font-semibold leading-[1.4] text-slate-600">
+        <p>Contact: Hoodiev@google.com</p>
+        <p className="mt-2">Copyright © Hoodiev All right reserved.</p>
+      </footer>
       <LoginModal />
     </div>
   );

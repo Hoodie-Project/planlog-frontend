@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MainShell } from "@/components/layout/MainShell";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { SectionPanel } from "@/components/mock-pages/MockPageShared";
 import {
   recordsArchiveCards,
   recordsRecentActivities,
@@ -38,11 +38,8 @@ export default function RecordsPage() {
         </section>
 
         <section className="mt-6 grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
-          <Card className="rounded-[20px] border-[#ffe0e7] shadow-[0_8px_24px_rgba(17,17,17,0.05)]">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-slate-900">나의 강원도 감성 지도</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <SectionPanel title="나의 강원도 감성 지도" className="border-[#ffe0e7] shadow-[0_8px_24px_rgba(17,17,17,0.05)]" contentClassName="p-6">
+            <div className="space-y-4">
               {zoneProgress.map((zone) => (
                 <div key={zone.label}>
                   <div className="mb-2 flex items-center justify-between text-[15px] tracking-[-0.35px]">
@@ -54,14 +51,11 @@ export default function RecordsPage() {
                   </div>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </SectionPanel>
 
-          <Card className="rounded-[20px] border-[#ffe0e7] shadow-[0_8px_24px_rgba(17,17,17,0.05)]">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-slate-900">나의 여행 성향</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <SectionPanel title="나의 여행 성향" className="border-[#ffe0e7] shadow-[0_8px_24px_rgba(17,17,17,0.05)]" contentClassName="p-6">
+            <div className="space-y-4">
               <div className="rounded-[18px] border border-[#ffd6df] bg-[#fff6f8] px-5 py-4">
                 <p className="text-[14px] font-semibold tracking-[-0.35px] text-[#f30031]">현재 가장 가까운 여행자 타입</p>
                 <p className="mt-2 text-[22px] font-bold tracking-[-0.55px] text-slate-900">조용한 바다 산책형</p>
@@ -80,16 +74,13 @@ export default function RecordsPage() {
                   </span>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </SectionPanel>
         </section>
 
         <section className="mt-6 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
-          <Card className="rounded-[20px] border-[#ffe0e7] shadow-[0_8px_24px_rgba(17,17,17,0.05)]">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-slate-900">최근 활동</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <SectionPanel title="최근 활동" className="border-[#ffe0e7] shadow-[0_8px_24px_rgba(17,17,17,0.05)]" contentClassName="p-6">
+            <div className="space-y-3">
               {recordsRecentActivities.map((item) => (
                 <div key={`${item.title}-${item.time}`} className="rounded-[16px] border border-[#ffe8ee] bg-white px-5 py-4">
                   <div className="flex items-start justify-between gap-3">
@@ -98,14 +89,11 @@ export default function RecordsPage() {
                   </div>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </SectionPanel>
 
-          <Card className="rounded-[20px] border-[#ffe0e7] shadow-[0_8px_24px_rgba(17,17,17,0.05)]">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-slate-900">최근 기록 카드</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <SectionPanel title="최근 기록 카드" className="border-[#ffe0e7] shadow-[0_8px_24px_rgba(17,17,17,0.05)]" contentClassName="p-6">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {recordsArchiveCards.map((record) => (
                 <article key={record.id} className="overflow-hidden rounded-[18px] border border-[#ffe8ee] bg-white">
                   <img alt={record.title} className="h-[180px] w-full object-cover" src={record.image} />
@@ -131,8 +119,8 @@ export default function RecordsPage() {
                   </div>
                 </article>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </SectionPanel>
         </section>
       </div>
     </MainShell>
