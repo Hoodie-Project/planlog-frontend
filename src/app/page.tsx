@@ -181,11 +181,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      <footer className="bg-white py-[25px] text-center text-[15px] font-semibold leading-[1.4] text-slate-600">
-        <p>Contact: Hoodiev@google.com</p>
-        <p className="mt-2">Copyright © Hoodiev All right reserved.</p>
-      </footer>
     </MainShell>
   );
 }
