@@ -101,6 +101,104 @@ export const recordCards = [
   { id: "chuncheon-nature", title: "춘천 자연 코스", meta: "방문 장소 3곳 · 스탬프 3개", note: "바람이 기억나는 여행" },
 ];
 
+export const recommendedCourseTags = ["바다 감성", "강릉역 출발", "혼자 여행", "도보 2.8km"];
+
+export const recommendedCourseStops = [
+  { name: "강릉역", category: "출발", time: "10:30", note: "KTX 도착 후 바로 이동" },
+  { name: "오죽헌", category: "레트로", time: "11:00", note: "고즈넉한 산책과 사진 포인트" },
+  { name: "중앙시장", category: "맛집", time: "12:30", note: "점심과 로컬 간식 추천" },
+  { name: "안목해변 커피거리", category: "디저트", time: "14:00", note: "바다 감성 카페 거리" },
+  { name: "주문진 등대", category: "포토", time: "16:00", note: "해 질 녘 사진 추천 포인트" },
+];
+
+export const recommendedCourseInsights = [
+  {
+    title: "이동 피로도 낮음",
+    value: "도보 2.8km",
+    description: "역 기준 이동 동선을 짧게 묶어서 혼자 여행해도 부담이 적어요.",
+  },
+  {
+    title: "가장 잘 맞는 감성",
+    value: "바다 · 레트로",
+    description: "오전은 정적인 문화 공간, 오후는 해변 중심으로 감성을 분배했어요.",
+  },
+  {
+    title: "혼잡도 예측",
+    value: "보통",
+    description: "점심 시간대만 붐비고 나머지는 여유롭게 둘러볼 수 있는 코스예요.",
+  },
+];
+
+export const relatedCourseCards = [
+  {
+    title: "레트로 강릉 골목 코스",
+    summary: "중앙시장, 명주동, 커피거리 중심",
+    chips: ["레트로", "포토", "반나절"],
+  },
+  {
+    title: "초록 감성 평창 코스",
+    summary: "허브나라, 숲 산책, 조용한 카페",
+    chips: ["자연", "휴식", "자동차"],
+  },
+  {
+    title: "속초 바다 산책 코스",
+    summary: "등대해변, 외옹치, 청초호 야경",
+    chips: ["바다", "산책", "노을"],
+  },
+];
+
+export const recordsSummaryCards = [
+  { label: "저장한 코스", value: "12", detail: "이번 달 +3" },
+  { label: "완료한 스탬프", value: "18", detail: "바다존 5개" },
+  { label: "기록 카드", value: "7", detail: "최근 작성 2건" },
+];
+
+export const recordsTraitChips = [
+  { label: "바다 감성", value: "42%" },
+  { label: "레트로 감성", value: "28%" },
+  { label: "자연 감성", value: "18%" },
+  { label: "포토 감성", value: "12%" },
+];
+
+export const recordsRecentActivities = [
+  { title: "강릉 바다 감성 코스 저장", time: "오늘 · 10:24", tone: "text-[#f30031]" },
+  { title: "주문진 등대 스탬프 획득", time: "어제 · 18:12", tone: "text-[#ff5c7d]" },
+  { title: "원주 레트로 기록 카드 작성", time: "3일 전", tone: "text-slate-700" },
+];
+
+export const recordsArchiveCards = [
+  {
+    id: "gangneung-sea",
+    title: "강릉 바다 감성 코스",
+    date: "2026.07.28",
+    location: "강릉",
+    stamps: "스탬프 3/5",
+    note: "파도 소리만으로도 충분했던 하루",
+    image: festivalCards[1].image,
+    tags: ["바다", "혼자", "카페"],
+  },
+  {
+    id: "wonju-retro",
+    title: "원주 레트로 골목 산책",
+    date: "2026.07.20",
+    location: "원주",
+    stamps: "스탬프 4/5",
+    note: "기억보다 좋았던 오래된 간판들",
+    image: festivalCards[0].image,
+    tags: ["레트로", "시장", "사진"],
+  },
+  {
+    id: "chuncheon-nature",
+    title: "춘천 초록 쉼표 코스",
+    date: "2026.07.12",
+    location: "춘천",
+    stamps: "스탬프 2/5",
+    note: "산책로 바람이 가장 오래 남았다",
+    image: festivalCards[2].image,
+    tags: ["자연", "산책", "휴식"],
+  },
+];
+
 type LandingPreviewItem = [time: string, label: string, tags: string[]];
 
 type LandingPreview = {
