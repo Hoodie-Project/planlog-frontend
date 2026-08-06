@@ -154,35 +154,38 @@ export const howToMakeCourse = [
   { step: "2", title: "여행 타입", description: "누구와 여행을 떠나세요?", accent: "#ffc5d1" },
   { step: "3", title: "여행 시작 시간", description: "언제 출발하시나요?", accent: "#ff96ab" },
   { step: "4", title: "여행 시작 장소", description: "어디에서 여행을 시작하세요?", accent: "#ff5c7d" },
-  { step: "5", title: "코스 완성", description: "코스 만들기가 완성되었어요!", accent: "#f30031" },
+  { step: "4", title: "코스 완성", description: "코스 만들기가 완성되었어요!", accent: "#f30031" },
 ];
 
-export const landingStampIcons = [
+export const landingStampProgress = [
   {
-    src: "https://www.figma.com/api/mcp/asset/a2195a31-08ac-4627-955b-cab8c560d402",
-    alt: "wave stamp",
-    className: "left-[140px] top-[118px] h-[120px] w-[120px] -rotate-6",
+    badge: "https://www.figma.com/api/mcp/asset/03ed6a2d-047e-40c1-b446-1978e6934519.svg",
+    outer: "https://www.figma.com/api/mcp/asset/74ea3d8b-ef73-4f8d-b430-4a8a21359aba.svg",
+    inner: "https://www.figma.com/api/mcp/asset/2706a691-49b9-44c6-8e83-0d0c86be90ab.svg",
+    done: true,
   },
   {
-    src: "https://www.figma.com/api/mcp/asset/02da300e-735a-44e1-a1b5-d1cd5a133473",
-    alt: "purple stamp",
-    className: "left-[-6px] top-[252px] h-[120px] w-[120px] rotate-[10deg]",
+    badge: "https://www.figma.com/api/mcp/asset/03ed6a2d-047e-40c1-b446-1978e6934519.svg",
+    outer: "https://www.figma.com/api/mcp/asset/74ea3d8b-ef73-4f8d-b430-4a8a21359aba.svg",
+    inner: "https://www.figma.com/api/mcp/asset/2706a691-49b9-44c6-8e83-0d0c86be90ab.svg",
+    done: true,
   },
   {
-    src: "https://www.figma.com/api/mcp/asset/ca5a919e-8a51-4f3d-8ce9-3f9b2360e0f5",
-    alt: "forest stamp",
-    className: "left-[108px] top-[340px] h-[136px] w-[136px] -rotate-[21deg]",
+    badge: "https://www.figma.com/api/mcp/asset/e8e1514b-a2a7-461d-94eb-d0d4de318173.svg",
+    outer: "https://www.figma.com/api/mcp/asset/08383550-0a88-4d0c-8d06-e4438c5bbaf9.svg",
+    inner: "https://www.figma.com/api/mcp/asset/f62de102-c5e6-4ca2-8edb-fcbd2cf5976c.svg",
+    done: false,
   },
   {
-    src: "https://www.figma.com/api/mcp/asset/cbd664a0-e908-4c12-acbc-4966284f5c20",
-    alt: "photo stamp",
-    className: "right-[96px] top-[168px] h-[124px] w-[124px] rotate-[12deg]",
+    badge: "https://www.figma.com/api/mcp/asset/e8e1514b-a2a7-461d-94eb-d0d4de318173.svg",
+    outer: "https://www.figma.com/api/mcp/asset/08383550-0a88-4d0c-8d06-e4438c5bbaf9.svg",
+    inner: "https://www.figma.com/api/mcp/asset/f62de102-c5e6-4ca2-8edb-fcbd2cf5976c.svg",
+    done: false,
   },
   {
-    src: "https://www.figma.com/api/mcp/asset/9b7ab796-547e-433e-a0f7-5caeac06916b",
-    alt: "coffee stamp",
-    className: "right-[8px] top-[318px] h-[128px] w-[128px] -rotate-[8deg]",
+    badge: "https://www.figma.com/api/mcp/asset/e8e1514b-a2a7-461d-94eb-d0d4de318173.svg",
+    outer: "https://www.figma.com/api/mcp/asset/08383550-0a88-4d0c-8d06-e4438c5bbaf9.svg",
+    inner: "https://www.figma.com/api/mcp/asset/f62de102-c5e6-4ca2-8edb-fcbd2cf5976c.svg",
+    done: false,
   },
-];
-
-export const landingStampCurve = "https://www.figma.com/api/mcp/asset/659b787d-c870-4dbd-b5f1-34d140d73e39";
+] as const;

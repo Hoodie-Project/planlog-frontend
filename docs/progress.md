@@ -22,6 +22,7 @@
 9. `.github/workflows/deploy.yml` 배포 workflow 추가
 10. README에 self-hosted runner 서비스 전환 절차 추가
 11. workflow 배포 기준 경로를 `/Users/macmini/planlog/planlog-frontend`로 고정
+12. 피그마 `1286:1809` 기준 랜딩페이지 레이아웃/카드/스탬프 섹션 재정렬
 
 ## 결정 사항
 
@@ -51,6 +52,7 @@
 4. 결과 페이지를 실제 응답 구조 기준으로 상세 매핑
 5. 실제 OAuth 로그인과 `/api/auth/me` 연동으로 mock auth 제거
 6. 맥미니 `actions-runner`에서 `./svc.sh install && ./svc.sh start` 실행 후 서비스 상태 확인
+7. 랜딩페이지 모바일/실서버 배포 결과를 피그마와 재대조
 
 ## TODO
 
