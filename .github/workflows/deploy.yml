@@ -24,6 +24,7 @@ jobs:
     steps:
       - name: Install PM2
         run: |
+          set -euxo pipefail
           if ! command -v pm2 >/dev/null 2>&1; then
             npm install -g pm2
           fi
@@ -32,7 +33,12 @@ jobs:
         env:
           DEPLOY_BRANCH: ${{ github.ref_name }}
         run: |
+          set -euxo pipefail
           cd /Users/macmini/planlog/planlog-frontend
+          pwd
+          whoami
+          git branch --show-current
+          git status --short
           git fetch origin "$DEPLOY_BRANCH"
           git checkout "$DEPLOY_BRANCH"
           git pull --ff-only origin "$DEPLOY_BRANCH"
