@@ -1,126 +1,169 @@
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
+import sentimentCalmIcon from "@/asset/svgs/sentiment-calm.svg";
+import wavesIcon from "@/asset/svgs/waves.svg";
 import { MainShell } from "@/components/layout/MainShell";
-import { SectionPanel } from "@/components/mock-pages/MockPageShared";
-import {
-  recordsArchiveCards,
-  recordsRecentActivities,
-  recordsSummaryCards,
-  recordsTraitChips,
-  zoneProgress,
-} from "@/lib/mock-data";
+import { Card, CardContent } from "@/components/ui/Card";
+import { recordsArchiveCards, recordsSummaryCards } from "@/lib/mock-data";
+import { getDominantTravelProfile, getRecordTagTheme, getTravelProfileTheme, type RecordTagKey, type TravelProfileMetric } from "@/lib/records-theme";
+
+const recordTags = [
+  "바다",
+  "산악",
+  "자연",
+  "문화",
+  "포토",
+] as const;
+
+const travelProfileRows: TravelProfileMetric[] = [
+  { label: "동해 바다", percent: 72 },
+  { label: "설원·산악", percent: 22 },
+  { label: "계곡·자연", percent: 66 },
+  { label: "레트로·문화", percent: 17 },
+  { label: "절경·포토", percent: 46 },
+] as const;
 
 export default function RecordsPage() {
+  const summaryCards = [
+    { ...recordsSummaryCards[0], href: "/course/saved" },
+    { ...recordsSummaryCards[2], href: "/records" },
+    { ...recordsSummaryCards[1], href: "/records" },
+  ];
+  const recentCards = recordsArchiveCards.slice(0, 3);
+  const dominantProfile = getDominantTravelProfile(travelProfileRows);
+  const dominantProfileTheme = dominantProfile ? getTravelProfileTheme(dominantProfile.label) : null;
+
   return (
     <MainShell>
-      <div className="mx-auto max-w-[1240px] px-4 py-12 lg:px-0">
-        <section className="rounded-[24px] border border-[#ffe0e7] bg-white px-8 py-8 shadow-[0_10px_30px_rgba(17,17,17,0.06)]">
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            <div className="space-y-4">
-              <p className="text-[15px] font-semibold tracking-[-0.35px] text-[#f30031]">나의 기록</p>
-              <div className="space-y-2">
-                <h1 className="text-[36px] font-extrabold leading-[1.35] tracking-[-0.9px] text-slate-900">하영님의 여행 기록 보관함</h1>
-                <p className="text-[18px] leading-[1.5] tracking-[-0.45px] text-slate-600">
-                  저장한 코스, 스탬프 진행도, 최근 기록을 한 화면에서 확인하는 목업 UI입니다.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid w-full gap-3 sm:grid-cols-3 lg:w-[520px]">
-              {recordsSummaryCards.map((item) => (
-                <div key={item.label} className="rounded-[18px] border border-[#ffe8ee] bg-[#fffafb] px-5 py-4">
-                  <p className="text-[14px] tracking-[-0.35px] text-slate-500">{item.label}</p>
-                  <p className="mt-2 text-[24px] font-bold tracking-[-0.6px] text-slate-900">{item.value}</p>
-                  <p className="mt-1 text-[13px] tracking-[-0.3px] text-[#f30031]">{item.detail}</p>
+      <div className="mx-auto max-w-[1240px] px-4 py-[60px] lg:px-0">
+        <section className="mx-auto max-w-[820px]">
+          <Card className="rounded-2xl border-[#f1f1f5] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)]">
+            <CardContent className="grid gap-5 p-[19px] lg:grid-cols-[1fr_454px] lg:items-center">
+              <div className="space-y-3">
+                <p className="text-[18px] font-semibold leading-[1.4] tracking-[-0.45px] text-[#ff1f4c]">나의 기록</p>
+                <div className="space-y-2">
+                  <h1 className="text-[24px] font-semibold leading-[1.4] tracking-[-0.6px] text-[#111111]">하영님의 여행 기록 보관함</h1>
+                  <p className="text-[14px] leading-[1.4] tracking-[-0.35px] text-[#505050]">
+                    여행 성향·저장한 코스·최근 기록 ·스탬프 진행도를
+                    <br />
+                    한번에 모아볼 수 있어요.
+                  </p>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="mt-6 grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
-          <SectionPanel title="나의 강원도 감성 지도" className="border-[#ffe0e7] shadow-[0_8px_24px_rgba(17,17,17,0.05)]" contentClassName="p-6">
-            <div className="space-y-4">
-              {zoneProgress.map((zone) => (
-                <div key={zone.label}>
-                  <div className="mb-2 flex items-center justify-between text-[15px] tracking-[-0.35px]">
-                    <span className="font-semibold text-slate-900">{zone.label}</span>
-                    <span className="text-slate-500">{zone.value}</span>
-                  </div>
-                  <div className="h-2.5 rounded-full bg-[#ffe8ee]">
-                    <div className="h-2.5 rounded-full bg-[#f30031]" style={{ width: zone.percent }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </SectionPanel>
-
-          <SectionPanel title="나의 여행 성향" className="border-[#ffe0e7] shadow-[0_8px_24px_rgba(17,17,17,0.05)]" contentClassName="p-6">
-            <div className="space-y-4">
-              <div className="rounded-[18px] border border-[#ffd6df] bg-[#fff6f8] px-5 py-4">
-                <p className="text-[14px] font-semibold tracking-[-0.35px] text-[#f30031]">현재 가장 가까운 여행자 타입</p>
-                <p className="mt-2 text-[22px] font-bold tracking-[-0.55px] text-slate-900">조용한 바다 산책형</p>
-                <p className="mt-2 text-[15px] leading-[1.5] tracking-[-0.35px] text-slate-600">
-                  혼자서 여유 있게 이동하며 바다와 레트로 공간을 번갈아 즐기는 패턴이 강해요.
-                </p>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                {recordsTraitChips.map((item) => (
-                  <span
+              <div className="grid gap-2 sm:grid-cols-3">
+                {summaryCards.map((item) => (
+                  <Link
                     key={item.label}
-                    className="inline-flex h-9 items-center rounded-full border border-[#ffe0e7] bg-white px-4 text-[14px] font-semibold tracking-[-0.35px] text-slate-700"
+                    className="relative block rounded-2xl border border-[#f1f1f5] bg-white px-[21px] py-[19px] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)] transition-transform hover:-translate-y-[1px]"
+                    href={item.href}
                   >
-                    {item.label} {item.value}
-                  </span>
+                    <ChevronRight className="absolute right-[13px] top-[19px] h-5 w-5 text-[#999999]" strokeWidth={1.8} />
+                    <p className="text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">{item.label}</p>
+                    <p className="mt-1 text-[12px] leading-[1.4] tracking-[-0.3px] text-[#ff1f4c]">{item.detail}</p>
+                    <p className="mt-[10px] text-[24px] font-semibold leading-[1.4] tracking-[-0.6px] text-[#ff1f4c]">{item.value}</p>
+                  </Link>
                 ))}
               </div>
-            </div>
-          </SectionPanel>
+            </CardContent>
+          </Card>
         </section>
 
-        <section className="mt-6 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
-          <SectionPanel title="최근 활동" className="border-[#ffe0e7] shadow-[0_8px_24px_rgba(17,17,17,0.05)]" contentClassName="p-6">
-            <div className="space-y-3">
-              {recordsRecentActivities.map((item) => (
-                <div key={`${item.title}-${item.time}`} className="rounded-[16px] border border-[#ffe8ee] bg-white px-5 py-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-[16px] font-semibold leading-[1.45] tracking-[-0.35px] text-slate-900">{item.title}</p>
-                    <span className={`shrink-0 text-[13px] font-semibold tracking-[-0.3px] ${item.tone}`}>{item.time}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </SectionPanel>
+        <section className="mx-auto mt-16 grid max-w-[820px] gap-5 lg:grid-cols-[432px_368px]">
+          <div className="space-y-5">
+            <h2 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111111]">나의 여행 성향</h2>
 
-          <SectionPanel title="최근 기록 카드" className="border-[#ffe0e7] shadow-[0_8px_24px_rgba(17,17,17,0.05)]" contentClassName="p-6">
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {recordsArchiveCards.map((record) => (
-                <article key={record.id} className="overflow-hidden rounded-[18px] border border-[#ffe8ee] bg-white">
-                  <img alt={record.title} className="h-[180px] w-full object-cover" src={record.image} />
-                  <div className="space-y-3 px-5 py-5">
-                    <div className="space-y-1">
-                      <p className="text-[13px] font-semibold tracking-[-0.3px] text-[#f30031]">
-                        {record.location} · {record.date}
-                      </p>
-                      <h3 className="text-[18px] font-semibold leading-[1.4] tracking-[-0.45px] text-slate-900">{record.title}</h3>
-                    </div>
-                    <p className="text-[14px] tracking-[-0.35px] text-slate-500">{record.stamps}</p>
-                    <p className="text-[14px] leading-[1.5] tracking-[-0.35px] text-slate-600">&quot;{record.note}&quot;</p>
-                    <div className="flex flex-wrap gap-2">
-                      {record.tags.map((tag) => (
-                        <span key={tag} className="inline-flex h-7 items-center rounded-full bg-slate-100 px-3 text-[12px] font-semibold tracking-[-0.3px] text-slate-700">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <Link className="inline-flex text-[14px] font-semibold tracking-[-0.35px] text-[#f30031]" href={`/records/${record.id}`}>
-                      기록 카드 보기
-                    </Link>
+            <Card className="rounded-2xl border-[#f1f1f5] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)]">
+              <CardContent className="p-[21px]">
+                <p className="text-[18px] font-semibold leading-[1.4] tracking-[-0.45px] text-[#111111]">하영님은</p>
+                <p className="mt-2 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">여유롭게 바다를 거닐며 충전하는 여행자</p>
+
+                <div className="mt-5 rounded-lg border border-[#f1f1f5] bg-white px-6 py-6 shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)]">
+                  <div className="flex items-center justify-center gap-[2px]">
+                    <img
+                      alt=""
+                      aria-hidden="true"
+                      className="h-11 w-11 object-contain"
+                      src={wavesIcon.src}
+                      style={dominantProfileTheme ? { filter: dominantProfileTheme.iconFilter } : undefined}
+                    />
+                    <img
+                      alt=""
+                      aria-hidden="true"
+                      className="h-11 w-11 object-contain"
+                      src={sentimentCalmIcon.src}
+                      style={dominantProfileTheme ? { filter: dominantProfileTheme.iconFilter } : undefined}
+                    />
                   </div>
-                </article>
-              ))}
+                  <p className="mt-3 text-center text-[14px] font-semibold leading-[1.4] tracking-[-0.35px] text-[#111111]">조용한 바다 산책형</p>
+                </div>
+
+                <div className="mt-7 space-y-[10px]">
+                  {travelProfileRows.map((row) => (
+                    <div key={row.label} className="grid grid-cols-[67px_1fr_34px] items-center gap-[10px]">
+                      {(() => {
+                        const theme = getTravelProfileTheme(row.label);
+
+                        return (
+                          <>
+                      <span className="text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">{row.label}</span>
+                      <div className="h-2 rounded-full bg-[#f1f1f5]">
+                        <div className={`h-2 rounded-full ${theme.progressClassName}`} style={{ width: `${row.percent}%` }} />
+                      </div>
+                      <span className={`text-right text-[12px] leading-[1.4] tracking-[-0.3px] ${theme.textClassName}`}>{row.percent}%</span>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111111]">최근 기록 카드</h2>
+              <button className="inline-flex items-center gap-1 text-[14px] font-semibold leading-[1.4] tracking-[-0.35px] text-[#505050]" type="button">
+                전체({recentCards.length})
+                <ChevronRight className="h-4 w-4" strokeWidth={1.8} />
+              </button>
             </div>
-          </SectionPanel>
+
+            <div className="space-y-[17px]">
+              {recentCards.map((record, index) => {
+                const tag = (recordTags[index] ?? recordTags[0]) as RecordTagKey;
+                const tagTheme = getRecordTagTheme(tag);
+
+                return (
+                  <Link key={record.id} className="block" href={`/records/${record.id}`}>
+                    <Card className="rounded-2xl border-[#f1f1f5] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)] transition-transform hover:-translate-y-[1px]">
+                      <CardContent className="flex items-start justify-between gap-4 p-5">
+                        <div className="min-w-0 space-y-2">
+                          <div className="flex items-center gap-[7px]">
+                            <span
+                              className={`inline-flex h-6 items-center rounded-full px-2 text-[12px] font-semibold leading-[1.4] tracking-[-0.3px] ${tagTheme.chipBackgroundClassName} ${tagTheme.chipTextClassName}`}
+                            >
+                              {tag}
+                            </span>
+                            <span className="text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">{record.date}</span>
+                          </div>
+                          <p className="text-[18px] font-semibold leading-[1.4] tracking-[-0.45px] text-[#111111]">{record.title}</p>
+                          <div className="flex items-center gap-[6px] text-[14px] leading-[1.4] tracking-[-0.35px] text-[#ff1f4c]">
+                            <span>방문 장소 4곳</span>
+                            <span className="h-[10px] w-px rounded-[9px] bg-[#999999]" />
+                            <span>{record.stamps}</span>
+                          </div>
+                        </div>
+
+                        <ChevronRight className="mt-1 h-6 w-6 shrink-0 text-[#999999]" strokeWidth={1.8} />
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
         </section>
       </div>
     </MainShell>

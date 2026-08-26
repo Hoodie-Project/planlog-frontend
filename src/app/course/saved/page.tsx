@@ -1,170 +1,121 @@
 "use client";
 
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
+import coffeeIcon from "@/asset/svgs/coffee.svg";
+import forestIcon from "@/asset/svgs/forest.svg";
+import mountainFlagIcon from "@/asset/svgs/mountain-flag.svg";
 import { MainShell } from "@/components/layout/MainShell";
-import { BreadcrumbTrail, RouteMapMock, SectionPanel, StatPill, TimelineList } from "@/components/mock-pages/MockPageShared";
-import { Button } from "@/components/ui/Button";
-import { currentCourse, recommendedCourseTags, savedCourses } from "@/lib/mock-data";
+import { Card, CardContent } from "@/components/ui/Card";
 
-const courseDetailStops = [
-  {
-    name: "강릉역",
-    time: "10:30",
-    category: "여행 시작",
-    congestion: null,
-    move: null,
-    active: true,
-  },
-  {
-    name: "오죽헌",
-    time: "11:00",
-    category: "레트로 · 문화존",
-    congestion: "혼잡도 보통",
-    move: "도보 15분",
-    active: false,
-  },
-  {
-    name: "중앙시장",
-    time: "12:30",
-    category: "맛집 · 시장",
-    congestion: "혼잡도 여유",
-    move: "버스 10분",
-    active: false,
-  },
-  {
-    name: "안목해변 커피거리",
-    time: "14:00",
-    category: "바다 감성",
-    congestion: "혼잡도 낮음",
-    move: "도보 20분",
-    active: false,
-  },
-  {
-    name: "주문진 등대",
-    time: "16:00",
-    category: "포토존",
-    congestion: "혼잡도 여유",
-    move: "버스 25분",
-    active: false,
-  },
-  {
-    name: "숙소 체크인",
-    time: "18:00",
-    category: "코스 종료",
-    congestion: null,
-    move: null,
-    active: false,
-    done: true,
-  },
-];
+const upcomingCourse = {
+  dday: "D-6",
+  dateTime: "2026.08.10 월요일 10:30",
+  title: "바다 감성 강릉 하루 코스",
+  details: ["동해바다", "가족", "강릉역 출발"],
+};
 
-const courseDetailPlaces = ["오죽헌", "중앙시장", "안목해변 커피거리", "주문진 등대"];
+const savedCourseItems = [
+  {
+    title: "레트로 원주 코스",
+    date: "2026.09.04",
+    spotCount: "장소 6곳",
+    status: "대기중",
+    statusTone: "bg-[#F6F6F6] text-[#454545]",
+    icon: coffeeIcon.src,
+  },
+  {
+    title: "자연 춘천 코스",
+    date: "2026.10.20",
+    spotCount: "장소 4곳",
+    status: "진행중",
+    statusTone: "bg-[#D5F0E3] text-[#016110]",
+    icon: forestIcon.src,
+  },
+  {
+    title: "설원 평창 코스",
+    date: "2026.11.29",
+    spotCount: "장소 5곳",
+    status: "완료",
+    statusTone: "bg-[#FF1F4C] text-white",
+    icon: mountainFlagIcon.src,
+  },
+] as const;
 
 export default function SavedCoursePage() {
-  const upcomingCourse = savedCourses[0];
-  const timelineItems = courseDetailStops.map((stop, index) => ({
-    ...stop,
-    href: !stop.done ? `/records/${index + 1}` : undefined,
-  }));
-
   return (
     <MainShell>
-      <div className="bg-white">
-        <section className="border-b border-[#ece2d6] bg-[#fffcf7]">
-          <div className="mx-auto max-w-[1240px] px-4 py-10 lg:px-0">
-            <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
-                <div className="space-y-4">
-                  <div className="space-y-3">
-                    <Link
-                    className="inline-flex items-center gap-2 text-[17px] font-semibold tracking-[-0.4px] text-slate-600 transition hover:text-slate-900"
-                    href="/course/result"
-                    >
-                      <span aria-hidden="true">‹</span>
-                      <span>코스 결과로</span>
-                    </Link>
-                    <BreadcrumbTrail items={[{ label: "추천 코스", href: "/course/result" }, { label: "코스 상세" }]} />
+      <div className="mx-auto flex max-w-[1240px] justify-center px-4 py-[60px] lg:px-0">
+        <div className="w-full max-w-[432px]">
+          <h1 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111111]">저장한 코스</h1>
+
+          <section className="mt-[34px]">
+            <p className="text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111111]">다가오는 여행</p>
+
+            <Link className="mt-4 block" href="/course/result">
+              <Card className="rounded-2xl border-[#FF1F4C] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)] transition-transform hover:-translate-y-[1px]">
+                <CardContent className="flex items-center gap-3 p-5">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-[6px]">
+                      <span className="inline-flex h-6 items-center rounded-full bg-[#FF1F4C] px-2 text-[12px] font-semibold leading-[1.4] tracking-[-0.3px] text-white">
+                        {upcomingCourse.dday}
+                      </span>
+                      <span className="text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">{upcomingCourse.dateTime}</span>
+                    </div>
+
+                    <p className="mt-2 pl-[2px] text-[18px] font-semibold leading-[1.4] tracking-[-0.45px] text-[#111111]">
+                      {upcomingCourse.title}
+                    </p>
+
+                    <div className="mt-1 flex items-center gap-[6px] pl-[2px] text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">
+                      <span>{upcomingCourse.details[0]}</span>
+                      <span className="h-[10px] w-px rounded-[9px] bg-[#999999]" />
+                      <span>{upcomingCourse.details[1]}</span>
+                      <span className="h-[10px] w-px rounded-[9px] bg-[#999999]" />
+                      <span>{upcomingCourse.details[2]}</span>
+                    </div>
                   </div>
 
-                <div className="flex items-center gap-3">
-                  <span className="inline-flex h-8 items-center rounded-full bg-[#f30031] px-4 text-[18px] font-bold tracking-[-0.45px] text-white">
-                    {upcomingCourse.dday}
-                  </span>
-                  <span className="text-[18px] font-semibold tracking-[-0.45px] text-slate-500">2026.06.21 토요일</span>
-                </div>
+                  <ChevronRight className="h-6 w-6 shrink-0 text-[#999999]" strokeWidth={1.8} />
+                </CardContent>
+              </Card>
+            </Link>
+          </section>
 
-                <div className="space-y-2">
-                  <h1 className="text-[48px] font-extrabold tracking-[-1.1px] text-slate-900">바다 감성 강릉 하루 코스</h1>
-                  <p className="text-[22px] tracking-[-0.55px] text-slate-600">강릉역 출발 · 10:30 시작 · 혼자 · 조용히 쉬기</p>
-                </div>
+          <section className="mt-[52px]">
+            <p className="text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111111]">저장한 코스 목록</p>
 
-                <div className="flex flex-wrap gap-3">
-                  <StatPill icon="◔" label="총 이동 1시간 10분" />
-                  <StatPill icon="◉" label="혼잡도 낮음" tone="positive" />
-                  <StatPill icon="⌖" label="도보 2.8km" />
-                </div>
-              </div>
+            <div className="mt-4 space-y-[10px]">
+              {savedCourseItems.map((item, index) => (
+                <Link key={`${item.title}-${item.date}`} className="block" href={index === 0 ? "/course/result" : "/course/result"}>
+                  <Card className="rounded-2xl border-[#F1F1F5] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)] transition-transform hover:-translate-y-[1px]">
+                    <CardContent className="flex items-center justify-between gap-3 px-[19px] py-[19px]">
+                      <div className="flex min-w-0 items-center gap-[14px]">
+                        <img alt="" aria-hidden="true" className="h-8 w-8 shrink-0 object-contain" src={item.icon} />
 
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  className="h-12 rounded-[14px] border border-[#e8dfd3] bg-white px-6 text-[18px] font-semibold text-slate-900 hover:bg-[#faf6ef]"
-                  variant="outline"
-                >
-                  수정
-                </Button>
-                <Button
-                  className="h-12 rounded-[14px] border border-[#e8dfd3] bg-white px-6 text-[18px] font-semibold text-slate-900 hover:bg-[#faf6ef]"
-                  variant="outline"
-                >
-                  다시 추천
-                </Button>
-              </div>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-[14px] font-semibold leading-[1.4] text-[#111111]">{item.title}</p>
+                            <span className="text-[12px] leading-[1.4] tracking-[-0.3px] text-[#111111]">{item.date}</span>
+                            <span className="h-[10px] w-px rounded-[9px] bg-[#999999]" />
+                            <span className="text-[12px] leading-[1.4] tracking-[-0.3px] text-[#111111]">{item.spotCount}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex shrink-0 items-center gap-3">
+                        <span className={`inline-flex h-6 items-center rounded-full px-2 text-[12px] font-semibold leading-[1.4] tracking-[-0.3px] ${item.statusTone}`}>
+                          {item.status}
+                        </span>
+                        <ChevronRight className="h-5 w-5 text-[#999999]" strokeWidth={1.8} />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
             </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-[1240px] px-4 py-8 lg:px-0">
-          <div className="grid gap-8 xl:grid-cols-[1.04fr_0.96fr]">
-            <RouteMapMock
-              actionLabel="길찾기 시작"
-              summaryLines={
-                <>
-                  강릉역 → 오죽헌 → 중앙시장
-                  <br />→ 안목해변 → 주문진 등대
-                </>
-              }
-            />
-
-            <TimelineList items={timelineItems} title="일정표" titleClassName="text-[42px] font-extrabold tracking-[-0.95px]" />
-          </div>
-
-          <SectionPanel className="mt-6 rounded-[26px] shadow-[0_10px_30px_rgba(17,17,17,0.04)]" contentClassName="p-6">
-              <h2 className="text-[40px] font-extrabold tracking-[-0.9px] text-slate-900">코스 상세</h2>
-
-              <div className="mt-6 flex flex-wrap gap-4">
-                {courseDetailPlaces.map((place) => (
-                  <Link
-                    key={place}
-                    className="inline-flex h-16 items-center rounded-[18px] border border-[#e8dfd3] bg-white px-7 text-[20px] font-bold tracking-[-0.45px] text-slate-800 transition hover:bg-[#fffcf7]"
-                    href="/records"
-                  >
-                    {place}
-                  </Link>
-                ))}
-              </div>
-
-              <div className="mt-6 flex flex-wrap gap-2">
-                {recommendedCourseTags.map((tag) => (
-                  <span key={tag} className="inline-flex rounded-full bg-[#f6f1e8] px-4 py-2 text-[14px] font-semibold tracking-[-0.3px] text-slate-600">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              <div className="mt-6 rounded-[20px] border border-[#efe6d8] bg-[#fffcf7] px-5 py-5">
-                <p className="text-[18px] leading-[1.7] tracking-[-0.35px] text-slate-700">{currentCourse.summary}</p>
-              </div>
-          </SectionPanel>
-        </section>
+          </section>
+        </div>
       </div>
     </MainShell>
   );

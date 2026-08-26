@@ -16,6 +16,7 @@ type AuthStore = {
   openLoginModal: (reason?: LoginModalReason) => void;
   closeLoginModal: () => void;
   signIn: (payload: AuthResponseDto) => void;
+  setUser: (user: AuthUserDto | null) => void;
   signOut: () => void;
 };
 
@@ -40,6 +41,7 @@ export const useAuthStore = create<AuthStore>()(
           user,
           loginModalOpen: false,
         }),
+      setUser: (user) => set({ user }),
       signOut: () =>
         set({
           ...defaultAuthState,
