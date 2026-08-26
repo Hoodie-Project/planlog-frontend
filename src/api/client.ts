@@ -2,6 +2,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
 type ApiFetchOptions = RequestInit & {
   query?: Record<string, string | number | boolean | undefined | null>;
+  accessToken?: string | null;
 };
 
 export class ApiError extends Error {
@@ -33,11 +34,12 @@ function buildUrl(path: string, query?: ApiFetchOptions["query"]) {
 }
 
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}) {
-  const { query, headers, ...init } = options;
+  const { query, headers, accessToken, ...init } = options;
   const response = await fetch(buildUrl(path, query), {
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...headers,
     },
     cache: "no-store",
@@ -52,4 +54,3 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}) {
 
   return payload as T;
 }
-

@@ -3,11 +3,24 @@
 import { useMemo, useRef, useState } from "react";
 import dayjs, { type Dayjs } from "dayjs";
 import "dayjs/locale/ko";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import coffeeIcon from "@/asset/svgs/coffee.svg";
+import familyHomeIcon from "@/asset/svgs/family-home.svg";
+import forestIcon from "@/asset/svgs/forest.svg";
+import busIcon from "@/asset/svgs/bus.svg";
+import carFillIcon from "@/asset/svgs/mingcute_car-fill.svg";
+import subwayVariantIcon from "@/asset/svgs/mdi_subway-variant.svg";
+import mountainFlagIcon from "@/asset/svgs/mountain-flag.svg";
+import personIcon from "@/asset/svgs/person.svg";
+import petsIcon from "@/asset/svgs/pets.svg";
+import photoCameraIcon from "@/asset/svgs/photo-camera.svg";
+import sentimentCalmIcon from "@/asset/svgs/sentiment-calm.svg";
+import wavesIcon from "@/asset/svgs/waves.svg";
 import { generateCourse } from "@/api/courses/generate";
 import { MainShell } from "@/components/layout/MainShell";
 import { parseCourseCreateStep, toCreateCourseRequest } from "@/lib/course-create";
@@ -19,47 +32,35 @@ const totalSteps = 4;
 type TransportOption = (typeof transportOptions)[number];
 const transportOptionSet = new Set<TransportOption>(transportOptions);
 const completedStepCheckIcon = "https://www.figma.com/api/mcp/asset/81572b10-cc1a-4e45-b0aa-bb8e887dc567";
-const step4ArrowDownIcon = "https://www.figma.com/api/mcp/asset/579f9c75-5999-4138-b1d6-d1965544c70e";
 const step1ThemeIcons = {
   sea: {
-    base: "https://www.figma.com/api/mcp/asset/2fa5500f-4fc2-4904-9235-e22b9bc58765",
+    base: wavesIcon.src,
   },
   snow: {
-    base: "https://www.figma.com/api/mcp/asset/0f101b8c-43b0-4e33-97b3-19792f1ad8ae",
+    base: mountainFlagIcon.src,
   },
   valley: {
-    base: "https://www.figma.com/api/mcp/asset/d5f90146-c82b-41d8-a200-ab909f0405cc",
-    overlay: "https://www.figma.com/api/mcp/asset/b3e69e10-7210-4236-80a5-9d3020320ea9",
-    overlayClassName: "inset-[8.33%_0.01%_8.34%_0]",
+    base: forestIcon.src,
   },
   retro: {
-    base: "https://www.figma.com/api/mcp/asset/12cfbd3f-4557-4482-9602-64e441ad0709",
-    overlay: "https://www.figma.com/api/mcp/asset/edbdd526-0cc4-4dd4-a442-7cc19a2cf373",
-    overlayClassName: "inset-[12.5%_8.34%_12.5%_16.66%]",
+    base: coffeeIcon.src,
   },
   photo: {
-    base: "https://www.figma.com/api/mcp/asset/206d46f4-2c80-42b2-afa4-dbba2aa46a95",
+    base: photoCameraIcon.src,
   },
 } as const;
 const step2CompanionIcons = {
   solo: {
-    base: "https://www.figma.com/api/mcp/asset/2c21452c-b61b-42ac-bb98-bbfaac234699",
-    overlay: "https://www.figma.com/api/mcp/asset/ebc7c205-b835-48ec-9f3f-fd538e0f1788",
-    activeBase: "https://www.figma.com/api/mcp/asset/66983ef2-3f55-444e-93fd-23fd8ede2c3b",
-    activeOverlay: "https://www.figma.com/api/mcp/asset/4fcb6098-84d1-4559-9af3-5ca6196049f7",
-    overlayClassName: "inset-[16.67%]",
+    base: personIcon.src,
   },
   family: {
-    base: "https://www.figma.com/api/mcp/asset/68defb22-97ac-4f40-94c5-42803051876d",
-    activeBase: "https://www.figma.com/api/mcp/asset/1682858a-9ac8-47f0-8f44-6b7737f65bb5",
+    base: familyHomeIcon.src,
   },
   pet: {
-    base: "https://www.figma.com/api/mcp/asset/c57c8094-8451-4498-8ac4-99c844fe3d51",
-    activeBase: "https://www.figma.com/api/mcp/asset/b9178a2d-3b1a-4c62-84d8-9c5c5df35a95",
+    base: petsIcon.src,
   },
   calm: {
-    base: "https://www.figma.com/api/mcp/asset/922fa991-f545-4287-a61f-e99cfb0c07fe",
-    activeBase: "https://www.figma.com/api/mcp/asset/b0640437-93d1-43a2-8138-12b564c6c727",
+    base: sentimentCalmIcon.src,
   },
 } as const;
 
@@ -91,9 +92,9 @@ const step2Options = [
   },
 ] as const;
 const step4TransportIcons = {
-  rail: "https://www.figma.com/api/mcp/asset/14ac95bc-4647-4053-b06d-db8a6d5929a6",
-  bus: "https://www.figma.com/api/mcp/asset/743bc989-8487-41e7-a000-bd2586c4d971",
-  car: "https://www.figma.com/api/mcp/asset/e032dbfc-9b09-4ecb-9b44-7a73b5f27358",
+  rail: subwayVariantIcon.src,
+  bus: busIcon.src,
+  car: carFillIcon.src,
 } as const;
 const step4TransportOptions = [
   {
@@ -291,9 +292,6 @@ export function CourseCreateFlow() {
                       >
                         <span aria-hidden="true" className="absolute left-[5px] top-[5px] h-6 w-6 overflow-hidden">
                           <img alt="" className="h-6 w-6 object-contain" src={option.icon.base} />
-                          {"overlay" in option.icon && option.icon.overlay ? (
-                            <img alt="" className={`absolute ${option.icon.overlayClassName ?? "inset-0"} h-6 w-6`} src={option.icon.overlay} />
-                          ) : null}
                         </span>
                         <span
                           className={`absolute left-[5px] top-[33px] whitespace-nowrap text-[14px] font-semibold leading-[1.4] ${
@@ -340,22 +338,11 @@ export function CourseCreateFlow() {
                             alt=""
                             className={`h-8 w-8 object-contain ${
                               active
-                                ? "brightness-0 saturate-100% [filter:invert(19%)_sepia(100%)_saturate(4215%)_hue-rotate(336deg)_brightness(104%)_contrast(102%)]"
+                                ? "brightness-0 saturate-100% [filter:invert(14%)_sepia(100%)_saturate(5616%)_hue-rotate(339deg)_brightness(96%)_contrast(118%)]"
                                 : ""
                             }`}
                             src={option.icon.base}
                           />
-                          {"overlay" in option.icon && option.icon.overlay ? (
-                            <img
-                              alt=""
-                              className={`absolute ${option.icon.overlayClassName ?? "inset-0"} h-8 w-8 ${
-                                active
-                                  ? "brightness-0 saturate-100% [filter:invert(19%)_sepia(100%)_saturate(4215%)_hue-rotate(336deg)_brightness(104%)_contrast(102%)]"
-                                  : ""
-                              }`}
-                              src={option.icon.overlay}
-                            />
-                          ) : null}
                         </span>
                         <span className="absolute left-[61px] top-[19px] flex items-center gap-2">
                           <span
@@ -561,12 +548,19 @@ export function CourseCreateFlow() {
                           <span className={preferences.originLabel ? "text-[14px] text-[#ff1f4c]" : "text-[14px] text-[#999]"}>
                             {preferences.originLabel || "선택해 주세요."}
                           </span>
-                          <img
-                            alt=""
-                            aria-hidden="true"
-                            className={`h-6 w-6 transition-transform ${step4DropdownOpen ? "rotate-180" : ""}`}
-                            src={step4ArrowDownIcon}
-                          />
+                          {step4DropdownOpen ? (
+                            <ChevronUp
+                              aria-hidden="true"
+                              className={preferences.originLabel ? "h-6 w-6 text-[#ff1f4c]" : "h-6 w-6 text-[#999]"}
+                              strokeWidth={1.75}
+                            />
+                          ) : (
+                            <ChevronDown
+                              aria-hidden="true"
+                              className={preferences.originLabel ? "h-6 w-6 text-[#ff1f4c]" : "h-6 w-6 text-[#999]"}
+                              strokeWidth={1.75}
+                            />
+                          )}
                         </button>
 
                         {step4DropdownOpen ? (

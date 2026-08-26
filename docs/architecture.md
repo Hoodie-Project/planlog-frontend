@@ -35,7 +35,11 @@
    - 추천 코스 조회
    - 축제/숙소/장소 상세 조회
    - 저장한 코스 및 기록 목록 조회
-4. View Model 계층
+4. `Next Route Handler`
+   - 인증 요청 프록시
+   - 로컬 개발 환경에서 브라우저 CORS 우회
+   - 백엔드 auth 경로(`/api/auth/*`, `/auth/*`) 차이 흡수
+5. View Model 계층
    - 서버 응답을 화면 카드, 타임라인, 요약 칩용 데이터로 변환
 
 ### 출력
@@ -57,6 +61,8 @@ src/
     auth/
     courses/
   app/
+    api/
+      auth/
   components/
     auth/
     ui/
@@ -87,7 +93,11 @@ src/
 
 초기 스캐폴딩은 목업 데이터 기반으로 시작하되, API 함수는 `src/api/<resource>/<action>.ts` 경계로 분리한다.
 
+인증 관련 브라우저 요청은 백엔드 도메인으로 직접 보내지 않고, Next Route Handler를 거친다. 프론트는 same-origin `/api/auth/*`만 호출하고, Next 서버가 운영 API로 프록시한다.
+
 - `POST /api/courses/generate`
+- `POST /api/auth/guest` -> Next proxy -> backend auth endpoint
+- `POST /api/auth/kakao` -> Next proxy -> backend auth endpoint
 - `GET /api/auth/me`
 - `POST /courses/save`
 - `GET /courses/saved`
@@ -141,7 +151,7 @@ src/
 ## 7. 장애와 예외 처리
 
 - 로그인 필요 액션: 모달로 가드
-- 인증 미완성 단계에서는 mock 로그인 부트스트랩으로 대체하고 이후 OAuth SDK와 서버 세션으로 교체
+- 인증 요청은 Next proxy route를 우선 경유해 로컬 개발 시 CORS를 차단한다.
 - 위치 권한 없음: 권한 요청 상태 노출
 - API 실패: 재시도 버튼과 대체 안내 문구 제공
 - 데이터 없음: 심사 모드용 기본 목업 코스 노출 가능

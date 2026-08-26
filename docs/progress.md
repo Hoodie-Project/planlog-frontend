@@ -27,6 +27,8 @@
 14. `추천 코스` 결과 페이지를 최신 화면 기획안 기준으로 재구성하고 숙소 선택/직접 입력 Mock 모달 추가
 15. `코스 상세` 페이지를 추천 코스 연계 상세 화면으로 재구성하고 브레드크럼브/일정표/지도 Mock 추가
 16. 추천 코스/코스 상세/나의 기록 Mock UI 공통 패턴을 shared mock 컴포넌트로 정리
+17. 카카오 로그인, 게스트 로그인, `/api/auth/me` 기반 실제 인증 흐름으로 mock auth 제거
+18. Next `/api/auth/*` proxy route 추가로 로컬 개발 환경 CORS 이슈 대응
 
 ## 결정 사항
 
@@ -41,15 +43,17 @@
 - 코스 생성 초안은 `localStorage`가 아니라 `sessionStorage`에 저장
 - 전역 상태는 이미 설치된 `zustand`를 그대로 사용
 - 실제 생성 호출은 4단계에서만 `POST /api/courses/generate`
-- 로그인 판별은 임시로 mock `accessToken` 존재 여부를 기준으로 두고, 사용자 정보는 같은 auth store에서 함께 관리
+- 로그인 판별은 서비스 JWT `accessToken` 존재 여부를 기준으로 두고, 사용자 정보는 `/api/auth/me`로 재동기화
 - 로그인 상태는 새로고침 후에도 유지되어야 하므로 `sessionStorage`가 아니라 `localStorage`에 저장
+- 인증 요청은 브라우저에서 운영 API를 직접 호출하지 않고 same-origin Next proxy route를 경유
 
 ## 막힘
 
 - 실제 출발지 좌표 전체 매핑은 아직 없음
 - 실제 OAuth, 지도 SDK, 위치 인증 서버 정책은 미확정
 - 실제 저장/재추천/권한 가드 로직은 아직 미구현
-- `/api/auth/me` 백엔드 provider enum과 Google 로그인 지원 범위는 추후 확정 필요
+- Google 로그인 지원 범위와 실제 운영 도메인의 Kakao JavaScript 키 등록 상태는 추후 확정 필요
+- 운영 백엔드 auth 경로를 `/api/auth/*` 하나로 고정할지 `/auth/*`로 고정할지 최종 합의 필요
 
 ## 다음 행동
 
@@ -57,25 +61,23 @@
 2. 출발지별 좌표 사전 확장 또는 역/터미널 조회 API 연동
 3. `POST /api/courses/generate` 로딩/에러/재시도 UX 보강
 4. 결과 페이지를 실제 응답 구조 기준으로 상세 매핑
-5. 실제 OAuth 로그인과 `/api/auth/me` 연동으로 mock auth 제거
+5. Kakao 운영 도메인 등록 상태 확인 및 Google 로그인 추가 여부 확정
 6. 맥미니 `actions-runner`에서 `./svc.sh install && ./svc.sh start` 실행 후 서비스 상태 확인
 7. 랜딩페이지 모바일/실서버 배포 결과를 피그마와 재대조
 8. `추천 코스`, `나의 기록` 페이지에 실제 API/상태 연결
 9. 추천 코스 결과 화면의 숙소/재추천/같은 코스 감정 섹션을 실제 API 응답과 연결
 10. 코스 상세 화면의 장소별 링크를 실제 장소 상세 라우트와 연결
+11. 백엔드 auth endpoint 확정 후 Next proxy의 fallback 경로 제거
 
 ## TODO
 
-### 2026-07-21 / 타입: TODO
+### 2026-08-12 / 타입: TODO
 
-- 코드 교체 시점 및 조건: 실 OAuth 연동 완료 시
+- 코드 교체 시점 및 조건: Google 로그인 추가 또는 Auth API 경로 확정 시
 - 개발 내용
-  - `src/lib/mock-auth.ts`의 mock 로그인 상태와 mock 사용자 데이터 제거
-  - `src/components/auth/auth-bootstrap.tsx`의 임시 로그인 부트스트랩 제거
-  - `src/components/auth/login-modal.tsx`의 mock 로그인 처리 제거 후 실제 Google/Kakao 로그인 액션 연결
-  - `src/store/auth-store.ts`의 `accessToken`, `user` 저장 구조를 실제 인증 응답 기준으로 재검토
-  - `src/api/auth/me.ts`를 실제 인증 토큰 기반 사용자 조회 흐름에 연결
-  - 백엔드 `AuthUserDto.provider` 스펙과 프론트 `AuthProvider` 타입 정합성 맞추기
+  - `src/api/auth/kakao-login.ts`와 `src/api/auth/guest-login.ts`의 fallback 경로를 백엔드 확정 경로 하나로 정리
+  - Kakao JavaScript 키와 도메인 등록 상태를 실제 운영 환경 기준으로 검증
+  - Google 로그인 스펙 확정 시 `AuthProvider`와 로그인 모달 CTA 확장
 
 ## 환경 분리
 

@@ -1,12 +1,9 @@
 import { ApiError } from "@/api/client";
-import type { AuthUserDto } from "@/types/auth";
+import type { AuthResponseDto } from "@/types/auth";
 
-export async function getMe(accessToken: string) {
-  const response = await fetch("/api/auth/me", {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
+export async function guestLogin() {
+  const response = await fetch("/api/auth/guest", {
+    method: "POST",
     cache: "no-store",
   });
 
@@ -17,5 +14,5 @@ export async function getMe(accessToken: string) {
     throw new ApiError(`Request failed: ${response.status}`, response.status, payload);
   }
 
-  return payload as AuthUserDto;
+  return payload as AuthResponseDto;
 }

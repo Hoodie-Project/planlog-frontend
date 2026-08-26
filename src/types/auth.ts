@@ -1,4 +1,4 @@
-export type AuthProvider = "KAKAO" | "GOOGLE" | "GUEST";
+export type AuthProvider = "KAKAO" | "GUEST";
 
 export type AuthUserDto = {
   id: string;
