@@ -22,14 +22,20 @@ export async function proxyAuthRequest(paths: readonly string[], init: RequestIn
         continue;
       }
 
-      return response;
+      return {
+        response,
+        upstreamUrl: url,
+      };
     } catch (error) {
       lastError = error;
     }
   }
 
   if (lastResponse) {
-    return lastResponse;
+    return {
+      response: lastResponse,
+      upstreamUrl: null,
+    };
   }
 
   throw lastError instanceof Error ? lastError : new Error("인증 프록시 요청에 실패했습니다.");

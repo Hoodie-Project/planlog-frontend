@@ -5,7 +5,7 @@ const guestPaths = ["/api/auth/guest", "/auth/guest"] as const;
 
 export async function POST() {
   try {
-    const response = await proxyAuthRequest(guestPaths, {
+    const { response, upstreamUrl } = await proxyAuthRequest(guestPaths, {
       method: "POST",
     });
 
@@ -15,6 +15,8 @@ export async function POST() {
       status: response.status,
       headers: {
         "Content-Type": response.headers.get("Content-Type") ?? "application/json",
+        "x-planlog-auth-source": "upstream",
+        "x-planlog-auth-upstream-url": upstreamUrl ?? "not-resolved",
       },
     });
   } catch (error) {
@@ -22,7 +24,12 @@ export async function POST() {
       {
         message: error instanceof Error ? error.message : "게스트 로그인 프록시 요청에 실패했습니다.",
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          "x-planlog-auth-source": "proxy",
+        },
+      }
     );
   }
 }
