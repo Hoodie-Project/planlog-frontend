@@ -80,6 +80,172 @@ export const currentCourse = {
   ],
 };
 
+export const testRecommendedCourse = {
+  title: "바다 감성 추천코스",
+  timeline: [
+    { time: "10:30", label: "강릉역 도착" },
+    { time: "11:00", label: "오죽헌" },
+    { time: "12:30", label: "중앙시장 점심" },
+    { time: "14:00", label: "안목해변 커피거리" },
+    { time: "15:00", label: "안목해변 커피거리" },
+    { time: "19:00", label: "강릉역 도착" },
+  ],
+};
+
+export const testRecommendedPlaces = [
+  {
+    id: 1,
+    name: "오죽헌",
+    time: "11:00",
+    tags: ["#레트로", "#문화존"],
+    address: "강원 강릉시 율곡로3139번길 24 오죽헌",
+    status: "운영중",
+    hours: "수요일 09:00 ~ 18:00",
+    congestion: "보통",
+    congestionTone: "text-[#48A600]",
+    image: "https://www.figma.com/api/mcp/asset/f1f08c8e-374b-4171-9a07-ccdf414e1f2d.png",
+  },
+  {
+    id: 2,
+    name: "강릉역",
+    time: "10:30",
+    tags: ["#출발", "#교통"],
+    address: "강원 강릉시 용지로 176",
+    status: "이용가능",
+    hours: "수요일 05:00 ~ 24:00",
+    congestion: "낮음",
+    congestionTone: "text-[#48A600]",
+    image: "https://www.figma.com/api/mcp/asset/f1f08c8e-374b-4171-9a07-ccdf414e1f2d.png",
+  },
+  {
+    id: 3,
+    name: "중앙시장",
+    time: "12:30",
+    tags: ["#점심", "#시장"],
+    address: "강원 강릉시 금성로 21",
+    status: "운영중",
+    hours: "수요일 08:00 ~ 22:00",
+    congestion: "높음",
+    congestionTone: "text-[#FF8A00]",
+    image: "https://www.figma.com/api/mcp/asset/f1f08c8e-374b-4171-9a07-ccdf414e1f2d.png",
+  },
+  {
+    id: 4,
+    name: "안목해변 커피거리",
+    time: "14:00",
+    tags: ["#바다", "#카페존"],
+    address: "강원 강릉시 창해로14번길 일대",
+    status: "운영중",
+    hours: "수요일 10:00 ~ 22:00",
+    congestion: "보통",
+    congestionTone: "text-[#48A600]",
+    image: "https://www.figma.com/api/mcp/asset/f1f08c8e-374b-4171-9a07-ccdf414e1f2d.png",
+  },
+  {
+    id: 5,
+    name: "주문진 등대",
+    time: "15:00",
+    tags: ["#포토", "#바다존"],
+    address: "강원 강릉시 주문진읍 옛등대길 24-7",
+    status: "이용가능",
+    hours: "상시 개방",
+    congestion: "낮음",
+    congestionTone: "text-[#48A600]",
+    image: "https://www.figma.com/api/mcp/asset/f1f08c8e-374b-4171-9a07-ccdf414e1f2d.png",
+  },
+] as const;
+
+export const testRecommendedCourseMap = {
+  center: { lat: 37.7522, lng: 128.8763 },
+  path: [
+    { lat: 37.764089, lng: 128.898998 },
+    { lat: 37.77915, lng: 128.87603 },
+    { lat: 37.75436, lng: 128.89554 },
+    { lat: 37.77192, lng: 128.94731 },
+    { lat: 37.89176, lng: 128.82491 },
+  ],
+  markers: [
+    { id: 1, lat: 37.764089, lng: 128.898998 },
+    { id: 2, lat: 37.77915, lng: 128.87603 },
+    { id: 3, lat: 37.75436, lng: 128.89554 },
+    { id: 4, lat: 37.77192, lng: 128.94731 },
+    { id: 5, lat: 37.89176, lng: 128.82491 },
+  ],
+};
+
+const STAY_MARKER_ICON_URL = "https://www.figma.com/api/mcp/asset/a0ac9ff2-25a8-437b-8cb9-20e49df63845.svg";
+
+export const testRecommendedStays = [
+  {
+    id: "annmok-stay",
+    title: "안목 스테이",
+    tags: ["#감성힐링", "#바다뷰"],
+    price: "89,900원~",
+    image: "https://www.figma.com/api/mcp/asset/4477c8e5-72f2-494b-8ab3-caacda7e589e.png",
+    lat: 37.77192,
+    lng: 128.94731,
+  },
+  {
+    id: "gangneung-guesthouse",
+    title: "강릉 게스트하우스",
+    tags: ["#가성비", "#역근처"],
+    price: "35,000원~",
+    image: "https://www.figma.com/api/mcp/asset/4a8b57b9-1058-4bb2-af8e-69724b4896fe.png",
+    lat: 37.75436,
+    lng: 128.89554,
+  },
+  {
+    id: "gyeongpo-auto-camping",
+    title: "경포 오토캠핑",
+    tags: ["#해변", "#캠핑"],
+    price: "45,000원~",
+    image: "https://www.figma.com/api/mcp/asset/d4b13e9b-4d0c-40d2-9196-656cc5cd248e.png",
+    lat: 37.77915,
+    lng: 128.87603,
+  },
+  {
+    id: "gyeongpo-ocean-view",
+    title: "경포 오션뷰 호텔",
+    tags: ["#오션뷰", "#감성"],
+    price: "45,000원~",
+    image: "https://www.figma.com/api/mcp/asset/d4b13e9b-4d0c-40d2-9196-656cc5cd248e.png",
+    lat: 37.764089,
+    lng: 128.898998,
+  },
+  {
+    id: "jumunjin-stay",
+    title: "주문진 하우스",
+    tags: ["#로컬", "#바다"],
+    price: "45,000원~",
+    image: "https://www.figma.com/api/mcp/asset/d4b13e9b-4d0c-40d2-9196-656cc5cd248e.png",
+    lat: 37.69176,
+    lng: 128.94491,
+  },
+] as const;
+
+export const testRecommendedStayMap = {
+  center: { lat: 37.7522, lng: 128.8763 },
+  markers: testRecommendedStays.map((stay, index) => ({
+    id: index + 1,
+    lat: stay.lat,
+    lng: stay.lng,
+    html: `
+      <div style="
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        background: #ff1f4c;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 20px rgba(255, 31, 76, 0.28);
+      ">
+        <img src="${STAY_MARKER_ICON_URL}" alt="" style="width: 20px; height: 20px; display: block;" />
+      </div>
+    `,
+  })),
+};
+
 export const savedCourses = [
   { dday: "D-3", title: "바다 감성 강릉 하루 코스", meta: "2026.07.20 토요일 10:30 · 강릉역 출발 · 혼자" },
   { title: "레트로 원주 코스", meta: "2026.07.28 · 장소 5곳" },
