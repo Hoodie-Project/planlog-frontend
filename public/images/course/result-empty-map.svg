@@ -1,0 +1,50 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="900" fill="#F7F5F1"/>
+  <rect x="0" y="0" width="1600" height="900" fill="url(#paint0_radial_218_2)"/>
+  <path d="M1180 60C1305 140 1413 253 1490 408C1535 499 1578 626 1600 748V0H1120C1139 18 1159 38 1180 60Z" fill="#ECE9E3"/>
+  <path d="M1162 128C1289 206 1376 307 1443 429" stroke="#D4D0C7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M967 250C1036 242 1104 224 1162 128" stroke="#D4D0C7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M852 510C917 460 939 412 967 250" stroke="#D4D0C7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M613 430C701 488 767 523 852 510" stroke="#D4D0C7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M452 612C503 547 570 468 613 430" stroke="#D4D0C7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M224 711C299 673 381 651 452 612" stroke="#D4D0C7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M72 784C104 761 146 743 224 711" stroke="#D4D0C7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M169 188C232 230 264 300 268 392C269 418 264 450 252 496" stroke="#D4D0C7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M305 90C244 132 202 164 169 188" stroke="#D4D0C7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M474 150C434 167 381 174 340 155C322 146 311 118 305 90" stroke="#D4D0C7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M553 362C516 316 489 260 474 150" stroke="#D4D0C7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M613 430C596 407 577 387 553 362" stroke="#D4D0C7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M968 768C1009 687 1014 603 995 537C973 459 922 404 841 379" stroke="#D4D0C7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M1221 770C1157 752 1081 753 968 768" stroke="#D4D0C7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M1432 670C1360 726 1304 751 1221 770" stroke="#D4D0C7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M554 362C632 353 704 358 841 379" stroke="#D4D0C7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M236 526C336 536 414 541 507 550C612 560 714 545 773 533" stroke="#CFCBC2" stroke-width="8" stroke-dasharray="10 16" stroke-linecap="round"/>
+  <path d="M862 535C950 536 1041 556 1128 621C1221 689 1320 703 1430 672" stroke="#CFCBC2" stroke-width="8" stroke-dasharray="10 16" stroke-linecap="round"/>
+  <path d="M27 628C93 593 156 560 236 526" stroke="#CFCBC2" stroke-width="8" stroke-dasharray="10 16" stroke-linecap="round"/>
+  <circle cx="305" cy="90" r="12" fill="#939393"/>
+  <circle cx="267" cy="392" r="16" fill="#A4A4A4"/>
+  <circle cx="612" cy="430" r="17" fill="#9A9A9A"/>
+  <circle cx="851" cy="510" r="15" fill="#9F9F9F"/>
+  <circle cx="967" cy="250" r="13" fill="#969696"/>
+  <circle cx="1430" cy="672" r="17" fill="#979797"/>
+  <circle cx="1263" cy="815" r="18" fill="#999999"/>
+  <circle cx="723" cy="204" r="22" fill="#EAE5DD"/>
+  <circle cx="1018" cy="613" r="18" fill="#EAE5DD"/>
+  <ellipse cx="116" cy="274" rx="34" ry="22" fill="#EEEAE3"/>
+  <path d="M671 484L704 496L733 475" stroke="#4A9AB4" stroke-width="6" stroke-linecap="round"/>
+  <path d="M775 452L757 495L730 475L775 452Z" fill="white" stroke="#4A9AB4" stroke-width="6" stroke-linejoin="round"/>
+  <g opacity="0.7">
+    <path d="M123 306H146" stroke="#B2AEA6" stroke-width="4" stroke-linecap="round"/>
+    <path d="M317 622H341" stroke="#B2AEA6" stroke-width="4" stroke-linecap="round"/>
+    <path d="M528 600H551" stroke="#B2AEA6" stroke-width="4" stroke-linecap="round"/>
+    <path d="M1108 336H1132" stroke="#B2AEA6" stroke-width="4" stroke-linecap="round"/>
+    <path d="M1334 428H1358" stroke="#B2AEA6" stroke-width="4" stroke-linecap="round"/>
+    <path d="M1470 532H1494" stroke="#B2AEA6" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <defs>
+    <radialGradient id="paint0_radial_218_2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(731 483) rotate(90) scale(512 909.952)">
+      <stop stop-color="#FAF8F5"/>
+      <stop offset="1" stop-color="#F2F0EB"/>
+    </radialGradient>
+  </defs>
+</svg>
