@@ -6,7 +6,7 @@ const mePaths = ["/api/auth/me", "/auth/me"] as const;
 export async function GET(request: NextRequest) {
   try {
     const authorization = request.headers.get("Authorization");
-    const response = await proxyAuthRequest(mePaths, {
+    const { response, upstreamUrl } = await proxyAuthRequest(mePaths, {
       method: "GET",
       headers: authorization ? { Authorization: authorization } : undefined,
     });
@@ -17,6 +17,8 @@ export async function GET(request: NextRequest) {
       status: response.status,
       headers: {
         "Content-Type": response.headers.get("Content-Type") ?? "application/json",
+        "x-planlog-auth-source": "upstream",
+        "x-planlog-auth-upstream-url": upstreamUrl ?? "not-resolved",
       },
     });
   } catch (error) {
@@ -24,7 +26,12 @@ export async function GET(request: NextRequest) {
       {
         message: error instanceof Error ? error.message : "내 정보 프록시 요청에 실패했습니다.",
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          "x-planlog-auth-source": "proxy",
+        },
+      }
     );
   }
 }

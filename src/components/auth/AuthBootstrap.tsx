@@ -2,18 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import { getMe } from "@/api/auth/me";
+import { MANUAL_MOCK_ACCESS_TOKEN, MANUAL_MOCK_AUTH_RESPONSE } from "@/lib/mock-auth";
 import { useAuthStore } from "@/store/auth-store";
 
-const ASSUME_LOGGED_IN = true;
-const DEMO_ACCESS_TOKEN = "demo-access-token";
-const DEMO_USER = {
-  id: "demo-user",
-  provider: "GUEST" as const,
-  nickname: "하영",
-  email: null,
-  profileImage: null,
-  isGuest: true,
-};
+const ASSUME_LOGGED_IN = false;
 
 export function AuthBootstrap() {
   const hydrated = useAuthStore((state) => state.hydrated);
@@ -31,10 +23,7 @@ export function AuthBootstrap() {
     if (!accessToken) {
       if (ASSUME_LOGGED_IN) {
         // TODO: 실제 로그인 기능 안정화 후 삭제
-        signIn({
-          accessToken: DEMO_ACCESS_TOKEN,
-          user: DEMO_USER,
-        });
+        signIn(MANUAL_MOCK_AUTH_RESPONSE);
         return;
       }
 
@@ -43,9 +32,9 @@ export function AuthBootstrap() {
       return;
     }
 
-    if (accessToken === DEMO_ACCESS_TOKEN) {
-      setUser(DEMO_USER);
-      validatedTokenRef.current = DEMO_ACCESS_TOKEN;
+    if (accessToken === MANUAL_MOCK_ACCESS_TOKEN) {
+      validatedTokenRef.current = accessToken;
+      setUser(MANUAL_MOCK_AUTH_RESPONSE.user);
       return;
     }
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ReactNode, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { LoginModal } from "@/components/auth/LoginModal";
+import { MANUAL_MOCK_AUTH_RESPONSE } from "@/lib/mock-auth";
 import { useAuthStore } from "@/store/auth-store";
 
 export function MainShell({ children }: { children: ReactNode }) {
@@ -13,15 +14,18 @@ export function MainShell({ children }: { children: ReactNode }) {
   const accessToken = useAuthStore((state) => state.accessToken);
   const user = useAuthStore((state) => state.user);
   const openLoginModal = useAuthStore((state) => state.openLoginModal);
+  const signIn = useAuthStore((state) => state.signIn);
 
   const navItems = [
     { href: "/", label: "ABOUT", exact: true },
     { href: "/course/create", label: "코스 만들기" },
-    { href: "/course/result", label: "추천 코스" },
+    { href: "/course/result/test", label: "(Test) 추천 코스", exact: true },
+    { href: "/course/result", label: "추천 코스", exact: true },
     { href: "/records", label: "나의 기록" },
   ];
   const protectedPaths = ["/course/create", "/course/result", "/records", "/my"];
   const isProtectedRoute = protectedPaths.some((path) => pathname.startsWith(path));
+  const hideFooter = pathname.startsWith("/course/result");
 
   useEffect(() => {
     if (!hydrated || accessToken || !isProtectedRoute) {
@@ -68,7 +72,19 @@ export function MainShell({ children }: { children: ReactNode }) {
               );
             })}
           </nav>
-          <nav className="hidden md:flex">
+          <nav className="hidden items-center gap-3 md:flex">
+            {!accessToken ? (
+              <button
+                className="inline-flex h-9 items-center justify-center rounded-full border border-slate-200 px-5 text-[15px] font-medium text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
+                onClick={() => {
+                  // TODO: 실제 로그인 기능 개발 시 삭제
+                  signIn(MANUAL_MOCK_AUTH_RESPONSE);
+                }}
+                type="button"
+              >
+                수동 로그인
+              </button>
+            ) : null}
             <button
               className="inline-flex h-9 items-center justify-center rounded-full border border-[#f30031] px-5 text-[16px] text-slate-900"
               onClick={() => {
@@ -87,10 +103,12 @@ export function MainShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main className="flex-1">{children}</main>
-      <footer className="bg-white py-[25px] text-center text-[15px] font-semibold leading-[1.4] text-slate-600">
-        <p>Contact: Hoodiev@google.com</p>
-        <p className="mt-2">Copyright © Hoodiev All right reserved.</p>
-      </footer>
+      {hideFooter ? null : (
+        <footer className="bg-white py-[25px] text-center text-[15px] font-semibold leading-[1.4] text-slate-600">
+          <p>Contact: Hoodiev@google.com</p>
+          <p className="mt-2">Copyright © Hoodiev All right reserved.</p>
+        </footer>
+      )}
       <LoginModal />
     </div>
   );

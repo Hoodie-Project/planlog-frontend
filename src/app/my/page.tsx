@@ -1,11 +1,21 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { MainShell } from "@/components/layout/MainShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { useAuthStore } from "@/store/auth-store";
 
 export default function MyPage() {
+  const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const closeLoginModal = useAuthStore((state) => state.closeLoginModal);
+  const signOut = useAuthStore((state) => state.signOut);
+
+  const handleSignOut = () => {
+    closeLoginModal();
+    signOut();
+    router.replace("/");
+  };
 
   return (
     <MainShell>
@@ -49,11 +59,18 @@ export default function MyPage() {
                 <CardTitle>권한 설정 / 기타</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {["위치 권한", "푸시 알림", "심사자 모드 안내", "서비스 소개", "로그아웃"].map((item) => (
+                {["위치 권한", "푸시 알림", "심사자 모드 안내", "서비스 소개"].map((item) => (
                   <div key={item} className="rounded-lg border p-4">
                     {item}
                   </div>
                 ))}
+                <button
+                  className="w-full cursor-pointer rounded-lg border p-4 text-left transition-colors hover:bg-slate-50 active:bg-slate-100"
+                  onClick={handleSignOut}
+                  type="button"
+                >
+                  로그아웃
+                </button>
               </CardContent>
             </Card>
           </div>
