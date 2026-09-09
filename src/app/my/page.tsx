@@ -1,21 +1,49 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MainShell } from "@/components/layout/MainShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { listSavedCourses } from "@/api/saved-courses";
+import { getStampProgress } from "@/api/stamps";
 import { useAuthStore } from "@/store/auth-store";
 
 export default function MyPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const hydrated = useAuthStore((state) => state.hydrated);
   const closeLoginModal = useAuthStore((state) => state.closeLoginModal);
   const signOut = useAuthStore((state) => state.signOut);
+
+  const [savedCourseCount, setSavedCourseCount] = useState<number | null>(null);
+  const [stampCount, setStampCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!hydrated || !accessToken) return;
+
+    Promise.all([listSavedCourses(accessToken), getStampProgress(accessToken)])
+      .then(([courses, progress]) => {
+        setSavedCourseCount(courses.length);
+        setStampCount(progress.totalStamps);
+      })
+      .catch(() => {
+        setSavedCourseCount(0);
+        setStampCount(0);
+      });
+  }, [accessToken, hydrated]);
 
   const handleSignOut = () => {
     closeLoginModal();
     signOut();
     router.replace("/");
   };
+
+  const stats = [
+    `저장한 코스 ${savedCourseCount ?? "-"}`,
+    `스탬프 ${stampCount ?? "-"}`,
+    `여행 기록 ${savedCourseCount ?? "-"}`,
+  ];
 
   return (
     <MainShell>
@@ -30,7 +58,7 @@ export default function MyPage() {
               <p className="text-xl font-semibold">{user?.nickname ?? "게스트"}님</p>
               <p className="text-slate-600">{user?.provider ?? "GUEST"} 계정으로 로그인 중</p>
               <div className="grid grid-cols-3 gap-3">
-                {["저장한 코스 4", "스탬프 12", "여행 기록 3"].map((item) => (
+                {stats.map((item) => (
                   <div key={item} className="rounded-lg bg-slate-100 p-4 text-sm">
                     {item}
                   </div>

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { proxyAuthRequest } from "@/app/api/auth/_utils";
 
-const guestPaths = ["/api/auth/guest", "/auth/guest"] as const;
+const guestPaths = ["/auth/guest"] as const;
 
 export async function POST() {
   try {

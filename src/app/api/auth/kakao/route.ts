@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { proxyAuthRequest } from "@/app/api/auth/_utils";
 
-const kakaoPaths = ["/api/auth/kakao", "/auth/kakao"] as const;
+const kakaoPaths = ["/auth/kakao"] as const;
 
 export async function POST(request: NextRequest) {
   try {

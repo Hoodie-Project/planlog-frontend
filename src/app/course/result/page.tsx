@@ -6,6 +6,8 @@ import { ArrowUpRight, Home, MessageCircleMore, Plus } from "lucide-react";
 import { MainShell } from "@/components/layout/MainShell";
 import { RouteMapMock, SectionPanel, TimelineList } from "@/components/mock-pages/MockPageShared";
 import { Button } from "@/components/ui/Button";
+import { createSavedCourse } from "@/api/saved-courses";
+import { ApiError } from "@/api/client";
 import { toCourseResultView } from "@/lib/course-create";
 import {
   courseFeedbackOptions,
@@ -14,6 +16,7 @@ import {
   recommendedCourseReasons,
   recommendedCourseTags,
 } from "@/lib/mock-data";
+import { useAuthStore } from "@/store/auth-store";
 import { useCourseStore } from "@/store/course-store";
 
 type ManualStayForm = {
@@ -21,14 +24,40 @@ type ManualStayForm = {
   address: string;
 };
 
+type SaveStatus = "idle" | "saving" | "saved" | "error";
+
 export default function CourseResultPage() {
   const generatedCourse = useCourseStore((state) => state.generatedCourse);
   const resultView = generatedCourse ? toCourseResultView(generatedCourse) : null;
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const openLoginModal = useAuthStore((state) => state.openLoginModal);
 
   const [selectedStayId, setSelectedStayId] = useState<string | null>(null);
   const [confirmStayId, setConfirmStayId] = useState<string | null>(null);
   const [manualStayOpen, setManualStayOpen] = useState(false);
   const [manualStayForm, setManualStayForm] = useState<ManualStayForm>({ name: "", address: "" });
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const handleSaveCourse = async () => {
+    if (!generatedCourse) return;
+
+    if (!accessToken) {
+      openLoginModal("protected-route");
+      return;
+    }
+
+    setSaveStatus("saving");
+    setSaveError(null);
+
+    try {
+      await createSavedCourse(accessToken, generatedCourse);
+      setSaveStatus("saved");
+    } catch (error) {
+      setSaveStatus("error");
+      setSaveError(error instanceof ApiError ? error.message : "코스 저장에 실패했습니다.");
+    }
+  };
 
   const selectedStay = useMemo(() => {
     if (selectedStayId === "manual") {
@@ -136,14 +165,31 @@ export default function CourseResultPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <Button className="h-11 rounded-[14px] bg-[#f30031] px-6 text-[16px] font-semibold hover:bg-[#df032f]">저장하기</Button>
-              <Button
-                className="h-11 rounded-[14px] border border-[#e8dfd3] bg-white px-6 text-[16px] font-semibold text-slate-900 hover:bg-[#faf6ef]"
-                variant="outline"
-              >
-                다시 추천받기
-              </Button>
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  className="h-11 rounded-[14px] bg-[#f30031] px-6 text-[16px] font-semibold hover:bg-[#df032f] disabled:opacity-60"
+                  disabled={saveStatus === "saving" || saveStatus === "saved"}
+                  onClick={handleSaveCourse}
+                >
+                  {saveStatus === "saved" ? "저장됨" : saveStatus === "saving" ? "저장 중..." : "저장하기"}
+                </Button>
+                <Button
+                  asChild
+                  className="h-11 rounded-[14px] border border-[#e8dfd3] bg-white px-6 text-[16px] font-semibold text-slate-900 hover:bg-[#faf6ef]"
+                  variant="outline"
+                >
+                  <Link href="/course/create?step=1">다시 추천받기</Link>
+                </Button>
+              </div>
+              {saveStatus === "saved" ? (
+                <p className="text-[13px] text-[#f30031]">
+                  <Link className="underline" href="/course/saved">
+                    저장한 코스에서 확인하기
+                  </Link>
+                </p>
+              ) : null}
+              {saveStatus === "error" && saveError ? <p className="text-[13px] text-[#f30031]">{saveError}</p> : null}
             </div>
           </div>
         </section>
