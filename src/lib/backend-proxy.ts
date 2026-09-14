@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
+function toBackendApiPath(path: string) {
+  return path.startsWith("/api/") ? path : `/api${path}`;
+}
+
 /**
  * Next 서버 라우트 → 백엔드(NestJS) 프록시.
  * 브라우저가 백엔드를 직접 호출하지 않고 same-origin API 경유(CORS 회피, auth 프록시와 동일 패턴).
@@ -11,7 +15,7 @@ export async function proxyToBackend(
   request: NextRequest,
   init: { method: string; body?: string }
 ) {
-  const url = `${API_BASE_URL}${path}${request.nextUrl.search}`;
+  const url = `${API_BASE_URL}${toBackendApiPath(path)}${request.nextUrl.search}`;
   const authorization = request.headers.get("Authorization");
 
   try {

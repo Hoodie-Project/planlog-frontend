@@ -96,7 +96,7 @@ src/
 
 초기 스캐폴딩은 목업 데이터 기반으로 시작하되, API 함수는 `src/api/<resource>/<action>.ts` 경계로 분리한다.
 
-브라우저 요청은 백엔드 도메인으로 직접 보내지 않고 Next Route Handler를 거친다. 프론트는 same-origin `/api/*`만 호출하고, Next 서버가 운영 API로 프록시한다. 동적 리소스 식별자는 프록시 전달 전 URL 인코딩한다.
+브라우저 요청은 백엔드 도메인으로 직접 보내지 않고 Next Route Handler를 거친다. 프론트는 same-origin `/api/*`만 호출하고, Next 서버가 운영 API의 `/api/*` 경로로 프록시한다. 동적 리소스 식별자는 프록시 전달 전 URL 인코딩한다.
 
 - `POST /api/auth/guest` -> Next proxy -> backend auth endpoint
 - `POST /api/auth/kakao` -> Next proxy -> backend auth endpoint
