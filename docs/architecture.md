@@ -36,10 +36,13 @@
    - 축제/숙소/장소 상세 조회
    - 저장한 코스 및 기록 목록 조회
 4. `Next Route Handler`
-   - 인증 요청 프록시
-   - 로컬 개발 환경에서 브라우저 CORS 우회
-   - 백엔드 auth 경로(`/api/auth/*`, `/auth/*`) 차이 흡수
-5. View Model 계층
+   - 인증·코스·저장 코스·북마크·스탬프 요청 프록시
+   - 브라우저는 same-origin `/api/*`만 호출해 로컬 개발 환경 CORS를 우회
+   - 인증 경로(`/api/auth/*`, `/auth/*`) 차이는 auth proxy가 흡수
+5. 공통 API Client
+   - `src/api/client.ts`에서 Authorization 헤더, query string, 오류 응답을 일관되게 처리
+   - 백엔드가 비JSON 오류 본문을 보내도 `ApiError.payload`로 안전하게 전달
+6. View Model 계층
    - 서버 응답을 화면 카드, 타임라인, 요약 칩용 데이터로 변환
 
 ### 출력
@@ -93,19 +96,19 @@ src/
 
 초기 스캐폴딩은 목업 데이터 기반으로 시작하되, API 함수는 `src/api/<resource>/<action>.ts` 경계로 분리한다.
 
-인증 관련 브라우저 요청은 백엔드 도메인으로 직접 보내지 않고, Next Route Handler를 거친다. 프론트는 same-origin `/api/auth/*`만 호출하고, Next 서버가 운영 API로 프록시한다.
+브라우저 요청은 백엔드 도메인으로 직접 보내지 않고 Next Route Handler를 거친다. 프론트는 same-origin `/api/*`만 호출하고, Next 서버가 운영 API로 프록시한다. 동적 리소스 식별자는 프록시 전달 전 URL 인코딩한다.
 
-- `POST /api/courses/generate`
 - `POST /api/auth/guest` -> Next proxy -> backend auth endpoint
 - `POST /api/auth/kakao` -> Next proxy -> backend auth endpoint
 - `GET /api/auth/me`
-- `POST /courses/save`
-- `GET /courses/saved`
-- `GET /places/:id`
-- `POST /stamps/claim`
-- `POST /records`
-- `GET /records/me`
-- `GET /profile/me`
+- `POST /api/courses/generate`
+- `GET|POST /api/saved-courses`
+- `GET|DELETE /api/saved-courses/:id`
+- `GET|POST /api/stamps`
+- `GET /api/stamps/progress`
+- `GET|POST /api/bookmarks`
+- `DELETE /api/bookmarks/:id`
+- `GET /api/bookmarks/upcoming`
 
 ## 6. 데이터 모델 초안
 

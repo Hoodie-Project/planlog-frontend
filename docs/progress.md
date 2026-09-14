@@ -29,6 +29,9 @@
 16. 추천 코스/코스 상세/나의 기록 Mock UI 공통 패턴을 shared mock 컴포넌트로 정리
 17. 카카오 로그인, 게스트 로그인, `/api/auth/me` 기반 실제 인증 흐름으로 mock auth 제거
 18. Next `/api/auth/*` proxy route 추가로 로컬 개발 환경 CORS 이슈 대응
+19. `inyong`과 `dev` 비교 후, 현재 브랜치의 실제 백엔드 연동(코스 생성·저장 코스·스탬프·북마크)을 유지
+20. 모든 브라우저 API 호출을 공통 `apiFetch`로 통합해 인증 헤더, query string, JSON/비JSON 오류 처리를 일관화
+21. 저장 코스·북마크의 동적 식별자를 프록시 전달 전에 URL 인코딩하고 프로덕션 빌드 검증 완료
 
 ## 결정 사항
 
@@ -46,6 +49,7 @@
 - 로그인 판별은 서비스 JWT `accessToken` 존재 여부를 기준으로 두고, 사용자 정보는 `/api/auth/me`로 재동기화
 - 로그인 상태는 새로고침 후에도 유지되어야 하므로 `sessionStorage`가 아니라 `localStorage`에 저장
 - 인증 요청은 브라우저에서 운영 API를 직접 호출하지 않고 same-origin Next proxy route를 경유
+- `dev`의 공통 API client 패턴은 유지하되, 현재 브랜치의 same-origin `/api/*` 프록시 구조에 맞춰 상대 경로 기반으로 사용
 
 ## 막힘
 

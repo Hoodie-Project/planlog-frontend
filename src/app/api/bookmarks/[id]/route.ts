@@ -3,5 +3,5 @@ import { proxyToBackend } from "@/lib/backend-proxy";
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return proxyToBackend(`/bookmarks/${id}`, request, { method: "DELETE" });
+  return proxyToBackend(`/bookmarks/${encodeURIComponent(id)}`, request, { method: "DELETE" });
 }

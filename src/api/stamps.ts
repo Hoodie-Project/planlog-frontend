@@ -1,4 +1,4 @@
-import { ApiError } from "@/api/client";
+import { apiFetch } from "@/api/client";
 import type { CourseZone } from "@/types/course";
 
 export type StampDto = {
@@ -27,48 +27,25 @@ export type StampProgressDto = {
   reward: { badge: string; title: string } | null;
 };
 
-async function parse<T>(response: Response): Promise<T> {
-  const text = await response.text();
-  const payload = text ? JSON.parse(text) : null;
-
-  if (!response.ok) {
-    throw new ApiError(`Request failed: ${response.status}`, response.status, payload);
-  }
-
-  return payload as T;
-}
-
 export async function createStamp(
   accessToken: string,
   dto: { zone: CourseZone; contentId: string; title: string; image?: string }
 ) {
-  const response = await fetch("/api/stamps", {
+  return apiFetch<StampDto>("/api/stamps", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
+    accessToken,
     body: JSON.stringify(dto),
-    cache: "no-store",
   });
-
-  return parse<StampDto>(response);
 }
 
 export async function listStamps(accessToken: string) {
-  const response = await fetch("/api/stamps", {
-    headers: { Authorization: `Bearer ${accessToken}` },
-    cache: "no-store",
+  return apiFetch<StampDto[]>("/api/stamps", {
+    accessToken,
   });
-
-  return parse<StampDto[]>(response);
 }
 
 export async function getStampProgress(accessToken: string) {
-  const response = await fetch("/api/stamps/progress", {
-    headers: { Authorization: `Bearer ${accessToken}` },
-    cache: "no-store",
+  return apiFetch<StampProgressDto>("/api/stamps/progress", {
+    accessToken,
   });
-
-  return parse<StampProgressDto>(response);
 }
