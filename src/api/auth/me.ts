@@ -1,21 +1,9 @@
-import { ApiError } from "@/api/client";
+import { apiFetch } from "@/api/client";
 import type { AuthUserDto } from "@/types/auth";
 
 export async function getMe(accessToken: string) {
-  const response = await fetch("/api/auth/me", {
+  return apiFetch<AuthUserDto>("/api/auth/me", {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-    cache: "no-store",
+    accessToken,
   });
-
-  const text = await response.text();
-  const payload = text ? JSON.parse(text) : null;
-
-  if (!response.ok) {
-    throw new ApiError(`Request failed: ${response.status}`, response.status, payload);
-  }
-
-  return payload as AuthUserDto;
 }

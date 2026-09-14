@@ -7,4 +7,3 @@ export async function generateCourse(payload: CreateCourseRequest) {
     body: JSON.stringify(payload),
   });
 }
-

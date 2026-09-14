@@ -1,5 +1,3 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
-
 type ApiFetchOptions = RequestInit & {
   query?: Record<string, string | number | boolean | undefined | null>;
   accessToken?: string | null;
@@ -17,40 +15,51 @@ export class ApiError extends Error {
   }
 }
 
-function buildUrl(path: string, query?: ApiFetchOptions["query"]) {
-  const url = new URL(path, API_BASE_URL);
+function withQuery(path: string, query?: ApiFetchOptions["query"]) {
+  if (!query) return path;
 
-  if (query) {
-    Object.entries(query).forEach(([key, value]) => {
-      if (value === undefined || value === null || value === "") {
-        return;
-      }
-
-      url.searchParams.set(key, String(value));
-    });
-  }
-
-  return url.toString();
-}
-
-export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}) {
-  const { query, headers, accessToken, ...init } = options;
-  const response = await fetch(buildUrl(path, query), {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      ...headers,
-    },
-    cache: "no-store",
+  const searchParams = new URLSearchParams();
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      searchParams.set(key, String(value));
+    }
   });
 
+  const search = searchParams.toString();
+  return search ? `${path}${path.includes("?") ? "&" : "?"}${search}` : path;
+}
+
+async function parseResponse<T>(response: Response): Promise<T> {
   const text = await response.text();
-  const payload = text ? JSON.parse(text) : null;
+  let payload: unknown = null;
+
+  if (text) {
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      payload = text;
+    }
+  }
 
   if (!response.ok) {
     throw new ApiError(`Request failed: ${response.status}`, response.status, payload);
   }
 
   return payload as T;
+}
+
+export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}) {
+  const { query, headers, accessToken, body, ...init } = options;
+  const response = await fetch(withQuery(path, query), {
+    ...init,
+    body,
+    headers: {
+      ...(body ? { "Content-Type": "application/json" } : {}),
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...headers,
+    },
+    cache: "no-store",
+  });
+
+  return parseResponse<T>(response);
 }

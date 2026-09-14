@@ -79,3 +79,13 @@ export type CourseDto = {
   relatedDebug?: CourseRelatedDebugDto;
 };
 
+export type SavedCourseDto = {
+  id: string;
+  userId: string;
+  title: string;
+  zone: CourseZone;
+  nights: number;
+  payload: CourseDto;
+  createdAt: string;
+};
+
