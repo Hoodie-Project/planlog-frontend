@@ -154,7 +154,7 @@ src/
 ### SavedCourse
 
 - `id`, `title`, `date`, `spotCount`, `zone`
-- `status`: `WAITING`(저장) → `IN_PROGRESS`(코스 시작) → `COMPLETED`(코스 완료 및 리뷰 저장)
+- `status`: `WAITING`(저장) → `IN_PROGRESS`(코스 시작) → `COMPLETED`(코스 완료 및 리뷰 저장). 단일 enum으로 한 코스에 한 상태만 유지
 - `review`
 
 ## 7. 장애와 예외 처리

@@ -161,9 +161,15 @@ export default function CourseResultPage() {
               <Button className="h-11 rounded-[14px] bg-[#f30031] px-6 text-[16px] font-semibold hover:bg-[#df032f]" onClick={handleSaveCourse}>
                 {savedCurrentCourse ? "저장됨" : "코스 저장"}
               </Button>
-              <Button className="h-11 rounded-[14px] border border-[#f30031] bg-white px-6 text-[16px] font-semibold text-[#f30031] hover:bg-[#fff1f4]" onClick={handleStartCourse} variant="outline">
-                코스 시작
-              </Button>
+              {savedCurrentCourse ? (
+                <Button asChild className="h-11 rounded-[14px] border border-[#f30031] bg-white px-6 text-[16px] font-semibold text-[#f30031] hover:bg-[#fff1f4]" variant="outline">
+                  <Link href="/course/saved">{savedCurrentCourse.status === "IN_PROGRESS" ? "진행 중인 코스 보기" : savedCurrentCourse.status === "COMPLETED" ? "완료한 코스 보기" : "저장한 코스 보기"}</Link>
+                </Button>
+              ) : (
+                <Button className="h-11 rounded-[14px] border border-[#f30031] bg-white px-6 text-[16px] font-semibold text-[#f30031] hover:bg-[#fff1f4]" onClick={handleStartCourse} variant="outline">
+                  코스 시작
+                </Button>
+              )}
               <Button
                 className="h-11 rounded-[14px] border border-[#e8dfd3] bg-white px-6 text-[16px] font-semibold text-slate-900 hover:bg-[#faf6ef]"
                 variant="outline"

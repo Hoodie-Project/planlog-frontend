@@ -88,11 +88,11 @@ export const useCourseStore = create<CourseStore>()(
       },
       startCourse: (courseId) =>
         set((state) => ({
-          savedCourses: state.savedCourses.map((course) => (course.id === courseId ? { ...course, status: "IN_PROGRESS" } : course)),
+          savedCourses: state.savedCourses.map((course) => (course.id === courseId && course.status === "WAITING" ? { ...course, status: "IN_PROGRESS" } : course)),
         })),
       completeCourse: (courseId, review) =>
         set((state) => ({
-          savedCourses: state.savedCourses.map((course) => (course.id === courseId ? { ...course, status: "COMPLETED", review } : course)),
+          savedCourses: state.savedCourses.map((course) => (course.id === courseId && course.status === "IN_PROGRESS" ? { ...course, status: "COMPLETED", review } : course)),
         })),
       resetPreferences: () => set({ preferences: defaultPreferences, generatedCourse: null }),
     }),

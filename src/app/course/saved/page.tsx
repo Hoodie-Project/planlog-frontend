@@ -2,13 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronRight, X } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import coffeeIcon from "@/asset/svgs/coffee.svg";
 import forestIcon from "@/asset/svgs/forest.svg";
 import mountainFlagIcon from "@/asset/svgs/mountain-flag.svg";
 import { MainShell } from "@/components/layout/MainShell";
 import { Card, CardContent } from "@/components/ui/Card";
-import { type SavedCourse, type SavedCourseStatus, useCourseStore } from "@/store/course-store";
+import { type SavedCourseStatus, useCourseStore } from "@/store/course-store";
 
 const statusLabels: Record<SavedCourseStatus, string> = {
   WAITING: "대기중",
@@ -34,24 +34,10 @@ const statusOrder: SavedCourseStatus[] = ["WAITING", "IN_PROGRESS", "COMPLETED"]
 
 export default function SavedCoursePage() {
   const savedCourses = useCourseStore((state) => state.savedCourses);
-  const completeCourse = useCourseStore((state) => state.completeCourse);
   const [selectedStatus, setSelectedStatus] = useState<SavedCourseStatus>("WAITING");
-  const [reviewingCourse, setReviewingCourse] = useState<SavedCourse | null>(null);
-  const [review, setReview] = useState("");
 
   const upcomingCourse = savedCourses.find((course) => course.status === "IN_PROGRESS") ?? savedCourses.find((course) => course.status === "WAITING");
   const filteredCourses = useMemo(() => savedCourses.filter((course) => course.status === selectedStatus), [savedCourses, selectedStatus]);
-
-  const submitReview = () => {
-    if (!reviewingCourse || !review.trim()) {
-      return;
-    }
-
-    completeCourse(reviewingCourse.id, review.trim());
-    setReviewingCourse(null);
-    setReview("");
-    setSelectedStatus("COMPLETED");
-  };
 
   return (
     <MainShell>
@@ -120,7 +106,6 @@ export default function SavedCoursePage() {
                     </Link>
                     <div className="flex shrink-0 items-center gap-2">
                       <span className={`inline-flex h-6 items-center rounded-full px-2 text-[12px] font-semibold leading-[1.4] tracking-[-0.3px] ${statusTone[course.status]}`}>{statusLabels[course.status]}</span>
-                      {course.status === "IN_PROGRESS" ? <button className="h-6 rounded-full border border-[#ff1f4c] px-2 text-[12px] font-semibold text-[#ff1f4c]" onClick={() => setReviewingCourse(course)} type="button">코스 완료</button> : null}
                       <ChevronRight className="h-5 w-5 text-[#999999]" strokeWidth={1.8} />
                     </div>
                   </CardContent>
@@ -131,19 +116,6 @@ export default function SavedCoursePage() {
         </div>
       </main>
 
-      {reviewingCourse ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(17,17,17,0.35)] px-4">
-          <div aria-modal="true" className="w-full max-w-[400px] rounded-2xl bg-white p-6 shadow-[0_20px_50px_rgba(17,17,17,0.18)]" role="dialog">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[20px] font-bold tracking-[-0.45px] text-[#111111]">코스 리뷰 남기기</h2>
-              <button aria-label="리뷰 작성 닫기" className="text-[#767676]" onClick={() => setReviewingCourse(null)} type="button"><X className="h-5 w-5" /></button>
-            </div>
-            <p className="mt-2 text-[14px] tracking-[-0.35px] text-[#505050]">{reviewingCourse.title}를 완료하고 여행 후기를 남겨주세요.</p>
-            <textarea className="mt-5 h-28 w-full resize-none rounded-xl border border-[#e5e5ec] p-3 text-[14px] outline-none focus:border-[#ff1f4c]" onChange={(event) => setReview(event.target.value)} placeholder="여행은 어땠나요?" value={review} />
-            <button className="mt-4 h-11 w-full rounded-xl bg-[#ff1f4c] text-[15px] font-semibold text-white disabled:bg-[#f4a7b6]" disabled={!review.trim()} onClick={submitReview} type="button">리뷰 저장하고 코스 완료</button>
-          </div>
-        </div>
-      ) : null}
     </MainShell>
   );
 }
