@@ -24,32 +24,24 @@ const savedCourseItems = [
     statusTone: "bg-[#F6F6F6] text-[#454545]",
     icon: coffeeIcon.src,
   },
-  {
-    title: "자연 춘천 코스",
-    date: "2026.10.20",
-    spotCount: "장소 4곳",
-    status: "진행중",
-    statusTone: "bg-[#D5F0E3] text-[#016110]",
-    icon: forestIcon.src,
-  },
-  {
-    title: "설원 평창 코스",
-    date: "2026.11.29",
-    spotCount: "장소 5곳",
-    status: "완료",
-    statusTone: "bg-[#FF1F4C] text-white",
-    icon: mountainFlagIcon.src,
-  },
+  { title: "자연 춘천 코스", date: "2026.10.20", spotCount: "장소 4곳", status: "진행중", statusTone: "bg-[#D5F0E3] text-[#016110]", icon: forestIcon.src },
+  { title: "설원 평창 코스", date: "2026.11.29", spotCount: "장소 5곳", status: "완료", statusTone: "bg-[#FF1F4C] text-white", icon: mountainFlagIcon.src },
+  { title: "레트로 원주 코스", date: "2026.12.14", spotCount: "장소 6곳", status: "대기중", statusTone: "bg-[#F6F6F6] text-[#454545]", icon: coffeeIcon.src },
 ] as const;
 
 export default function SavedCoursePage() {
   return (
     <MainShell>
-      <div className="mx-auto flex max-w-[1240px] justify-center px-4 py-[60px] lg:px-0">
+      <main className="mx-auto flex max-w-[1240px] justify-center px-4 py-[30px] lg:px-0">
         <div className="w-full max-w-[432px]">
-          <h1 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111111]">저장한 코스</h1>
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-[14px] leading-[1.4] tracking-[-0.35px]">
+            <Link className="text-[#767676]" href="/records">나의 기록</Link>
+            <ChevronRight className="h-4 w-4 text-[#767676]" strokeWidth={1.8} />
+            <span className="font-semibold text-[#111111]">저장한 코스</span>
+          </nav>
+          <h1 className="mt-5 text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111111]">저장한 코스</h1>
 
-          <section className="mt-[34px]">
+          <section className="mt-6">
             <p className="text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111111]">다가오는 여행</p>
 
             <Link className="mt-4 block" href="/course/result">
@@ -82,8 +74,15 @@ export default function SavedCoursePage() {
             </Link>
           </section>
 
-          <section className="mt-[52px]">
-            <p className="text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111111]">저장한 코스 목록</p>
+          <section className="mt-10">
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111111]">저장한 코스 목록</p>
+              <div className="flex gap-1 text-[12px] leading-[1.4] tracking-[-0.3px]">
+                <button className="h-6 rounded-full border border-[#ff1f4c] bg-[#ffeaee] px-[10px] font-semibold text-[#ff1f4c]" type="button">대기중</button>
+                <button className="h-6 rounded-full border border-[#e5e5ec] bg-white px-2 text-[#767676]" type="button">진행중</button>
+                <button className="h-6 rounded-full border border-[#e5e5ec] bg-white px-2 text-[#767676]" type="button">완료</button>
+              </div>
+            </div>
 
             <div className="mt-4 space-y-[10px]">
               {savedCourseItems.map((item, index) => (
@@ -116,7 +115,7 @@ export default function SavedCoursePage() {
             </div>
           </section>
         </div>
-      </div>
+      </main>
     </MainShell>
   );
 }

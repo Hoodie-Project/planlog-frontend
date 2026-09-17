@@ -20,11 +20,11 @@ const travelProfileRows: TravelProfileMetric[] = [
 const previewSummary = {
   empty: [
     { label: "저장한 코스", value: "0", detail: "", href: "/course/saved" },
-    { label: "완료한 스탬프", value: "0", detail: "", href: "/records" },
+    { label: "완료한 스탬프", value: "0", detail: "", href: "/records/stamps" },
   ],
   populated: [
     { label: "저장한 코스", value: "12", detail: "이번 달 +3", href: "/course/saved" },
-    { label: "완료한 스탬프", value: "18", detail: "이번 달 +6", href: "/records" },
+    { label: "완료한 스탬프", value: "18", detail: "이번 달 +6", href: "/records/stamps" },
   ],
 } as const;
 

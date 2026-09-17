@@ -31,6 +31,7 @@
 18. Next `/api/auth/*` proxy route 추가로 로컬 개발 환경 CORS 이슈 대응
 19. 카카오 SDK 환경 변수를 `NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY`로 명확화해 REST API 키 오설정을 방지
 20. 나의 기록 페이지를 최신 피그마 기본/데이터 보유 화면으로 재구성하고 Zustand `hasRecords` 미리보기 플래그 추가
+21. 나의 기록 요약 카드에서 저장한 코스와 완료한 스탬프 화면으로 이동하도록 연결하고, 완료한 스탬프 화면 추가
 
 ## 결정 사항
 

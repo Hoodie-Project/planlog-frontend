@@ -86,6 +86,7 @@ src/
 /course/result         코스 결과
 /course/saved          저장한 코스
 /records               나의 기록
+/records/stamps        완료한 스탬프
 /records/[id]          기록 카드 상세
 /my                    마이페이지
 ```
