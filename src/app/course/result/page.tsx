@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowUpRight, Home, MessageCircleMore, Plus } from "lucide-react";
 import { MainShell } from "@/components/layout/MainShell";
 import { RouteMapMock, SectionPanel, TimelineList } from "@/components/mock-pages/MockPageShared";
@@ -23,6 +24,10 @@ type ManualStayForm = {
 
 export default function CourseResultPage() {
   const generatedCourse = useCourseStore((state) => state.generatedCourse);
+  const savedCourses = useCourseStore((state) => state.savedCourses);
+  const saveGeneratedCourse = useCourseStore((state) => state.saveGeneratedCourse);
+  const startCourse = useCourseStore((state) => state.startCourse);
+  const router = useRouter();
   const resultView = generatedCourse ? toCourseResultView(generatedCourse) : null;
 
   const [selectedStayId, setSelectedStayId] = useState<string | null>(null);
@@ -107,6 +112,7 @@ export default function CourseResultPage() {
     active: index === 0,
     done: index === resultView.timeline.length - 1,
   }));
+  const savedCurrentCourse = savedCourses.find((course) => course.title === `${generatedCourse?.zoneLabel} 하루 코스`);
 
   const handleManualStaySubmit = () => {
     if (!manualStayForm.name.trim() || !manualStayForm.address.trim()) {
@@ -115,6 +121,21 @@ export default function CourseResultPage() {
 
     setSelectedStayId("manual");
     setManualStayOpen(false);
+  };
+
+  const handleSaveCourse = () => {
+    saveGeneratedCourse();
+  };
+
+  const handleStartCourse = () => {
+    const courseId = saveGeneratedCourse();
+
+    if (!courseId) {
+      return;
+    }
+
+    startCourse(courseId);
+    router.push("/course/saved");
   };
 
   return (
@@ -137,7 +158,12 @@ export default function CourseResultPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Button className="h-11 rounded-[14px] bg-[#f30031] px-6 text-[16px] font-semibold hover:bg-[#df032f]">저장하기</Button>
+              <Button className="h-11 rounded-[14px] bg-[#f30031] px-6 text-[16px] font-semibold hover:bg-[#df032f]" onClick={handleSaveCourse}>
+                {savedCurrentCourse ? "저장됨" : "코스 저장"}
+              </Button>
+              <Button className="h-11 rounded-[14px] border border-[#f30031] bg-white px-6 text-[16px] font-semibold text-[#f30031] hover:bg-[#fff1f4]" onClick={handleStartCourse} variant="outline">
+                코스 시작
+              </Button>
               <Button
                 className="h-11 rounded-[14px] border border-[#e8dfd3] bg-white px-6 text-[16px] font-semibold text-slate-900 hover:bg-[#faf6ef]"
                 variant="outline"

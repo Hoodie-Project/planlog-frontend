@@ -32,6 +32,7 @@
    - 기록 화면 피그마 검증용 `hasRecords` 미리보기 플래그
    - 심사자 모드
    - 선택된 숙소와 현재 코스
+   - `SavedCourseStatus(WAITING | IN_PROGRESS | COMPLETED)`와 코스 저장·시작·완료/리뷰 전환
 3. `TanStack Query`
    - 추천 코스 조회
    - 축제/숙소/장소 상세 조회
@@ -149,6 +150,12 @@ src/
 - `AVAILABLE`
 - `COMPLETED`
 - `REVIEWER_DEMO`
+
+### SavedCourse
+
+- `id`, `title`, `date`, `spotCount`, `zone`
+- `status`: `WAITING`(저장) → `IN_PROGRESS`(코스 시작) → `COMPLETED`(코스 완료 및 리뷰 저장)
+- `review`
 
 ## 7. 장애와 예외 처리
 
