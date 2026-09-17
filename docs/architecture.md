@@ -151,6 +151,11 @@ src/
 - `COMPLETED`
 - `REVIEWER_DEMO`
 
+### CompletedStamp
+
+- `theme`, `place`, `completedAt`, `emotion`, `review`
+- 완료 스탬프 목록은 테마·완료일 정렬을 클라이언트에서 적용하고, 리뷰 모달은 `read`/`write` 모드로 재사용
+
 ### SavedCourse
 
 - `id`, `title`, `date`, `spotCount`, `zone`
