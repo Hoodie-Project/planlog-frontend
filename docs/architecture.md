@@ -29,6 +29,7 @@
    - `sessionStorage` persist로 새로고침/탭 내 이동 복구
    - 로그인 사용자 정보와 액세스 토큰
    - `localStorage` persist 기반 로그인 상태 유지
+   - 기록 화면 피그마 검증용 `hasRecords` 미리보기 플래그
    - 심사자 모드
    - 선택된 숙소와 현재 코스
 3. `TanStack Query`

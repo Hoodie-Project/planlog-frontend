@@ -30,6 +30,7 @@
 17. 카카오 로그인, 게스트 로그인, `/api/auth/me` 기반 실제 인증 흐름으로 mock auth 제거
 18. Next `/api/auth/*` proxy route 추가로 로컬 개발 환경 CORS 이슈 대응
 19. 카카오 SDK 환경 변수를 `NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY`로 명확화해 REST API 키 오설정을 방지
+20. 나의 기록 페이지를 최신 피그마 기본/데이터 보유 화면으로 재구성하고 Zustand `hasRecords` 미리보기 플래그 추가
 
 ## 결정 사항
 
@@ -47,6 +48,7 @@
 - 로그인 판별은 서비스 JWT `accessToken` 존재 여부를 기준으로 두고, 사용자 정보는 `/api/auth/me`로 재동기화
 - 로그인 상태는 새로고침 후에도 유지되어야 하므로 `sessionStorage`가 아니라 `localStorage`에 저장
 - 인증 요청은 브라우저에서 운영 API를 직접 호출하지 않고 same-origin Next proxy route를 경유
+- 기록 API 연결 전에는 우측 하단 미리보기 토글로 빈 상태와 데이터 보유 상태를 전환하며, 실제 연동 시 응답 데이터 유무로 대체
 
 ## 막힘
 
