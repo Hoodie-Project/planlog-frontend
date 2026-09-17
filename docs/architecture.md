@@ -165,6 +165,7 @@ src/
 ## 9. 보안 경계
 
 - OAuth 클라이언트 ID와 API Base URL은 `.env`를 통해 주입한다.
+- 카카오 로그인은 JavaScript SDK가 발급한 카카오 액세스 토큰을 `POST /api/auth/kakao`로 전달한다. `Kakao.init()`에는 REST API 키가 아닌 JavaScript 키를 사용한다.
 - 위치 검증은 최종적으로 서버에서 재확인한다.
 - 저장/기록 API는 인증 세션 기반으로 보호한다.
 - Git에는 `.env`를 포함하지 않는다.

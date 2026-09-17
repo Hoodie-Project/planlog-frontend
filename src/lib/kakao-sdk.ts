@@ -49,10 +49,12 @@ function loadScript() {
 }
 
 export async function ensureKakaoSdk() {
-  const clientId = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID;
+  const javascriptKey = process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY;
 
-  if (!clientId || clientId === "replace-me") {
-    throw new Error("NEXT_PUBLIC_KAKAO_CLIENT_ID 값이 설정되어 있지 않습니다.");
+  if (!javascriptKey || javascriptKey === "replace-me") {
+    throw new Error(
+      "NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY에 카카오 JavaScript 키를 설정해주세요. REST API 키는 사용할 수 없습니다."
+    );
   }
 
   await loadScript();
@@ -62,7 +64,7 @@ export async function ensureKakaoSdk() {
   }
 
   if (!window.Kakao.isInitialized()) {
-    window.Kakao.init(clientId);
+    window.Kakao.init(javascriptKey);
   }
 
   return window.Kakao;

@@ -29,6 +29,7 @@
 16. 추천 코스/코스 상세/나의 기록 Mock UI 공통 패턴을 shared mock 컴포넌트로 정리
 17. 카카오 로그인, 게스트 로그인, `/api/auth/me` 기반 실제 인증 흐름으로 mock auth 제거
 18. Next `/api/auth/*` proxy route 추가로 로컬 개발 환경 CORS 이슈 대응
+19. 카카오 SDK 환경 변수를 `NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY`로 명확화해 REST API 키 오설정을 방지
 
 ## 결정 사항
 
