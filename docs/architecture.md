@@ -85,6 +85,7 @@ src/
 /course/create?step=3  무드 셀렉터 3단계
 /course/create?step=4  무드 셀렉터 4단계 및 생성 호출
 /course/result         추천 코스 지도 결과 (코스 생성 API 응답을 우선 표시)
+/course/result/stays   추천 숙소 지도
 /course/saved          저장한 코스
 /records               나의 기록
 /records/stamps        완료한 스탬프

@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowRight, Bookmark, ChevronDown, ChevronLeft, RefreshCw, X } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Bookmark, ChevronDown, ChevronLeft, Home, MessageCircleMore, Plus, RefreshCw, X } from "lucide-react";
 import { CourseMapLayout } from "@/components/course-result/CourseMapLayout";
+import { MainShell } from "@/components/layout/MainShell";
+import { Button } from "@/components/ui/Button";
 import { testRecommendedCourse, testRecommendedCourseMap, testRecommendedPlaces } from "@/lib/mock-data";
 import { useCourseStore } from "@/store/course-store";
 
@@ -71,6 +73,10 @@ export default function CourseResultPage() {
   const selectedPlace = places.find((place) => place.id === selectedPlaceId) ?? null;
   const courseTitle = generatedCourse ? `${generatedCourse.zoneLabel} 추천 코스` : testRecommendedCourse.title;
 
+  if (!generatedCourse) {
+    return <CourseResultEmptyState />;
+  }
+
   return (
     <CourseMapLayout
       center={mapData.center}
@@ -111,6 +117,32 @@ export default function CourseResultPage() {
         </div>
       }
     />
+  );
+}
+
+function CourseResultEmptyState() {
+  return (
+    <MainShell>
+      <section className="relative min-h-[calc(100vh-80px)] overflow-hidden bg-white">
+        <div aria-hidden="true" className="absolute inset-0 scale-[1.02] bg-cover bg-center bg-no-repeat blur-[6px]" style={{ backgroundImage: "url('/images/course/result-empty-map.svg')" }} />
+        <div className="absolute inset-0 bg-[rgba(255,255,255,0.42)]" />
+        <div className="relative mx-auto flex min-h-[calc(100vh-80px)] max-w-[1920px]">
+          <aside className="hidden w-16 shrink-0 border-r border-[#e5e5ec] bg-white/95 lg:block">
+            <div className="flex flex-col py-6">
+              <div className="flex h-[72px] flex-col items-center justify-center gap-1 border-y border-[#e5e5ec] text-[#111111]"><ArrowUpRight className="h-5 w-5" strokeWidth={2.2} /><span className="text-[11px] font-bold tracking-[-0.3px]">추천 코스</span></div>
+              <div className="flex h-[72px] flex-col items-center justify-center gap-1 border-b border-[#e5e5ec] text-[#999999]"><Home className="h-5 w-5" strokeWidth={2.1} /><span className="text-[11px] font-bold tracking-[-0.3px]">추천 숙소</span></div>
+              <div className="flex h-[72px] flex-col items-center justify-center gap-1 border-b border-[#e5e5ec] text-[#999999]"><MessageCircleMore className="h-5 w-5" strokeWidth={2.1} /><span className="text-[11px] font-bold tracking-[-0.3px]">코스 후기</span></div>
+            </div>
+          </aside>
+          <div className="relative flex flex-1 items-center justify-center px-4 py-10 sm:px-6 lg:px-10">
+            <div className="w-full max-w-[400px] rounded-[16px] border border-[#d4d4d4] bg-white px-10 py-8 shadow-[0_2px_6px_rgba(17,17,17,0.08)]">
+              <div className="text-center"><h1 className="text-[18px] font-bold leading-[1.4] tracking-[-0.45px] text-[#111111]">아직 코스가 없어요</h1><p className="mt-6 text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111111]">여행시간, 감성을 선택하면<br />나에게 맞는 하루 코스를 만들어드려요!</p></div>
+              <div className="mt-10 flex flex-col items-center"><Button asChild className="h-12 w-full rounded-[16px] bg-[#ff1f4c] px-5 text-[16px] font-bold tracking-[-0.4px] text-white shadow-[0_2px_6px_rgba(17,17,17,0.08)] hover:bg-[#eb1b47]"><Link href="/course/create?step=1"><Plus className="mr-1 h-5 w-5" strokeWidth={2.4} />코스 만들기</Link></Button><p className="mt-4 text-center text-[14px] leading-[1.4] tracking-[-0.35px] text-[#767676]">코스 생성 후, 지도 위에 추천코스가 표기됩니다.</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </MainShell>
   );
 }
 

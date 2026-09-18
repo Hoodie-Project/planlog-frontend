@@ -22,7 +22,7 @@ type CourseMapLayoutProps = {
 
 const stageNavItems = [
   { href: "/course/result", label: "추천 코스", icon: ArrowUpRight },
-  { href: "#", label: "추천 숙소", icon: Home },
+  { href: "/course/result/stays", label: "추천 숙소", icon: Home },
   { href: "#", label: "코스 후기", icon: MessageCircleMore },
 ];
 
