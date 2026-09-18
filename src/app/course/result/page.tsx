@@ -1,47 +1,81 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Home, MessageCircleMore, Plus } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ArrowRight, ArrowUpRight, BadgeCheck, Bookmark, ChevronDown, ChevronLeft, Home, MessageCircleMore, Plus, RefreshCw, X } from "lucide-react";
+import { CourseMapLayout } from "@/components/course-result/CourseMapLayout";
 import { MainShell } from "@/components/layout/MainShell";
-import { RouteMapMock, SectionPanel, TimelineList } from "@/components/mock-pages/MockPageShared";
 import { Button } from "@/components/ui/Button";
-import { createSavedCourse } from "@/api/saved-courses";
 import { ApiError } from "@/api/client";
-import { toCourseResultView } from "@/lib/course-create";
-import {
-  courseFeedbackOptions,
-  companionEmotionNotes,
-  recommendedAccommodations,
-  recommendedCourseReasons,
-  recommendedCourseTags,
-} from "@/lib/mock-data";
+import { createSavedCourse } from "@/api/saved-courses";
 import { useAuthStore } from "@/store/auth-store";
 import { useCourseStore } from "@/store/course-store";
 
-type ManualStayForm = {
+type CourseMapPlace = {
+  id: number;
   name: string;
+  time: string;
+  tags: readonly string[];
   address: string;
+  status: string;
+  hours: string;
+  congestion: string;
+  congestionTone: string;
+  image: string;
+  travelMinutesFromPrev?: number;
+  lat?: number;
+  lng?: number;
 };
 
+const toNumber = (value?: string) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const fallbackMapCenter = { lat: 37.7519, lng: 128.8761 };
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 export default function CourseResultPage() {
   const generatedCourse = useCourseStore((state) => state.generatedCourse);
-  const resultView = generatedCourse ? toCourseResultView(generatedCourse) : null;
   const accessToken = useAuthStore((state) => state.accessToken);
   const openLoginModal = useAuthStore((state) => state.openLoginModal);
-
-  const [selectedStayId, setSelectedStayId] = useState<string | null>(null);
-  const [confirmStayId, setConfirmStayId] = useState<string | null>(null);
-  const [manualStayOpen, setManualStayOpen] = useState(false);
-  const [manualStayForm, setManualStayForm] = useState<ManualStayForm>({ name: "", address: "" });
+  const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(1);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  const places = useMemo<CourseMapPlace[]>(() => {
+    const items = generatedCourse?.days.flatMap((day) => day.items) ?? [];
+
+    return items.map((item, index) => ({
+      id: index + 1,
+      name: item.title,
+      time: item.arriveTime,
+      tags: [`#${generatedCourse?.zoneLabel ?? "추천"}`, `#${item.type === "MEAL" ? "식사" : item.type === "STAY" ? "숙소" : "추천 장소"}`],
+      address: item.address ?? "주소 정보가 준비 중입니다.",
+      status: "추천 장소",
+      hours: `예상 체류 ${item.stayMinutes}분`,
+      congestion: generatedCourse?.congestion?.level === "HIGH" ? "높음" : generatedCourse?.congestion?.level === "MEDIUM" ? "보통" : "낮음",
+      congestionTone: generatedCourse?.congestion?.level === "HIGH" ? "text-[#ff1f4c]" : generatedCourse?.congestion?.level === "MEDIUM" ? "text-[#ff8a00]" : "text-[#48a600]",
+      image: item.image ?? "",
+      travelMinutesFromPrev: item.travelMinutesFromPrev,
+      lat: toNumber(item.mapY),
+      lng: toNumber(item.mapX),
+    }));
+  }, [generatedCourse]);
+
+  const mappablePlaces = places.filter((place): place is CourseMapPlace & { lat: number; lng: number } => place.lat !== undefined && place.lng !== undefined);
+  const mapData = mappablePlaces.length
+    ? {
+        center: { lat: mappablePlaces[0].lat, lng: mappablePlaces[0].lng },
+        markers: mappablePlaces.map(({ id, lat, lng }) => ({ id, lat, lng })),
+        path: mappablePlaces.map(({ lat, lng }) => ({ lat, lng })),
+      }
+    : { center: fallbackMapCenter, markers: [], path: [] };
+  const selectedPlace = places.find((place) => place.id === selectedPlaceId) ?? null;
+  const courseTitle = generatedCourse ? `${generatedCourse.zoneLabel} 추천 코스` : "추천 코스";
+
   const handleSaveCourse = async () => {
     if (!generatedCourse) return;
-
     if (!accessToken) {
       openLoginModal("protected-route");
       return;
@@ -49,7 +83,6 @@ export default function CourseResultPage() {
 
     setSaveStatus("saving");
     setSaveError(null);
-
     try {
       await createSavedCourse(accessToken, generatedCourse);
       setSaveStatus("saved");
@@ -59,352 +92,108 @@ export default function CourseResultPage() {
     }
   };
 
-  const selectedStay = useMemo(() => {
-    if (selectedStayId === "manual") {
-      return manualStayForm.name ? { title: manualStayForm.name, area: manualStayForm.address } : null;
-    }
-
-    return recommendedAccommodations.find((item) => item.id === selectedStayId) ?? null;
-  }, [manualStayForm.address, manualStayForm.name, selectedStayId]);
-
-  if (!resultView) {
-    return (
-      <MainShell>
-        <section className="relative overflow-hidden bg-white">
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 scale-[1.02] bg-cover bg-center bg-no-repeat blur-[6px]"
-            style={{ backgroundImage: "url('/images/course/result-empty-map.svg')" }}
-          />
-          <div className="absolute inset-0 bg-[rgba(255,255,255,0.42)]" />
-
-          <div className="relative mx-auto flex min-h-[calc(100vh-80px)] max-w-[1920px]">
-            <aside className="hidden w-16 shrink-0 border-r border-[#e5e5ec] bg-white/95 lg:block">
-              <div className="flex flex-col py-6">
-                <div className="flex h-[72px] flex-col items-center justify-center gap-1 border-y border-[#e5e5ec] text-[#111111]">
-                  <ArrowUpRight className="h-5 w-5" strokeWidth={2.2} />
-                  <span className="text-[11px] font-bold tracking-[-0.3px]">추천 코스</span>
-                </div>
-                <div className="flex h-[72px] flex-col items-center justify-center gap-1 border-b border-[#e5e5ec] text-[#999999]">
-                  <Home className="h-5 w-5" strokeWidth={2.1} />
-                  <span className="text-[11px] font-bold tracking-[-0.3px]">추천 숙소</span>
-                </div>
-                <div className="flex h-[72px] flex-col items-center justify-center gap-1 border-b border-[#e5e5ec] text-[#999999]">
-                  <MessageCircleMore className="h-5 w-5" strokeWidth={2.1} />
-                  <span className="text-[11px] font-bold tracking-[-0.3px]">코스 후기</span>
-                </div>
-              </div>
-            </aside>
-
-            <div className="relative flex flex-1 items-center justify-center px-4 py-10 sm:px-6 lg:px-10">
-              <div className="w-full max-w-[400px] rounded-[16px] border border-[#d4d4d4] bg-white px-10 py-8 shadow-[0_2px_6px_rgba(17,17,17,0.08)]">
-                <div className="text-center">
-                  <h1 className="text-[18px] font-bold leading-[1.4] tracking-[-0.45px] text-[#111111]">아직 코스가 없어요</h1>
-                  <p className="mt-6 text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111111]">
-                    여행시간, 감성을 선택하면
-                    <br />
-                    나에게 맞는 하루 코스를 만들어드려요!
-                  </p>
-                </div>
-
-                <div className="mt-10 flex flex-col items-center">
-                  <Button
-                    asChild
-                    className="h-12 w-full rounded-[16px] bg-[#ff1f4c] px-5 text-[16px] font-bold tracking-[-0.4px] text-white shadow-[0_2px_6px_rgba(17,17,17,0.08)] hover:bg-[#eb1b47]"
-                  >
-                    <Link href="/course/create?step=1">
-                      <Plus className="mr-1 h-5 w-5" strokeWidth={2.4} />
-                      코스 만들기
-                    </Link>
-                  </Button>
-                  <p className="mt-4 text-center text-[14px] leading-[1.4] tracking-[-0.35px] text-[#767676]">
-                    코스 생성 후, 지도 위에 추천코스가 표기됩니다.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </MainShell>
-    );
+  if (!generatedCourse || places.length === 0) {
+    return <CourseResultEmptyState />;
   }
 
-  const timelineItems = resultView.timeline.map((item, index) => ({
-    name: item.name,
-    time: item.time,
-    category: item.meta,
-    active: index === 0,
-    done: index === resultView.timeline.length - 1,
-  }));
+  return (
+    <CourseMapLayout
+      center={mapData.center}
+      markers={mapData.markers}
+      path={mapData.path}
+      onMarkerClick={setSelectedPlaceId}
+      mapOverlay={selectedPlace ? <PlaceOverlay place={selectedPlace} onClose={() => setSelectedPlaceId(null)} /> : null}
+      mobileSummary={
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-[20px] font-bold tracking-[-0.5px] text-[#111111]">{courseTitle}</h2>
+            <p className="mt-2 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#505050]">{places.map((item) => `${item.time} ${item.name}`).join(" · ")}</p>
+          </div>
+          <Link className="shrink-0 text-[14px] font-semibold tracking-[-0.35px] text-[#505050]" href="/course/saved">상세보기</Link>
+        </div>
+      }
+      panel={
+        <div className="flex h-full flex-col gap-[13px] px-5 pb-8 pt-6">
+          <div>
+            <h1 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111111]">{courseTitle}</h1>
+            <div className="mt-[13px] flex flex-wrap items-center gap-1">
+              <button className="inline-flex h-8 items-center justify-center rounded-full bg-[#ff1f4c] px-4 text-[14px] font-bold tracking-[-0.35px] text-white transition hover:bg-[#eb1b47] disabled:cursor-not-allowed disabled:bg-[#d4d4d4]" disabled={saveStatus === "saving" || saveStatus === "saved"} onClick={handleSaveCourse} type="button">
+                <Bookmark className="mr-1 h-4 w-4" strokeWidth={2.2} />{saveStatus === "saved" ? "저장됨" : saveStatus === "saving" ? "저장 중..." : "저장하기"}
+              </button>
+              <Link className="inline-flex h-8 items-center justify-center rounded-full bg-[#ffeaee] px-4 text-[14px] font-bold tracking-[-0.35px] text-[#111111] transition hover:bg-[#ffe0e7]" href="/course/create?step=1">
+                <RefreshCw className="mr-1 h-4 w-4" strokeWidth={2.2} />다시 추천받기
+              </Link>
+            </div>
+          </div>
+          <div className="flex-1 pt-[11px]">
+            <div className="space-y-5 border-b border-[#e5e5ec] pb-4 text-[16px] font-semibold leading-[1.4] tracking-[-0.4px] text-[#111111]">
+              {places.map((item, index) => {
+                const endpoint = index === 0 || index === places.length - 1;
 
-  const handleManualStaySubmit = () => {
-    if (!manualStayForm.name.trim() || !manualStayForm.address.trim()) {
-      return;
-    }
+                return (
+                  <button key={item.id} className="flex w-full items-start gap-3 text-left" onClick={() => setSelectedPlaceId(item.id)} type="button">
+                    <BadgeCheck className={`mt-0.5 h-8 w-8 shrink-0 ${endpoint ? "fill-[#ff1f4c] text-white" : "fill-[#a9a9a9] text-white"}`} strokeWidth={2.6} />
+                    <span className="min-w-0"><span className="block text-[18px] font-bold leading-[1.35] tracking-[-0.45px] text-[#111111]"><span className="mr-2 inline-block w-[50px] text-[16px]">{item.time}</span>{item.name}</span>{item.travelMinutesFromPrev !== undefined ? <span className="mt-1 block text-[15px] font-medium tracking-[-0.35px] text-[#505050]">이동 {item.travelMinutesFromPrev}분</span> : null}</span>
+                  </button>
+                );
+              })}
+              <Link className="flex items-start gap-1 text-left text-[#111111]" href="/course/create?step=1"><span className="text-[20px] leading-none text-[#ff1f4c]">+</span><span>일정 추가하기</span></Link>
+              <Link className="flex items-start gap-1 text-left text-[#111111]" href="/course/result/stays"><span className="text-[20px] leading-none text-[#ff1f4c]">+</span><span>숙소 추가하기</span></Link>
+            </div>
+            <Link className="mt-4 inline-flex items-center gap-0.5 text-[14px] font-semibold leading-[1.4] tracking-[-0.35px] text-[#505050] transition hover:text-slate-900" href="/course/saved">상세보기<ArrowRight className="h-4 w-4" strokeWidth={2.1} /></Link>
+            {saveStatus === "saved" ? <Link className="mt-2 block text-[13px] text-[#f30031] underline" href="/course/saved">저장한 코스에서 확인하기</Link> : null}
+            {saveStatus === "error" && saveError ? <p className="mt-2 text-[13px] text-[#f30031]">{saveError}</p> : null}
+          </div>
+        </div>
+      }
+    />
+  );
+}
 
-    setSelectedStayId("manual");
-    setManualStayOpen(false);
-  };
-
+function CourseResultEmptyState() {
   return (
     <MainShell>
-      <div className="mx-auto max-w-[1240px] px-4 py-10 lg:px-0">
-        <section className="rounded-[24px] border border-[#efe8dc] bg-[#fffcf7] px-8 py-7 shadow-[0_10px_30px_rgba(17,17,17,0.04)]">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {recommendedCourseTags.map((tag) => (
-                  <span key={tag} className="text-[15px] font-semibold tracking-[-0.35px] text-[#f30031]">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              <div className="space-y-2">
-                <h1 className="text-[44px] font-extrabold leading-[1.25] tracking-[-1px] text-slate-900">{resultView.title}</h1>
-                <p className="text-[18px] leading-[1.5] tracking-[-0.4px] text-slate-600">{resultView.summary}</p>
-              </div>
+      <section className="relative min-h-[calc(100vh-80px)] overflow-hidden bg-white">
+        <div aria-hidden="true" className="absolute inset-0 scale-[1.02] bg-cover bg-center bg-no-repeat blur-[6px]" style={{ backgroundImage: "url('/images/course/result-empty-map.svg')" }} />
+        <div className="absolute inset-0 bg-[rgba(255,255,255,0.42)]" />
+        <div className="relative mx-auto flex min-h-[calc(100vh-80px)] max-w-[1920px]">
+          <aside className="hidden w-16 shrink-0 border-r border-[#e5e5ec] bg-white/95 lg:block">
+            <div className="flex flex-col py-6">
+              <div className="flex h-[72px] flex-col items-center justify-center gap-1 border-y border-[#e5e5ec] text-[#111111]"><ArrowUpRight className="h-5 w-5" strokeWidth={2.2} /><span className="text-[11px] font-bold tracking-[-0.3px]">추천 코스</span></div>
+              <div className="flex h-[72px] flex-col items-center justify-center gap-1 border-b border-[#e5e5ec] text-[#999999]"><Home className="h-5 w-5" strokeWidth={2.1} /><span className="text-[11px] font-bold tracking-[-0.3px]">추천 숙소</span></div>
+              <div className="flex h-[72px] flex-col items-center justify-center gap-1 border-b border-[#e5e5ec] text-[#999999]"><MessageCircleMore className="h-5 w-5" strokeWidth={2.1} /><span className="text-[11px] font-bold tracking-[-0.3px]">코스 후기</span></div>
             </div>
-
-            <div className="flex flex-col items-end gap-2">
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  className="h-11 rounded-[14px] bg-[#f30031] px-6 text-[16px] font-semibold hover:bg-[#df032f] disabled:opacity-60"
-                  disabled={saveStatus === "saving" || saveStatus === "saved"}
-                  onClick={handleSaveCourse}
-                >
-                  {saveStatus === "saved" ? "저장됨" : saveStatus === "saving" ? "저장 중..." : "저장하기"}
-                </Button>
-                <Button
-                  asChild
-                  className="h-11 rounded-[14px] border border-[#e8dfd3] bg-white px-6 text-[16px] font-semibold text-slate-900 hover:bg-[#faf6ef]"
-                  variant="outline"
-                >
-                  <Link href="/course/create?step=1">다시 추천받기</Link>
-                </Button>
-              </div>
-              {saveStatus === "saved" ? (
-                <p className="text-[13px] text-[#f30031]">
-                  <Link className="underline" href="/course/saved">
-                    저장한 코스에서 확인하기
-                  </Link>
-                </p>
-              ) : null}
-              {saveStatus === "error" && saveError ? <p className="text-[13px] text-[#f30031]">{saveError}</p> : null}
-            </div>
-          </div>
-        </section>
-
-        <section className="mt-6 grid gap-6 lg:grid-cols-[1.02fr_0.98fr]">
-          <div>
-            <RouteMapMock
-              compact
-              summaryLines={
-                <>
-                  강릉역 → 오죽헌 → 중앙시장
-                  <br />→ 안목해변 → 주문진 등대
-                </>
-              }
-            />
-            <SectionPanel className="mt-0 rounded-t-none border-t-0" contentClassName="px-6 pb-6 pt-6">
-              <div className="mt-6 grid grid-cols-4 gap-4">
-                {Object.entries(resultView.stats).map(([key, value]) => (
-                  <div key={key} className="border-r border-[#ebe3d8] pr-3 last:border-r-0 last:pr-0">
-                    <p className="text-[14px] tracking-[-0.35px] text-slate-500">{key}</p>
-                    <p className={`mt-2 text-[18px] font-bold tracking-[-0.45px] ${key === "혼잡도" ? "text-[#f30031]" : "text-slate-900"}`}>{value}</p>
-                  </div>
-                ))}
-              </div>
-            </SectionPanel>
-          </div>
-
-          <div>
-            <TimelineList items={timelineItems} title="일정표" />
-            <SectionPanel className="mt-0 rounded-t-none border-t-0" contentClassName="px-6 pb-6 pt-2">
-              <div className="rounded-[18px] border border-[#efe8dc] bg-[#fffcf7] px-5 py-4">
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <p className="text-[20px] font-bold tracking-[-0.45px] text-slate-900">18:00 숙소 체크인</p>
-                    <p className="mt-1 text-[15px] tracking-[-0.35px] text-slate-500">
-                      {selectedStay ? `${selectedStay.title} · ${selectedStay.area}` : "감성힐링 숙소 권장"}
-                    </p>
-                  </div>
-                  <Button
-                    className="h-10 rounded-[12px] bg-[#f30031] px-5 text-[15px] font-semibold hover:bg-[#df032f]"
-                    onClick={() => setManualStayOpen(true)}
-                  >
-                    숙소 입력하기
-                  </Button>
-                </div>
-              </div>
-
-              <Button
-                asChild
-                className="mt-4 h-12 w-full rounded-[14px] border border-[#e8dfd3] bg-white text-[16px] font-semibold text-slate-900 hover:bg-[#faf6ef]"
-                variant="outline"
-              >
-                <Link href="/course/saved">코스 상세 보기</Link>
-              </Button>
-            </SectionPanel>
-          </div>
-        </section>
-
-        <SectionPanel className="mt-6" contentClassName="px-6 py-5">
-          <h2 className="text-[28px] font-bold tracking-[-0.7px] text-slate-900">이 코스를 추천한 이유</h2>
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
-            {recommendedCourseReasons.map((reason, index) => (
-              <div key={reason} className="flex items-start gap-3">
-                <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#fff1f4] text-[12px] font-bold text-[#f30031]">
-                  {index + 1}
-                </span>
-                <p className="text-[18px] font-semibold leading-[1.45] tracking-[-0.4px] text-slate-800">{reason}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 rounded-[20px] border border-[#f3ebe1] bg-[#faf7f1] px-5 py-5">
-            <p className="text-[20px] font-bold tracking-[-0.45px] text-slate-700">이 코스가 마음에 들지 않으시나요?</p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              {courseFeedbackOptions.map((option) => (
-                <button
-                  key={option}
-                  className="rounded-[12px] border border-[#ebe3d8] bg-white px-4 py-3 text-[15px] font-semibold tracking-[-0.35px] text-slate-800 transition hover:bg-[#fff6f7]"
-                  type="button"
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-          </div>
-        </SectionPanel>
-
-        <SectionPanel className="mt-6" contentClassName="px-6 py-5">
-          <h2 className="text-[28px] font-bold tracking-[-0.7px] text-slate-900">코스와 가까운 숙소</h2>
-          <div className="mt-5 grid gap-4 xl:grid-cols-3">
-            {recommendedAccommodations.map((stay) => (
-              <article
-                key={stay.id}
-                className={`rounded-[20px] border bg-white px-5 py-5 shadow-[0_2px_8px_rgba(17,17,17,0.03)] ${
-                  selectedStayId === stay.id ? "border-[#f30031] ring-2 ring-[#f30031]/10" : "border-[#efe8dc]"
-                }`}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className={`inline-flex h-7 items-center rounded-full bg-slate-100 px-3 text-[12px] font-bold tracking-[-0.3px] ${stay.tone}`}>
-                    {stay.badge}
-                  </span>
-                  <span className="text-[13px] tracking-[-0.3px] text-slate-500">{stay.area}</span>
-                </div>
-                <p className="mt-4 text-[22px] font-bold tracking-[-0.55px] text-slate-900">{stay.title}</p>
-                <p className={`mt-2 text-[20px] font-bold tracking-[-0.45px] ${stay.tone}`}>{stay.price}</p>
-                <Button
-                  className="mt-5 h-11 w-full rounded-[14px] bg-[#f30031] text-[16px] font-semibold hover:bg-[#df032f]"
-                  onClick={() => setConfirmStayId(stay.id)}
-                >
-                  숙소 선택하기
-                </Button>
-              </article>
-            ))}
-          </div>
-        </SectionPanel>
-
-        <SectionPanel className="mt-6" contentClassName="px-6 py-5">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 className="text-[28px] font-bold tracking-[-0.7px] text-slate-900">같은 코스를 걷는 사람들</h2>
-              <p className="mt-1 text-[15px] tracking-[-0.35px] text-slate-500">가장 많이 남긴 감정: 평온함</p>
-            </div>
-            <p className="text-[14px] tracking-[-0.35px] text-slate-500">오늘 12명 저장</p>
-          </div>
-
-          <div className="mt-5 space-y-3">
-            {companionEmotionNotes.map((item) => (
-              <div key={item.rank} className="flex items-center gap-3 rounded-[16px] bg-[#fffcf7] px-4 py-4">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#f1ede8] text-[13px] font-bold text-slate-500">
-                  {item.rank}
-                </span>
-                <span className={`inline-flex h-7 items-center rounded-full px-3 text-[12px] font-bold tracking-[-0.3px] ${item.tone}`}>{item.mood}</span>
-                <p className="text-[16px] font-semibold tracking-[-0.35px] text-slate-800">&quot;{item.quote}&quot;</p>
-              </div>
-            ))}
-          </div>
-        </SectionPanel>
-      </div>
-
-      {confirmStayId ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(17,17,17,0.35)] px-4 backdrop-blur-[2px]">
-          <div className="w-full max-w-[430px] rounded-[28px] bg-white p-8 shadow-[0_20px_50px_rgba(17,17,17,0.18)]">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[linear-gradient(180deg,#eef3ff_0%,#fafcff_100%)] text-[44px] text-[#3c65e8]">
-              ?
-            </div>
-            <p className="mt-8 text-center text-[32px] font-bold tracking-[-0.7px] text-slate-900">해당 숙소로 지정하시겠습니까?</p>
-            <div className="mt-10 grid grid-cols-2 gap-4">
-              <Button
-                className="h-14 rounded-[14px] bg-[linear-gradient(180deg,#3d6cff_0%,#2f5ce9_100%)] text-[20px] font-semibold hover:bg-[linear-gradient(180deg,#3d6cff_0%,#2f5ce9_100%)]"
-                onClick={() => {
-                  setSelectedStayId(confirmStayId);
-                  setConfirmStayId(null);
-                }}
-              >
-                예
-              </Button>
-              <Button
-                className="h-14 rounded-[14px] border border-[#e8dfd3] bg-white text-[20px] font-semibold text-slate-900 hover:bg-[#faf6ef]"
-                onClick={() => setConfirmStayId(null)}
-                variant="outline"
-              >
-                아니요
-              </Button>
+          </aside>
+          <div className="relative flex flex-1 items-center justify-center px-4 py-10 sm:px-6 lg:px-10">
+            <div className="w-full max-w-[400px] rounded-[16px] border border-[#d4d4d4] bg-white px-10 py-8 shadow-[0_2px_6px_rgba(17,17,17,0.08)]">
+              <div className="text-center"><h1 className="text-[18px] font-bold leading-[1.4] tracking-[-0.45px] text-[#111111]">아직 코스가 없어요</h1><p className="mt-6 text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111111]">여행시간, 감성을 선택하면<br />나에게 맞는 하루 코스를 만들어드려요!</p></div>
+              <div className="mt-10 flex flex-col items-center"><Button asChild className="h-12 w-full rounded-[16px] bg-[#ff1f4c] px-5 text-[16px] font-bold tracking-[-0.4px] text-white shadow-[0_2px_6px_rgba(17,17,17,0.08)] hover:bg-[#eb1b47]"><Link href="/course/create?step=1"><Plus className="mr-1 h-5 w-5" strokeWidth={2.4} />코스 만들기</Link></Button><p className="mt-4 text-center text-[14px] leading-[1.4] tracking-[-0.35px] text-[#767676]">코스 생성 후, 지도 위에 추천코스가 표기됩니다.</p></div>
             </div>
           </div>
         </div>
-      ) : null}
-
-      {manualStayOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(17,17,17,0.35)] px-4 backdrop-blur-[2px]">
-          <div className="w-full max-w-[500px] rounded-[28px] bg-white p-8 shadow-[0_20px_50px_rgba(17,17,17,0.18)]">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[linear-gradient(180deg,#eef3ff_0%,#fafcff_100%)] text-[44px] text-[#3c65e8]">
-              ⌂
-            </div>
-            <p className="mt-6 text-center text-[30px] font-bold tracking-[-0.7px] text-slate-900">숙소명과 주소를 입력해 주세요.</p>
-
-            <div className="mt-8 space-y-5">
-              <label className="block">
-                <span className="mb-2 block text-[16px] font-semibold tracking-[-0.35px] text-slate-900">숙소명 *</span>
-                <input
-                  className="h-14 w-full rounded-[14px] border border-[#e8dfd3] px-4 text-[16px] outline-none transition focus:border-[#f30031]"
-                  placeholder="숙소명을 입력해 주세요."
-                  value={manualStayForm.name}
-                  onChange={(event) => setManualStayForm((prev) => ({ ...prev, name: event.target.value }))}
-                />
-              </label>
-              <label className="block">
-                <span className="mb-2 block text-[16px] font-semibold tracking-[-0.35px] text-slate-900">주소 *</span>
-                <input
-                  className="h-14 w-full rounded-[14px] border border-[#e8dfd3] px-4 text-[16px] outline-none transition focus:border-[#f30031]"
-                  placeholder="주소를 입력해 주세요."
-                  value={manualStayForm.address}
-                  onChange={(event) => setManualStayForm((prev) => ({ ...prev, address: event.target.value }))}
-                />
-              </label>
-            </div>
-
-            <div className="mt-8 flex gap-3">
-              <Button
-                className="h-14 flex-1 rounded-[14px] bg-[#f30031] text-[20px] font-semibold hover:bg-[#df032f]"
-                onClick={handleManualStaySubmit}
-              >
-                제출
-              </Button>
-              <Button
-                className="h-14 rounded-[14px] border border-[#e8dfd3] bg-white px-6 text-[18px] font-semibold text-slate-900 hover:bg-[#faf6ef]"
-                onClick={() => setManualStayOpen(false)}
-                variant="outline"
-              >
-                취소
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      </section>
     </MainShell>
+  );
+}
+
+function PlaceOverlay({ place, onClose }: { place: CourseMapPlace; onClose: () => void }) {
+  return (
+    <>
+      <div className="absolute left-4 top-4 z-20 hidden xl:block">
+        <div className="overflow-hidden rounded-[16px] border border-[#e5e5ec] bg-white shadow-[0px_2px_6px_rgba(17,17,17,0.08)]">
+          <div className="flex h-[calc(100vh-112px)] min-h-[720px] w-[350px] flex-col">
+            <div className="flex items-center justify-between px-4 py-4"><button className="text-[#111111]" onClick={onClose} type="button"><ChevronLeft className="h-6 w-6" strokeWidth={1.9} /></button><button className="text-[#111111]" onClick={onClose} type="button"><X className="h-6 w-6" strokeWidth={1.9} /></button></div>
+            <div className="border-b border-[#e5e5ec] px-4 pb-4">
+              <div className="flex h-[224px] items-center justify-center overflow-hidden rounded-[2px] bg-[#f5f5f5] text-[14px] text-[#767676]">{place.image ? <img alt={place.name} className="h-full w-full object-cover" src={place.image} /> : "이미지 준비 중"}</div>
+              <div className="mt-3"><h3 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111111]">{place.name}</h3><div className="mt-1 flex flex-wrap items-center gap-2 text-[16px] tracking-[-0.4px] text-[#111111]">{place.tags.map((tag) => <span key={tag}>{tag}</span>)}</div></div>
+              <div className="mt-3 space-y-1 text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111111]"><p>{place.address}</p><div className="flex flex-wrap items-center gap-1"><span className="font-bold">{place.status}</span><span>{place.hours}</span><ChevronDown className="h-3 w-3" strokeWidth={2} /></div><div className="flex items-center gap-1"><span className="font-bold">혼잡도</span><span className={`font-bold ${place.congestionTone}`}>{place.congestion}</span></div></div>
+            </div>
+            <div className="flex-1 bg-white" />
+          </div>
+        </div>
+        <button className="absolute left-[350px] top-[420px] flex h-[60px] w-10 items-center justify-center rounded-br-[16px] rounded-tr-[16px] border border-[#e5e5ec] border-l-0 bg-white shadow-[0px_2px_6px_rgba(17,17,17,0.08)]" onClick={onClose} type="button"><ChevronLeft className="h-6 w-6 text-[#111111]" strokeWidth={1.9} /></button>
+      </div>
+      <div className="absolute inset-x-4 top-4 z-20 xl:hidden"><div className="overflow-hidden rounded-[16px] border border-[#e5e5ec] bg-white shadow-[0px_2px_6px_rgba(17,17,17,0.08)]"><div className="flex items-center justify-between px-4 py-3"><button className="text-[#111111]" onClick={onClose} type="button"><ChevronLeft className="h-5 w-5" strokeWidth={1.9} /></button><button className="text-[#111111]" onClick={onClose} type="button"><X className="h-5 w-5" strokeWidth={1.9} /></button></div><div className="border-t border-[#f2f2f4] px-4 pb-4 pt-1"><p className="text-[20px] font-bold tracking-[-0.5px] text-[#111111]">{place.name}</p><p className="mt-1 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">{place.address}</p></div></div></div>
+    </>
   );
 }

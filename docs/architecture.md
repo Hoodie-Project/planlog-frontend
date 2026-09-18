@@ -29,8 +29,10 @@
    - `sessionStorage` persist로 새로고침/탭 내 이동 복구
    - 로그인 사용자 정보와 액세스 토큰
    - `localStorage` persist 기반 로그인 상태 유지
+   - 기록 화면 피그마 검증용 `hasRecords` 미리보기 플래그
    - 심사자 모드
    - 선택된 숙소와 현재 코스
+   - `SavedCourseStatus(WAITING | IN_PROGRESS | COMPLETED)`와 코스 저장·시작·완료/리뷰 전환
 3. `TanStack Query`
    - 추천 코스 조회
    - 축제/숙소/장소 상세 조회
@@ -85,9 +87,11 @@ src/
 /course/create?step=2  무드 셀렉터 2단계
 /course/create?step=3  무드 셀렉터 3단계
 /course/create?step=4  무드 셀렉터 4단계 및 생성 호출
-/course/result         코스 결과
+/course/result         추천 코스 지도 결과 (코스 생성 API 응답을 우선 표시)
+/course/result/stays   추천 숙소 지도
 /course/saved          저장한 코스
 /records               나의 기록
+/records/stamps        완료한 스탬프
 /records/[id]          기록 카드 상세
 /my                    마이페이지
 ```
@@ -109,6 +113,8 @@ src/
 - `GET|POST /api/bookmarks`
 - `DELETE /api/bookmarks/:id`
 - `GET /api/bookmarks/upcoming`
+
+추천 코스 일정 목록은 시작·종료 지점을 강조하는 체크 배지와 장소별 이동 시간을 표시하며, `숙소 추가하기`는 `/course/result/stays`로 이동한다.
 
 ## 6. 데이터 모델 초안
 
@@ -151,6 +157,17 @@ src/
 - `COMPLETED`
 - `REVIEWER_DEMO`
 
+### CompletedStamp
+
+- `theme`, `place`, `completedAt`, `emotion`, `review`
+- 완료 스탬프 목록은 테마·완료일 정렬을 클라이언트에서 적용하고, 리뷰 모달은 `read`/`write` 모드로 재사용
+
+### SavedCourse
+
+- `id`, `title`, `date`, `spotCount`, `zone`
+- `status`: `WAITING`(저장) → `IN_PROGRESS`(코스 시작) → `COMPLETED`(코스 완료 및 리뷰 저장). 단일 enum으로 한 코스에 한 상태만 유지
+- `review`
+
 ## 7. 장애와 예외 처리
 
 - 로그인 필요 액션: 모달로 가드
@@ -168,6 +185,7 @@ src/
 ## 9. 보안 경계
 
 - OAuth 클라이언트 ID와 API Base URL은 `.env`를 통해 주입한다.
+- 카카오 로그인은 JavaScript SDK가 발급한 카카오 액세스 토큰을 `POST /api/auth/kakao`로 전달한다. `Kakao.init()`에는 REST API 키가 아닌 JavaScript 키를 사용한다.
 - 위치 검증은 최종적으로 서버에서 재확인한다.
 - 저장/기록 API는 인증 세션 기반으로 보호한다.
 - Git에는 `.env`를 포함하지 않는다.
