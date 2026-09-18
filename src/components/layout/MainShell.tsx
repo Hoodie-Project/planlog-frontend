@@ -19,7 +19,6 @@ export function MainShell({ children }: { children: ReactNode }) {
   const navItems = [
     { href: "/", label: "ABOUT", exact: true },
     { href: "/course/create", label: "코스 만들기" },
-    { href: "/course/result/test", label: "(Test) 추천 코스", exact: true },
     { href: "/course/result", label: "추천 코스", exact: true },
     { href: "/records", label: "나의 기록" },
   ];
