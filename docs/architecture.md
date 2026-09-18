@@ -111,6 +111,8 @@ src/
 - `GET /records/me`
 - `GET /profile/me`
 
+추천 코스 일정 목록은 시작·종료 지점을 강조하는 체크 배지와 장소별 이동 시간을 표시하며, `숙소 추가하기`는 `/course/result/stays`로 이동한다.
+
 ## 6. 데이터 모델 초안
 
 ### CoursePreferences

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowRight, ArrowUpRight, Bookmark, ChevronDown, ChevronLeft, Home, MessageCircleMore, Plus, RefreshCw, X } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BadgeCheck, Bookmark, ChevronDown, ChevronLeft, Home, MessageCircleMore, Plus, RefreshCw, X } from "lucide-react";
 import { CourseMapLayout } from "@/components/course-result/CourseMapLayout";
 import { MainShell } from "@/components/layout/MainShell";
 import { Button } from "@/components/ui/Button";
@@ -20,6 +20,7 @@ type CourseMapPlace = {
   congestion: string;
   congestionTone: string;
   image: string;
+  travelMinutesFromPrev?: number;
   lat?: number;
   lng?: number;
 };
@@ -57,6 +58,7 @@ export default function CourseResultPage() {
       congestion: generatedCourse?.congestion?.level === "HIGH" ? "높음" : generatedCourse?.congestion?.level === "MEDIUM" ? "보통" : "낮음",
       congestionTone: generatedCourse?.congestion?.level === "HIGH" ? "text-[#ff1f4c]" : generatedCourse?.congestion?.level === "MEDIUM" ? "text-[#ff8a00]" : "text-[#48a600]",
       image: item.image ?? testRecommendedPlaces[0].image,
+      travelMinutesFromPrev: item.travelMinutesFromPrev,
       lat: toNumber(item.mapY),
       lng: toNumber(item.mapX),
     }));
@@ -108,9 +110,18 @@ export default function CourseResultPage() {
           </div>
           <div className="flex-1 pt-[11px]">
             <div className="space-y-5 border-b border-[#e5e5ec] pb-4 text-[16px] font-semibold leading-[1.4] tracking-[-0.4px] text-[#111111]">
-              {places.map((item) => <button key={item.id} className="flex items-start gap-2 text-left" onClick={() => setSelectedPlaceId(item.id)} type="button"><span className="w-[50px] shrink-0">{item.time}</span><span>{item.name}</span></button>)}
+              {places.map((item, index) => {
+                const endpoint = index === 0 || index === places.length - 1;
+
+                return (
+                  <button key={item.id} className="flex w-full items-start gap-3 text-left" onClick={() => setSelectedPlaceId(item.id)} type="button">
+                    <BadgeCheck className={`mt-0.5 h-8 w-8 shrink-0 ${endpoint ? "fill-[#ff1f4c] text-white" : "fill-[#a9a9a9] text-white"}`} strokeWidth={2.6} />
+                    <span className="min-w-0"><span className="block text-[18px] font-bold leading-[1.35] tracking-[-0.45px] text-[#111111]"><span className="mr-2 inline-block w-[50px] text-[16px]">{item.time}</span>{item.name}</span>{item.travelMinutesFromPrev !== undefined ? <span className="mt-1 block text-[15px] font-medium tracking-[-0.35px] text-[#505050]">이동 {item.travelMinutesFromPrev}분</span> : null}</span>
+                  </button>
+                );
+              })}
               <Link className="flex items-start gap-1 text-left text-[#111111]" href="/course/create?step=1"><span className="text-[20px] leading-none text-[#ff1f4c]">+</span><span>일정 추가하기</span></Link>
-              <div className="flex items-start gap-1 text-left text-[#111111]"><span className="text-[20px] leading-none text-[#ff1f4c]">+</span><span>숙소 추가하기</span></div>
+              <Link className="flex items-start gap-1 text-left text-[#111111]" href="/course/result/stays"><span className="text-[20px] leading-none text-[#ff1f4c]">+</span><span>숙소 추가하기</span></Link>
             </div>
             <Link className="mt-4 inline-flex items-center gap-0.5 text-[14px] font-semibold leading-[1.4] tracking-[-0.35px] text-[#505050] transition hover:text-slate-900" href="/course/saved">상세보기<ArrowRight className="h-4 w-4" strokeWidth={2.1} /></Link>
           </div>
