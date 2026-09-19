@@ -7,7 +7,7 @@ import { LoginModal } from "@/components/auth/LoginModal";
 import { MANUAL_MOCK_AUTH_RESPONSE } from "@/lib/mock-auth";
 import { useAuthStore } from "@/store/auth-store";
 
-export function MainShell({ children }: { children: ReactNode }) {
+export function MainShell({ children, mobileHeaderHidden = false }: { children: ReactNode; mobileHeaderHidden?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const hydrated = useAuthStore((state) => state.hydrated);
@@ -49,7 +49,7 @@ export function MainShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <header className="sticky top-0 z-20 border-b border-slate-100 bg-white/95 backdrop-blur">
+      <header className={`sticky top-0 z-20 border-b border-slate-100 bg-white/95 backdrop-blur ${mobileHeaderHidden ? "hidden md:block" : ""}`}>
         <div className="mx-auto flex h-20 max-w-[1240px] items-center justify-between px-4 lg:px-0">
           <Link className="text-2xl font-extrabold tracking-tight text-[#f30031]" href="/">
             PLANLOG

@@ -106,10 +106,12 @@ export default function CourseResultPage() {
       mobileSummary={
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-[20px] font-bold tracking-[-0.5px] text-[#111111]">{courseTitle}</h2>
-            <p className="mt-2 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#505050]">{places.map((item) => `${item.time} ${item.name}`).join(" · ")}</p>
+            <h2 className="text-[28px] font-bold tracking-[-0.7px] text-[#111111]">{courseTitle}</h2>
+            <p className="mt-6 text-[18px] text-[#111]">혼잡도: <span className="font-semibold text-[#227bff]">{generatedCourse.congestion?.level === "HIGH" ? "높음" : generatedCourse.congestion?.level === "MEDIUM" ? "보통" : "낮음"}</span></p>
+            <p className="mt-3 text-[18px] text-[#111]">코스 소요시간: {Math.floor(generatedCourse.totalTravelMinutes / 60)}h {generatedCourse.totalTravelMinutes % 60}m</p>
+            <p className="mt-6 border-t border-[#e5e5ec] pt-5 text-[22px] font-bold text-[#111]">{places[0]?.time} &nbsp;{places[0]?.name}</p>
           </div>
-          <Link className="shrink-0 text-[14px] font-semibold tracking-[-0.35px] text-[#505050]" href="/course/saved">상세보기</Link>
+          <div className="flex gap-3"><Bookmark className="h-8 w-8" /><RefreshCw className="h-8 w-8" /></div>
         </div>
       }
       panel={
@@ -152,8 +154,8 @@ export default function CourseResultPage() {
 
 function CourseResultEmptyState() {
   return (
-    <MainShell>
-      <section className="relative min-h-[calc(100vh-80px)] overflow-hidden bg-white">
+    <MainShell mobileHeaderHidden>
+      <section className="relative min-h-[100svh] overflow-hidden bg-white md:min-h-[calc(100vh-80px)]">
         <div aria-hidden="true" className="absolute inset-0 scale-[1.02] bg-cover bg-center bg-no-repeat blur-[6px]" style={{ backgroundImage: "url('/images/course/result-empty-map.svg')" }} />
         <div className="absolute inset-0 bg-[rgba(255,255,255,0.42)]" />
         <div className="relative mx-auto flex min-h-[calc(100vh-80px)] max-w-[1920px]">
@@ -165,12 +167,14 @@ function CourseResultEmptyState() {
             </div>
           </aside>
           <div className="relative flex flex-1 items-center justify-center px-4 py-10 sm:px-6 lg:px-10">
-            <div className="w-full max-w-[400px] rounded-[16px] border border-[#d4d4d4] bg-white px-10 py-8 shadow-[0_2px_6px_rgba(17,17,17,0.08)]">
+            <div className="absolute left-1/2 top-7 z-30 flex -translate-x-1/2 rounded-full bg-white p-1 shadow-[0_8px_30px_rgba(17,17,17,0.1)] md:hidden"><span className="rounded-full border-2 border-[#ff1f4c] px-4 py-2 text-[16px] font-semibold">추천 코스</span><Link className="px-4 py-2 text-[16px] font-semibold text-[#999]" href="/course/result/stays">추천 숙소</Link><span className="px-4 py-2 text-[16px] font-semibold text-[#999]">코스 후기</span></div>
+            <div className="w-full max-w-[400px] rounded-[28px] border border-[#d4d4d4] bg-white px-7 py-12 shadow-[0_2px_6px_rgba(17,17,17,0.08)] sm:px-10 sm:py-8">
               <div className="text-center"><h1 className="text-[18px] font-bold leading-[1.4] tracking-[-0.45px] text-[#111111]">아직 코스가 없어요</h1><p className="mt-6 text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111111]">여행시간, 감성을 선택하면<br />나에게 맞는 하루 코스를 만들어드려요!</p></div>
               <div className="mt-10 flex flex-col items-center"><Button asChild className="h-12 w-full rounded-[16px] bg-[#ff1f4c] px-5 text-[16px] font-bold tracking-[-0.4px] text-white shadow-[0_2px_6px_rgba(17,17,17,0.08)] hover:bg-[#eb1b47]"><Link href="/course/create?step=1"><Plus className="mr-1 h-5 w-5" strokeWidth={2.4} />코스 만들기</Link></Button><p className="mt-4 text-center text-[14px] leading-[1.4] tracking-[-0.35px] text-[#767676]">코스 생성 후, 지도 위에 추천코스가 표기됩니다.</p></div>
             </div>
           </div>
         </div>
+        <nav className="absolute inset-x-0 bottom-0 z-40 grid h-[76px] grid-cols-3 border-t border-[#ececec] bg-white md:hidden"><Link className="flex flex-col items-center justify-center gap-1 text-[#999]" href="/course/create?step=1"><Plus className="h-7 w-7" /><span className="text-[13px] font-semibold">코스 만들기</span></Link><Link className="flex flex-col items-center justify-center gap-1 text-[#111]" href="/course/result"><ArrowUpRight className="h-7 w-7 text-[#f30031]" /><span className="text-[13px] font-semibold">추천 코스</span></Link><Link className="flex flex-col items-center justify-center gap-1 text-[#999]" href="/records"><Home className="h-7 w-7" /><span className="text-[13px] font-semibold">나의 기록</span></Link></nav>
       </section>
     </MainShell>
   );
