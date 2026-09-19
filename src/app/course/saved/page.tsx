@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, ChevronRight, Coffee, FlagTriangleRight, Plus, Trees, UserRound } from "lucide-react";
 import { MainShell } from "@/components/layout/MainShell";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { deleteSavedCourse, listSavedCourses } from "@/api/saved-courses";
 import { useAuthStore } from "@/store/auth-store";
+import { type SavedCourse, type SavedCourseStatus, useCourseStore } from "@/store/course-store";
 import type { SavedCourseDto } from "@/types/course";
 
 const ZONE_LABEL: Record<string, string> = {
@@ -27,14 +28,132 @@ function formatDate(iso: string) {
   return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
 }
 
+const statusMeta: Record<SavedCourseStatus, { label: string; badgeClassName: string; iconClassName: string }> = {
+  WAITING: { label: "대기중", badgeClassName: "bg-[#f4f4f4] text-[#505050]", iconClassName: "text-[#ffa346]" },
+  IN_PROGRESS: { label: "진행중", badgeClassName: "bg-[#dff6e9] text-[#17863b]", iconClassName: "text-[#55cc4b]" },
+  COMPLETED: { label: "완료", badgeClassName: "bg-[#ff1f4c] text-white", iconClassName: "text-[#bf43ed]" },
+};
+
+type MobileCourse = SavedCourse & { source: "api" | "preview" };
+
+function StatusIcon({ status }: { status: SavedCourseStatus }) {
+  const className = `h-9 w-9 shrink-0 ${statusMeta[status].iconClassName}`;
+
+  if (status === "WAITING") return <Coffee className={className} strokeWidth={2.3} />;
+  if (status === "IN_PROGRESS") return <Trees className={className} strokeWidth={2.3} />;
+  return <FlagTriangleRight className={className} strokeWidth={2.3} />;
+}
+
+function SavedCourseMobileView({ courses }: { courses: MobileCourse[] }) {
+  const [selectedStatus, setSelectedStatus] = useState<SavedCourseStatus>("WAITING");
+  const filteredCourses = courses.filter((course) => course.status === selectedStatus);
+  const upcomingCourse = courses.find((course) => course.status === "WAITING") ?? courses[0] ?? null;
+
+  return (
+    <div className="pb-[112px] md:hidden">
+      <header className="relative flex h-[112px] items-center justify-center px-[60px]">
+        <Link aria-label="나의 기록으로 돌아가기" className="absolute left-[42px] inline-flex h-10 w-10 items-center justify-center" href="/records">
+          <ArrowLeft className="h-7 w-7 text-[#111111]" strokeWidth={1.8} />
+        </Link>
+        <h1 className="text-[28px] font-bold leading-[1.4] tracking-[-0.7px] text-[#111111]">저장한 코스</h1>
+      </header>
+
+      <main className="px-[60px] pt-[101px]">
+        <div className="flex items-center gap-[9px] text-[18px] leading-[1.4] tracking-[-0.45px]">
+          <Link className="text-[#767676]" href="/records">나의 기록</Link>
+          <ChevronRight className="h-5 w-5 text-[#767676]" strokeWidth={2} />
+          <span className="font-semibold text-[#111111]">저장한 코스</span>
+        </div>
+
+        <section className="mt-[46px]">
+          <h2 className="text-[24px] font-medium leading-[1.4] tracking-[-0.6px] text-[#111111]">다가오는 여행</h2>
+          {upcomingCourse ? (
+            <Link className="mt-6 flex min-h-[188px] items-center gap-3 rounded-[28px] border-2 border-[#ff1f4c] px-[38px] py-6 shadow-[0_4px_8px_rgba(17,17,17,0.08)]" href={`/course/saved?courseId=${encodeURIComponent(upcomingCourse.id)}`}>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex h-12 items-center rounded-full bg-[#ff1f4c] px-4 text-[18px] font-medium text-white">{upcomingCourse.source === "preview" ? "D-6" : "예정"}</span>
+                  <span className="truncate text-[18px] tracking-[-0.45px] text-[#111111]">{upcomingCourse.source === "preview" ? "2026.08.10 월요일 10:30" : `${upcomingCourse.date} 저장`}</span>
+                </div>
+                <p className="mt-[11px] truncate text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111111]">{upcomingCourse.title}</p>
+                <p className="mt-1 truncate text-[18px] leading-[1.4] tracking-[-0.45px] text-[#111111]">{ZONE_LABEL[upcomingCourse.zone] ?? upcomingCourse.zone} · 장소 {upcomingCourse.spotCount}곳</p>
+              </div>
+              <ChevronRight className="h-9 w-9 shrink-0 text-[#505050]" strokeWidth={2} />
+            </Link>
+          ) : (
+            <div className="mt-6 rounded-[28px] border border-[#f1f1f5] px-6 py-9 text-center text-[16px] text-[#767676]">다가오는 여행이 없어요.</div>
+          )}
+        </section>
+
+        <section className="mt-[76px]">
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="mr-2 text-[24px] font-medium leading-[1.4] tracking-[-0.6px] text-[#111111]">저장한 코스 목록</h2>
+            {(Object.keys(statusMeta) as SavedCourseStatus[]).map((status) => (
+              <button
+                key={status}
+                className={`h-[53px] rounded-full border px-[19px] text-[20px] font-medium leading-[1.4] tracking-[-0.5px] ${selectedStatus === status ? "border-[#ff1f4c] text-[#ff1f4c]" : "border-[#e1e2ea] text-[#8a8a8a]"}`}
+                onClick={() => setSelectedStatus(status)}
+                type="button"
+              >
+                {statusMeta[status].label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-[38px] space-y-[18px]">
+            {filteredCourses.length ? filteredCourses.map((course) => {
+              const meta = statusMeta[course.status];
+              return (
+                <Link key={course.id} className="flex min-h-[111px] items-center gap-5 rounded-[28px] border border-[#e1e2ea] px-9 py-5 shadow-[0_4px_8px_rgba(17,17,17,0.08)]" href={`/course/saved?courseId=${encodeURIComponent(course.id)}`}>
+                  <StatusIcon status={course.status} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-3">
+                      <p className="truncate text-[20px] font-medium leading-[1.4] tracking-[-0.5px] text-[#111111]">{course.title}</p>
+                      <span className={`shrink-0 rounded-full px-3 py-1 text-[16px] font-semibold leading-[1.4] tracking-[-0.4px] ${meta.badgeClassName}`}>{meta.label}</span>
+                    </div>
+                    <p className="mt-1 text-[18px] leading-[1.4] tracking-[-0.45px] text-[#767676]">{course.date} · 장소 {course.spotCount}곳</p>
+                  </div>
+                  <ChevronRight className="h-8 w-8 shrink-0 text-[#505050]" strokeWidth={2} />
+                </Link>
+              );
+            }) : <p className="py-8 text-center text-[16px] text-[#767676]">{statusMeta[selectedStatus].label}인 코스가 없어요.</p>}
+          </div>
+        </section>
+      </main>
+
+      <nav aria-label="모바일 주요 메뉴" className="fixed inset-x-0 bottom-0 z-30 grid h-[88px] grid-cols-3 border-t border-[#f1f1f5] bg-white">
+        <Link className="flex flex-col items-center justify-center gap-1 text-[#a1a1a1]" href="/course/create?step=1"><Plus className="h-6 w-6" strokeWidth={1.6} /><span className="text-[14px] leading-[1.4] tracking-[-0.35px]">코스 만들기</span></Link>
+        <Link className="flex flex-col items-center justify-center gap-1 text-[#a1a1a1]" href="/course/result"><ArrowUpRight className="h-6 w-6" strokeWidth={1.6} /><span className="text-[14px] leading-[1.4] tracking-[-0.35px]">추천 코스</span></Link>
+        <Link className="flex flex-col items-center justify-center gap-1 text-[#ff1f4c]" href="/records"><UserRound className="h-6 w-6" strokeWidth={1.6} /><span className="text-[14px] font-semibold leading-[1.4] tracking-[-0.35px] text-[#111111]">나의 기록</span></Link>
+      </nav>
+    </div>
+  );
+}
+
 export default function SavedCoursePage() {
   const accessToken = useAuthStore((state) => state.accessToken);
   const hydrated = useAuthStore((state) => state.hydrated);
   const openLoginModal = useAuthStore((state) => state.openLoginModal);
+  const previewCourses = useCourseStore((state) => state.savedCourses);
 
   const [courses, setCourses] = useState<SavedCourseDto[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
+
+  const mobileCourses = useMemo<MobileCourse[]>(() => {
+    if (courses?.length) {
+      return courses.map((course) => ({
+        id: course.id,
+        title: course.title,
+        date: formatDate(course.createdAt),
+        spotCount: spotCountOf(course),
+        status: "WAITING",
+        zone: course.zone,
+        source: "api",
+      }));
+    }
+
+    return previewCourses.map((course) => ({ ...course, source: "preview" }));
+  }, [courses, previewCourses]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -85,8 +204,9 @@ export default function SavedCoursePage() {
   const rest = courses?.slice(1) ?? [];
 
   return (
-    <MainShell>
-      <div className="mx-auto flex max-w-[1240px] justify-center px-4 py-[60px] lg:px-0">
+    <MainShell mobileFooterHidden mobileHeaderHidden>
+      <SavedCourseMobileView courses={mobileCourses} />
+      <div className="mx-auto hidden max-w-[1240px] justify-center px-4 py-[60px] md:flex lg:px-0">
         <div className="w-full max-w-[432px]">
           <h1 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111111]">저장한 코스</h1>
 
