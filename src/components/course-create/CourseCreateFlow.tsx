@@ -589,7 +589,7 @@ export function CourseCreateFlow() {
 
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
-          <div className="sticky bottom-0 -mx-4 flex items-center justify-between border-t border-[#f1f1f5] bg-white/95 px-4 py-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
+          <div className="sticky bottom-[88px] -mx-4 flex items-center justify-between border-t border-[#f1f1f5] bg-white/95 px-4 py-4 backdrop-blur sm:bottom-0 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
             <button
               className={`inline-flex h-9 items-center justify-center rounded-full px-5 text-[18px] tracking-[-0.45px] transition-colors disabled:cursor-not-allowed ${
                 step === 1 ? "bg-[#f1f1f5] text-[#505050]" : "bg-[#ff1f4c] text-white"

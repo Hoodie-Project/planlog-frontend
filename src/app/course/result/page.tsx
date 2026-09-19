@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 import { ArrowRight, ArrowUpRight, BadgeCheck, Bookmark, ChevronDown, ChevronLeft, Home, MessageCircleMore, Plus, RefreshCw, X } from "lucide-react";
 import { CourseMapLayout } from "@/components/course-result/CourseMapLayout";
 import { MainShell } from "@/components/layout/MainShell";
-import { MobileBottomNavigation } from "@/components/layout/MobileBottomNavigation";
 import { Button } from "@/components/ui/Button";
 import { ApiError } from "@/api/client";
 import { createSavedCourse } from "@/api/saved-courses";
@@ -175,7 +174,6 @@ function CourseResultEmptyState() {
             </div>
           </div>
         </div>
-        <MobileBottomNavigation active="course" className="absolute inset-x-0 bottom-0" />
       </section>
     </MainShell>
   );

@@ -2,12 +2,12 @@ import Link from "next/link";
 import { ArrowUpRight, Plus, UserRound } from "lucide-react";
 
 type MobileBottomNavigationProps = {
-  active: "course" | "records";
+  active: "create" | "course" | "records" | null;
   className?: string;
 };
 
 const navItems = [
-  { href: "/course/create?step=1", label: "코스 만들기", icon: Plus, active: null },
+  { href: "/course/create?step=1", label: "코스 만들기", icon: Plus, active: "create" },
   { href: "/course/result", label: "추천 코스", icon: ArrowUpRight, active: "course" },
   { href: "/records", label: "나의 기록", icon: UserRound, active: "records" },
 ] as const;

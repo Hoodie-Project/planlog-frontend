@@ -5,7 +5,6 @@ import { ReactNode, useState } from "react";
 import { ArrowUpRight, Home, MessageCircleMore } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { MainShell } from "@/components/layout/MainShell";
-import { MobileBottomNavigation } from "@/components/layout/MobileBottomNavigation";
 import { NaverMap } from "@/components/naver-map/NaverMap";
 
 type Coordinate = { lat: number; lng: number };
@@ -63,7 +62,6 @@ export function CourseMapLayout({ panel, mobileSummary, center, markers, path, m
               <button aria-label="일정 접기" className="mx-auto mt-3 block h-1.5 w-10 rounded-full bg-[#d9d9d9]" onClick={() => setMobilePanelOpen(false)} type="button" />
               <div className="h-[calc(100%-24px)] overflow-y-auto">{panel}</div>
             </div>
-            <MobileBottomNavigation active="course" className="absolute inset-x-0 bottom-0" />
           </div>
         </div>
       </section>

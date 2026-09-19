@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ReactNode, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { LoginModal } from "@/components/auth/LoginModal";
+import { MobileBottomNavigation } from "@/components/layout/MobileBottomNavigation";
 import { MANUAL_MOCK_AUTH_RESPONSE } from "@/lib/mock-auth";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -33,6 +34,13 @@ export function MainShell({
   const protectedPaths = ["/course/create", "/course/result", "/records", "/my"];
   const isProtectedRoute = protectedPaths.some((path) => pathname.startsWith(path));
   const hideFooter = pathname.startsWith("/course/result");
+  const mobileNavigationActive = pathname.startsWith("/course/create")
+    ? "create"
+    : pathname.startsWith("/course/result")
+      ? "course"
+      : pathname.startsWith("/records") || pathname.startsWith("/course/saved") || pathname.startsWith("/my")
+        ? "records"
+        : null;
 
   useEffect(() => {
     if (!hydrated || accessToken || !isProtectedRoute) {
@@ -116,6 +124,7 @@ export function MainShell({
           <p className="mt-2">Copyright © Hoodiev All right reserved.</p>
         </footer>
       )}
+      <MobileBottomNavigation active={mobileNavigationActive} />
       <LoginModal />
     </div>
   );

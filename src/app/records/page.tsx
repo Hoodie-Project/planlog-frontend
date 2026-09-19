@@ -5,7 +5,6 @@ import { ArrowLeft, ChevronRight, Plus } from "lucide-react";
 import sentimentCalmIcon from "@/asset/svgs/sentiment-calm.svg";
 import wavesIcon from "@/asset/svgs/waves.svg";
 import { MainShell } from "@/components/layout/MainShell";
-import { MobileBottomNavigation } from "@/components/layout/MobileBottomNavigation";
 import { Card, CardContent } from "@/components/ui/Card";
 import { getDominantTravelProfile, getTravelProfileTheme, type TravelProfileMetric } from "@/lib/records-theme";
 import { useRecordsPreviewStore } from "@/store/records-preview-store";
@@ -129,8 +128,6 @@ export default function RecordsPage() {
           )}
         </section>
       </main>
-
-      <MobileBottomNavigation active="records" />
 
       <aside aria-label="나의 기록 미리보기 상태" className="fixed bottom-5 right-5 z-40 hidden rounded-xl border border-[#f1f1f5] bg-white p-1 shadow-[0px_2px_10px_rgba(17,17,17,0.12)] md:block">
         <div className="flex text-[12px] font-semibold tracking-[-0.3px]">

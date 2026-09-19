@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ChevronRight, Coffee, FlagTriangleRight, Trees } from "lucide-react";
 import { MainShell } from "@/components/layout/MainShell";
-import { MobileBottomNavigation } from "@/components/layout/MobileBottomNavigation";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { deleteSavedCourse, listSavedCourses } from "@/api/saved-courses";
@@ -121,7 +120,6 @@ function SavedCourseMobileView({ courses }: { courses: MobileCourse[] }) {
         </section>
       </main>
 
-      <MobileBottomNavigation active="records" />
     </div>
   );
 }
