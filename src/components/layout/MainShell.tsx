@@ -7,7 +7,15 @@ import { LoginModal } from "@/components/auth/LoginModal";
 import { MANUAL_MOCK_AUTH_RESPONSE } from "@/lib/mock-auth";
 import { useAuthStore } from "@/store/auth-store";
 
-export function MainShell({ children, mobileHeaderHidden = false }: { children: ReactNode; mobileHeaderHidden?: boolean }) {
+export function MainShell({
+  children,
+  mobileHeaderHidden = false,
+  mobileFooterHidden = false,
+}: {
+  children: ReactNode;
+  mobileHeaderHidden?: boolean;
+  mobileFooterHidden?: boolean;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const hydrated = useAuthStore((state) => state.hydrated);
@@ -103,7 +111,7 @@ export function MainShell({ children, mobileHeaderHidden = false }: { children: 
       </header>
       <main className="flex-1">{children}</main>
       {hideFooter ? null : (
-        <footer className="bg-white py-[25px] text-center text-[15px] font-semibold leading-[1.4] text-slate-600">
+        <footer className={`${mobileFooterHidden ? "hidden md:block" : ""} bg-white py-[25px] text-center text-[15px] font-semibold leading-[1.4] text-slate-600`}>
           <p>Contact: Hoodiev@google.com</p>
           <p className="mt-2">Copyright © Hoodiev All right reserved.</p>
         </footer>

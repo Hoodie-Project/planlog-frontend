@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, Plus } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, ChevronRight, Plus, UserRound } from "lucide-react";
 import sentimentCalmIcon from "@/asset/svgs/sentiment-calm.svg";
 import wavesIcon from "@/asset/svgs/waves.svg";
 import { MainShell } from "@/components/layout/MainShell";
@@ -36,14 +36,21 @@ export default function RecordsPage() {
   const dominantProfileTheme = dominantProfile ? getTravelProfileTheme(dominantProfile.label) : null;
 
   return (
-    <MainShell>
-      <main className="mx-auto max-w-[1240px] px-4 py-[60px] lg:px-0">
+    <MainShell mobileFooterHidden mobileHeaderHidden>
+      <header className="relative flex h-[112px] items-center justify-center px-[34px] md:hidden">
+        <Link aria-label="이전 페이지" className="absolute left-[34px] inline-flex h-10 w-10 items-center justify-center" href="/">
+          <ArrowLeft className="h-6 w-6 text-[#111111]" strokeWidth={1.8} />
+        </Link>
+        <h1 className="text-[20px] font-semibold leading-[1.4] tracking-[-0.5px] text-[#111111]">나의 기록</h1>
+      </header>
+
+      <main className="mx-auto max-w-[1240px] px-[34px] pb-[112px] pt-[26px] md:px-4 md:py-[60px] lg:px-0">
         <section className="mx-auto max-w-[820px]">
           <Card className="h-auto rounded-2xl border-[#f1f1f5] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)] lg:h-40">
-            <CardContent className="grid gap-5 p-[19px] lg:grid-cols-[1fr_252px] lg:items-center">
+            <CardContent className="grid gap-5 p-6 md:p-[19px] lg:grid-cols-[1fr_252px] lg:items-center">
               <div>
                 <p className="text-[18px] font-semibold leading-[1.4] tracking-[-0.45px] text-[#ff1f4c]">나의 기록</p>
-                <h1 className="mt-[14px] text-[24px] font-semibold leading-[1.4] tracking-[-0.6px] text-[#111111]">하영님의 여행 기록 보관함</h1>
+                <h2 className="mt-[14px] text-[24px] font-semibold leading-[1.4] tracking-[-0.6px] text-[#111111]">하영님의 여행 기록 보관함</h2>
                 <p className="mt-[7px] text-[14px] leading-[1.4] tracking-[-0.35px] text-[#505050]">
                   여행 성향·저장한 코스·최근 완료 ·스탬프 진행도를
                   <br />
@@ -55,7 +62,7 @@ export default function RecordsPage() {
                 {summaryCards.map((item) => (
                   <Link
                     key={item.label}
-                    className="relative h-[100px] rounded-2xl border border-[#f1f1f5] bg-white px-[19px] py-[16px] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)] transition-transform hover:-translate-y-[1px] lg:h-[120px] lg:py-[19px]"
+                    className="relative h-[118px] rounded-2xl border border-[#f1f1f5] bg-white px-[19px] py-[16px] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)] transition-transform hover:-translate-y-[1px] md:h-[100px] lg:h-[120px] lg:py-[19px]"
                     href={item.href}
                   >
                     <ChevronRight className="absolute right-[13px] top-[19px] h-5 w-5 text-[#505050]" strokeWidth={1.8} />
@@ -69,16 +76,16 @@ export default function RecordsPage() {
           </Card>
         </section>
 
-        <section className="mx-auto mt-14 max-w-[820px]">
+        <section className="mx-auto mt-[52px] max-w-[820px] md:mt-14">
           <h2 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111111]">나의 여행 성향</h2>
 
           {hasRecords ? (
-            <Card className="mt-[18px] rounded-2xl border-[#f1f1f5] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)]">
-              <CardContent className="grid gap-8 p-[23px] lg:grid-cols-[365px_1fr] lg:gap-5">
+            <Card className="mt-[18px] min-h-[468px] rounded-2xl border-[#f1f1f5] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)] md:min-h-0">
+              <CardContent className="grid gap-8 p-[28px] md:p-[23px] lg:grid-cols-[365px_1fr] lg:gap-5">
                 <div>
                   <p className="text-[18px] font-semibold leading-[1.4] tracking-[-0.45px] text-[#111111]">하영님은</p>
                   <p className="mt-2 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">여유롭게 바다를 거닐며 충전하는 여행자</p>
-                  <div className="mt-[21px] h-[132px] rounded-lg border border-[#f1f1f5] bg-white px-6 pt-7 shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)]">
+                  <div className="mt-[21px] h-[153px] rounded-lg border border-[#f1f1f5] bg-white px-6 pt-9 shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)] md:h-[132px] md:pt-7">
                     <div className="flex items-center justify-center gap-[2px]">
                       <img alt="" aria-hidden="true" className="h-11 w-11 object-contain" src={wavesIcon.src} style={dominantProfileTheme ? { filter: dominantProfileTheme.iconFilter } : undefined} />
                       <img alt="" aria-hidden="true" className="h-11 w-11 object-contain" src={sentimentCalmIcon.src} style={dominantProfileTheme ? { filter: dominantProfileTheme.iconFilter } : undefined} />
@@ -105,7 +112,7 @@ export default function RecordsPage() {
               </CardContent>
             </Card>
           ) : (
-            <Card className="mt-[18px] h-[249px] rounded-2xl border-[#f1f1f5] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)]">
+            <Card className="mt-[18px] h-[470px] rounded-2xl border-[#f1f1f5] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)] md:h-[249px]">
               <CardContent className="flex h-full flex-col items-center justify-center p-6 text-center">
                 <p className="text-[14px] leading-[1.4] tracking-[-0.35px] text-[#505050]">
                   완료한 코스를 기반으로 나의 여행 성향이 정해져요.
@@ -122,7 +129,22 @@ export default function RecordsPage() {
         </section>
       </main>
 
-      <aside aria-label="나의 기록 미리보기 상태" className="fixed bottom-5 right-5 z-40 rounded-xl border border-[#f1f1f5] bg-white p-1 shadow-[0px_2px_10px_rgba(17,17,17,0.12)]">
+      <nav aria-label="모바일 주요 메뉴" className="fixed inset-x-0 bottom-0 z-30 grid h-[88px] grid-cols-3 border-t border-[#f1f1f5] bg-white md:hidden">
+        <Link className="flex flex-col items-center justify-center gap-1 text-[#a1a1a1]" href="/course/create?step=1">
+          <Plus className="h-6 w-6" strokeWidth={1.6} />
+          <span className="text-[14px] leading-[1.4] tracking-[-0.35px]">코스 만들기</span>
+        </Link>
+        <Link className="flex flex-col items-center justify-center gap-1 text-[#a1a1a1]" href="/course/result">
+          <ArrowUpRight className="h-6 w-6" strokeWidth={1.6} />
+          <span className="text-[14px] leading-[1.4] tracking-[-0.35px]">추천 코스</span>
+        </Link>
+        <Link aria-current="page" className="flex flex-col items-center justify-center gap-1 text-[#ff1f4c]" href="/records">
+          <UserRound className="h-6 w-6" strokeWidth={1.6} />
+          <span className="text-[14px] font-semibold leading-[1.4] tracking-[-0.35px] text-[#111111]">나의 기록</span>
+        </Link>
+      </nav>
+
+      <aside aria-label="나의 기록 미리보기 상태" className="fixed bottom-5 right-5 z-40 hidden rounded-xl border border-[#f1f1f5] bg-white p-1 shadow-[0px_2px_10px_rgba(17,17,17,0.12)] md:block">
         <div className="flex text-[12px] font-semibold tracking-[-0.3px]">
           <button className={`rounded-lg px-3 py-2 ${!hasRecords ? "bg-[#ffedf1] text-[#ff1f4c]" : "text-[#505050]"}`} onClick={() => setHasRecords(false)} type="button">기본</button>
           <button className={`rounded-lg px-3 py-2 ${hasRecords ? "bg-[#ffedf1] text-[#ff1f4c]" : "text-[#505050]"}`} onClick={() => setHasRecords(true)} type="button">데이터 있음</button>
