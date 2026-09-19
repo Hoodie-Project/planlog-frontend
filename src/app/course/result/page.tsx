@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { ArrowRight, ArrowUpRight, BadgeCheck, Bookmark, ChevronDown, ChevronLeft, Home, MessageCircleMore, Plus, RefreshCw, X } from "lucide-react";
 import { CourseMapLayout } from "@/components/course-result/CourseMapLayout";
 import { MainShell } from "@/components/layout/MainShell";
+import { MobileBottomNavigation } from "@/components/layout/MobileBottomNavigation";
 import { Button } from "@/components/ui/Button";
 import { ApiError } from "@/api/client";
 import { createSavedCourse } from "@/api/saved-courses";
@@ -154,7 +155,7 @@ export default function CourseResultPage() {
 
 function CourseResultEmptyState() {
   return (
-    <MainShell mobileHeaderHidden>
+    <MainShell mobileFooterHidden mobileHeaderHidden>
       <section className="relative min-h-[100svh] overflow-hidden bg-white md:min-h-[calc(100vh-80px)]">
         <div aria-hidden="true" className="absolute inset-0 scale-[1.02] bg-cover bg-center bg-no-repeat blur-[6px]" style={{ backgroundImage: "url('/images/course/result-empty-map.svg')" }} />
         <div className="absolute inset-0 bg-[rgba(255,255,255,0.42)]" />
@@ -174,7 +175,7 @@ function CourseResultEmptyState() {
             </div>
           </div>
         </div>
-        <nav className="absolute inset-x-0 bottom-0 z-40 grid h-[76px] grid-cols-3 border-t border-[#ececec] bg-white md:hidden"><Link className="flex flex-col items-center justify-center gap-1 text-[#999]" href="/course/create?step=1"><Plus className="h-7 w-7" /><span className="text-[13px] font-semibold">코스 만들기</span></Link><Link className="flex flex-col items-center justify-center gap-1 text-[#111]" href="/course/result"><ArrowUpRight className="h-7 w-7 text-[#f30031]" /><span className="text-[13px] font-semibold">추천 코스</span></Link><Link className="flex flex-col items-center justify-center gap-1 text-[#999]" href="/records"><Home className="h-7 w-7" /><span className="text-[13px] font-semibold">나의 기록</span></Link></nav>
+        <MobileBottomNavigation active="course" className="absolute inset-x-0 bottom-0" />
       </section>
     </MainShell>
   );

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, ChevronRight, Plus, UserRound } from "lucide-react";
+import { ArrowLeft, ChevronRight, Plus } from "lucide-react";
 import sentimentCalmIcon from "@/asset/svgs/sentiment-calm.svg";
 import wavesIcon from "@/asset/svgs/waves.svg";
 import { MainShell } from "@/components/layout/MainShell";
+import { MobileBottomNavigation } from "@/components/layout/MobileBottomNavigation";
 import { Card, CardContent } from "@/components/ui/Card";
 import { getDominantTravelProfile, getTravelProfileTheme, type TravelProfileMetric } from "@/lib/records-theme";
 import { useRecordsPreviewStore } from "@/store/records-preview-store";
@@ -129,20 +130,7 @@ export default function RecordsPage() {
         </section>
       </main>
 
-      <nav aria-label="모바일 주요 메뉴" className="fixed inset-x-0 bottom-0 z-30 grid h-[88px] grid-cols-3 border-t border-[#f1f1f5] bg-white md:hidden">
-        <Link className="flex flex-col items-center justify-center gap-1 text-[#a1a1a1]" href="/course/create?step=1">
-          <Plus className="h-6 w-6" strokeWidth={1.6} />
-          <span className="text-[14px] leading-[1.4] tracking-[-0.35px]">코스 만들기</span>
-        </Link>
-        <Link className="flex flex-col items-center justify-center gap-1 text-[#a1a1a1]" href="/course/result">
-          <ArrowUpRight className="h-6 w-6" strokeWidth={1.6} />
-          <span className="text-[14px] leading-[1.4] tracking-[-0.35px]">추천 코스</span>
-        </Link>
-        <Link aria-current="page" className="flex flex-col items-center justify-center gap-1 text-[#ff1f4c]" href="/records">
-          <UserRound className="h-6 w-6" strokeWidth={1.6} />
-          <span className="text-[14px] font-semibold leading-[1.4] tracking-[-0.35px] text-[#111111]">나의 기록</span>
-        </Link>
-      </nav>
+      <MobileBottomNavigation active="records" />
 
       <aside aria-label="나의 기록 미리보기 상태" className="fixed bottom-5 right-5 z-40 hidden rounded-xl border border-[#f1f1f5] bg-white p-1 shadow-[0px_2px_10px_rgba(17,17,17,0.12)] md:block">
         <div className="flex text-[12px] font-semibold tracking-[-0.3px]">

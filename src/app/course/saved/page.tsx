@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, ChevronRight, Coffee, FlagTriangleRight, Plus, Trees, UserRound } from "lucide-react";
+import { ArrowLeft, ChevronRight, Coffee, FlagTriangleRight, Trees } from "lucide-react";
 import { MainShell } from "@/components/layout/MainShell";
+import { MobileBottomNavigation } from "@/components/layout/MobileBottomNavigation";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { deleteSavedCourse, listSavedCourses } from "@/api/saved-courses";
@@ -120,11 +121,7 @@ function SavedCourseMobileView({ courses }: { courses: MobileCourse[] }) {
         </section>
       </main>
 
-      <nav aria-label="모바일 주요 메뉴" className="fixed inset-x-0 bottom-0 z-30 grid h-[88px] grid-cols-3 border-t border-[#f1f1f5] bg-white">
-        <Link className="flex flex-col items-center justify-center gap-1 text-[#a1a1a1]" href="/course/create?step=1"><Plus className="h-6 w-6" strokeWidth={1.6} /><span className="text-[14px] leading-[1.4] tracking-[-0.35px]">코스 만들기</span></Link>
-        <Link className="flex flex-col items-center justify-center gap-1 text-[#a1a1a1]" href="/course/result"><ArrowUpRight className="h-6 w-6" strokeWidth={1.6} /><span className="text-[14px] leading-[1.4] tracking-[-0.35px]">추천 코스</span></Link>
-        <Link className="flex flex-col items-center justify-center gap-1 text-[#ff1f4c]" href="/records"><UserRound className="h-6 w-6" strokeWidth={1.6} /><span className="text-[14px] font-semibold leading-[1.4] tracking-[-0.35px] text-[#111111]">나의 기록</span></Link>
-      </nav>
+      <MobileBottomNavigation active="records" />
     </div>
   );
 }

@@ -6,6 +6,7 @@
 - 언어: TypeScript
 - 스타일: Tailwind CSS
 - UI 컴포넌트: shadcn/ui 스타일의 로컬 컴포넌트
+- 모바일 전역 메뉴: `MobileBottomNavigation` 공통 컴포넌트로 코스 만들기·추천 코스·나의 기록 메뉴의 활성 상태와 여백을 통일
 - 서버 상태: TanStack Query
 - 클라이언트 상태: Zustand
 - 폼: React Hook Form + Zod
