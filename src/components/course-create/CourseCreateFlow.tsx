@@ -229,10 +229,10 @@ export function CourseCreateFlow() {
 
   return (
     <MainShell>
-      <div className="mx-auto max-w-[1240px] px-4 py-[60px] lg:px-0">
-        <div className="mx-auto flex w-full max-w-[432px] flex-col gap-16">
-          <div className="flex flex-col gap-9">
-            <div className="flex h-8 items-center gap-[5px] text-[14px] font-bold tracking-[-0.35px]">
+      <div className="mx-auto max-w-[1240px] px-4 py-8 sm:py-[60px] lg:px-0">
+        <div className="mx-auto flex w-full max-w-[432px] flex-col gap-10 sm:gap-16">
+          <div className="flex flex-col gap-7 sm:gap-9">
+            <div className="flex h-8 items-center gap-[5px] overflow-hidden text-[14px] font-bold tracking-[-0.35px]">
               {stepLabels.map((label, index) => {
                 const current = index + 1;
                 const active = current === step;
@@ -252,7 +252,7 @@ export function CourseCreateFlow() {
                           current
                         )}
                       </span>
-                      <span className={active ? "text-[#111]" : "text-[#999]"}>{label}</span>
+                      <span className={`hidden min-[400px]:inline ${active ? "text-[#111]" : "text-[#999]"}`}>{label}</span>
                     </div>
                     {current !== totalSteps ? <span className="h-px w-3 bg-[#e5e5ec]" /> : null}
                   </div>
@@ -261,17 +261,17 @@ export function CourseCreateFlow() {
             </div>
 
             {step === 1 ? (
-              <div className="flex flex-col gap-10">
-                <div className="w-[352px]">
-                  <h1 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111]">
+              <div className="flex flex-col gap-7 sm:gap-10">
+                <div className="w-full max-w-[352px]">
+                  <h1 className="text-[22px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111] sm:text-[24px]">
                     오늘은 어떤 감성이 끌리나요?
                   </h1>
-                  <p className="mt-1 text-[18px] leading-[1.4] tracking-[-0.45px] text-[#111]">
+                  <p className="mt-1 text-[15px] leading-[1.5] tracking-[-0.4px] text-[#111] sm:text-[18px] sm:leading-[1.4] sm:tracking-[-0.45px]">
                     원하는 감성을 선택하면 장소를 추천해드려요. (택 1)
                   </p>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="grid grid-cols-5 gap-2">
                   {[
                     { key: "동해 바다", label: "동해 바다", icon: step1ThemeIcons.sea },
                     { key: "설원·산악", label: "설원·산악", icon: step1ThemeIcons.snow },
@@ -284,17 +284,17 @@ export function CourseCreateFlow() {
                     return (
                       <button
                         key={option.key}
-                        className={`relative h-[60px] w-20 rounded-lg border text-left shadow-[0px_2px_6px_0px_rgba(17,17,17,0.08)] transition-colors ${
+                        className={`relative h-[62px] min-w-0 rounded-lg border text-left shadow-[0px_2px_6px_0px_rgba(17,17,17,0.08)] transition-colors sm:h-[60px] ${
                           active ? "border-[#ff1f4c] bg-[#ffeaee]" : "border-[#f1f1f5] bg-white"
                         }`}
                         onClick={() => updatePreferences({ mood: option.key })}
                         type="button"
                       >
-                        <span aria-hidden="true" className="absolute left-[5px] top-[5px] h-6 w-6 overflow-hidden">
-                          <img alt="" className="h-6 w-6 object-contain" src={option.icon.base} />
+                        <span aria-hidden="true" className="absolute left-1.5 top-1.5 h-5 w-5 overflow-hidden sm:left-[5px] sm:top-[5px] sm:h-6 sm:w-6">
+                          <img alt="" className="h-full w-full object-contain" src={option.icon.base} />
                         </span>
                         <span
-                          className={`absolute left-[5px] top-[33px] whitespace-nowrap text-[14px] font-semibold leading-[1.4] ${
+                          className={`absolute bottom-1.5 left-1.5 whitespace-nowrap text-[11px] font-semibold leading-[1.4] sm:bottom-auto sm:left-[5px] sm:top-[33px] sm:text-[14px] ${
                             active ? "text-[#ff1f4c]" : "text-[#111]"
                           }`}
                         >
@@ -309,13 +309,13 @@ export function CourseCreateFlow() {
           </div>
 
           {step === 2 ? (
-            <div className="flex flex-col gap-16">
-              <div className="flex flex-col gap-10">
-                <div className="w-[352px]">
-                  <h1 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111]">
+            <div className="flex flex-col gap-10 sm:gap-16">
+              <div className="flex flex-col gap-7 sm:gap-10">
+                <div className="w-full max-w-[352px]">
+                  <h1 className="text-[22px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111] sm:text-[24px]">
                     이번 여행은 어떤 모습인가요?
                   </h1>
-                  <p className="mt-1 text-[18px] leading-[1.4] tracking-[-0.45px] text-[#111]">
+                  <p className="mt-1 text-[15px] leading-[1.5] tracking-[-0.4px] text-[#111] sm:text-[18px] sm:leading-[1.4] sm:tracking-[-0.45px]">
                     일행 유무에 따라 여행 코스를 추천해드려요. (택 1)
                   </p>
                 </div>
@@ -344,7 +344,7 @@ export function CourseCreateFlow() {
                             src={option.icon.base}
                           />
                         </span>
-                        <span className="absolute left-[61px] top-[19px] flex items-center gap-2">
+                        <span className="absolute left-[61px] right-3 top-[12px] flex flex-col items-start gap-0 sm:top-[19px] sm:flex-row sm:items-center sm:gap-2">
                           <span
                             className={`text-[14px] font-semibold leading-[1.4] ${
                               active ? "text-[#ff1f4c]" : "text-[#111]"
@@ -370,13 +370,13 @@ export function CourseCreateFlow() {
 
           {step === 3 ? (
             <LocalizationProvider adapterLocale="ko" dateAdapter={AdapterDayjs}>
-              <div className="flex flex-col gap-16">
-                <div className="flex flex-col gap-10">
-                  <div className="w-[431px]">
-                    <h1 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111]">
+              <div className="flex flex-col gap-10 sm:gap-16">
+                <div className="flex flex-col gap-7 sm:gap-10">
+                  <div className="w-full max-w-[431px]">
+                    <h1 className="text-[22px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111] sm:text-[24px]">
                       언제 여행을 시작하나요?
                     </h1>
-                    <p className="mt-1 text-[18px] leading-[1.4] tracking-[-0.45px] text-[#111]">
+                    <p className="mt-1 text-[15px] leading-[1.5] tracking-[-0.4px] text-[#111] sm:text-[18px] sm:leading-[1.4] sm:tracking-[-0.45px]">
                       선택한 시간을 기준으로 첫 장소와 이동 순서를 조정해요. (택 1)
                     </p>
                   </div>
@@ -466,13 +466,13 @@ export function CourseCreateFlow() {
           ) : null}
 
           {step === 4 ? (
-            <div className="flex flex-col gap-16">
-              <div className="flex flex-col gap-10">
-                <div className="w-[431px]">
-                  <h1 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111]">
+            <div className="flex flex-col gap-10 sm:gap-16">
+              <div className="flex flex-col gap-7 sm:gap-10">
+                <div className="w-full max-w-[431px]">
+                  <h1 className="text-[22px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111] sm:text-[24px]">
                     어디서 여행을 시작할까요?
                   </h1>
-                  <p className="mt-1 text-[18px] leading-[1.4] tracking-[-0.45px] text-[#111]">
+                  <p className="mt-1 text-[15px] leading-[1.5] tracking-[-0.4px] text-[#111] sm:text-[18px] sm:leading-[1.4] sm:tracking-[-0.45px]">
                     이동 방식에 따라 시작 지점을 선택해요. (택 1)
                   </p>
                 </div>
@@ -500,11 +500,11 @@ export function CourseCreateFlow() {
                           }`}
                           src={option.icon}
                         />
-                        <span className="flex items-center gap-2">
+                        <span className="flex min-w-0 flex-col items-start gap-0 sm:flex-row sm:items-center sm:gap-2">
                           <span className={`text-[14px] font-semibold leading-[1.4] ${active ? "text-[#f30031]" : "text-[#111]"}`}>
                             {option.label}
                           </span>
-                          <span className={`text-[12px] leading-[1.4] tracking-[-0.3px] ${active ? "text-[#f30031]" : "text-[#111]"}`}>
+                          <span className={`text-[11px] leading-[1.4] tracking-[-0.3px] sm:text-[12px] ${active ? "text-[#f30031]" : "text-[#111]"}`}>
                             {option.description}
                           </span>
                         </span>
@@ -518,7 +518,7 @@ export function CourseCreateFlow() {
                     <p className="text-[16px] font-bold leading-[1.4] tracking-[-0.4px] text-[#111]">{step4SelectLabel}</p>
 
                     {isCarMode ? (
-                      <div className="grid grid-cols-4 overflow-hidden rounded-2xl border border-[#e5e5ec] bg-white shadow-[0px_1px_4px_-1px_rgba(17,17,17,0.08)]">
+                      <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-[#e5e5ec] bg-white shadow-[0px_1px_4px_-1px_rgba(17,17,17,0.08)] sm:grid-cols-4">
                         {originList.map((origin) => {
                           const active = preferences.originLabel === origin;
 
@@ -527,7 +527,7 @@ export function CourseCreateFlow() {
                               key={origin}
                               className={`flex h-[52px] items-center justify-center border-r border-t border-[#e5e5ec] px-5 text-[16px] tracking-[-0.4px] ${
                                 active ? "bg-[#ffeaee] font-semibold text-[#f30031]" : "text-[#505050]"
-                              } ${originList.indexOf(origin) < 4 ? "border-t-0" : ""} ${originList.indexOf(origin) % 4 === 3 ? "border-r-0" : ""}`}
+                              } ${originList.indexOf(origin) < 3 ? "border-t-0" : ""} ${originList.indexOf(origin) % 3 === 2 ? "border-r-0" : ""} sm:[&:nth-child(-n+4)]:border-t-0 sm:[&:nth-child(4n)]:border-r-0`}
                               onClick={() => handleOriginSelect(origin)}
                               type="button"
                             >
@@ -589,7 +589,7 @@ export function CourseCreateFlow() {
 
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
-          <div className="flex items-center justify-between">
+          <div className="sticky bottom-0 -mx-4 flex items-center justify-between border-t border-[#f1f1f5] bg-white/95 px-4 py-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
             <button
               className={`inline-flex h-9 items-center justify-center rounded-full px-5 text-[18px] tracking-[-0.45px] transition-colors disabled:cursor-not-allowed ${
                 step === 1 ? "bg-[#f1f1f5] text-[#505050]" : "bg-[#ff1f4c] text-white"
