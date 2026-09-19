@@ -37,7 +37,7 @@ const statusMeta: Record<SavedCourseStatus, { label: string; badgeClassName: str
 type MobileCourse = SavedCourse & { source: "api" | "preview" };
 
 function StatusIcon({ status }: { status: SavedCourseStatus }) {
-  const className = `h-9 w-9 shrink-0 ${statusMeta[status].iconClassName}`;
+  const className = `h-7 w-7 shrink-0 ${statusMeta[status].iconClassName}`;
 
   if (status === "WAITING") return <Coffee className={className} strokeWidth={2.3} />;
   if (status === "IN_PROGRESS") return <Trees className={className} strokeWidth={2.3} />;
@@ -51,46 +51,46 @@ function SavedCourseMobileView({ courses }: { courses: MobileCourse[] }) {
 
   return (
     <div className="pb-[112px] md:hidden">
-      <header className="relative flex h-[112px] items-center justify-center px-[60px]">
-        <Link aria-label="나의 기록으로 돌아가기" className="absolute left-[42px] inline-flex h-10 w-10 items-center justify-center" href="/records">
-          <ArrowLeft className="h-7 w-7 text-[#111111]" strokeWidth={1.8} />
+      <header className="relative flex h-[144px] items-center justify-center px-[34px]">
+        <Link aria-label="나의 기록으로 돌아가기" className="absolute left-[34px] inline-flex h-10 w-10 items-center justify-center" href="/records">
+          <ArrowLeft className="h-6 w-6 text-[#111111]" strokeWidth={1.8} />
         </Link>
         <h1 className="text-[28px] font-bold leading-[1.4] tracking-[-0.7px] text-[#111111]">저장한 코스</h1>
       </header>
 
-      <main className="px-[60px] pt-[101px]">
-        <div className="flex items-center gap-[9px] text-[18px] leading-[1.4] tracking-[-0.45px]">
+      <main className="px-[34px] pt-[13px]">
+        <div className="flex items-center gap-1 text-[14px] leading-[1.4] tracking-[-0.35px]">
           <Link className="text-[#767676]" href="/records">나의 기록</Link>
-          <ChevronRight className="h-5 w-5 text-[#767676]" strokeWidth={2} />
+          <ChevronRight className="h-4 w-4 text-[#767676]" strokeWidth={2} />
           <span className="font-semibold text-[#111111]">저장한 코스</span>
         </div>
 
-        <section className="mt-[46px]">
-          <h2 className="text-[24px] font-medium leading-[1.4] tracking-[-0.6px] text-[#111111]">다가오는 여행</h2>
+        <section className="mt-6">
+          <h2 className="text-[22px] font-medium leading-[1.4] tracking-[-0.55px] text-[#111111]">다가오는 여행</h2>
           {upcomingCourse ? (
-            <Link className="mt-6 flex min-h-[188px] items-center gap-3 rounded-[28px] border-2 border-[#ff1f4c] px-[38px] py-6 shadow-[0_4px_8px_rgba(17,17,17,0.08)]" href={`/course/saved?courseId=${encodeURIComponent(upcomingCourse.id)}`}>
+            <Link className="mt-3 flex min-h-[124px] items-center gap-3 rounded-[20px] border-2 border-[#ff1f4c] px-[22px] py-4 shadow-[0_4px_8px_rgba(17,17,17,0.08)]" href={`/course/saved?courseId=${encodeURIComponent(upcomingCourse.id)}`}>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-4">
-                  <span className="inline-flex h-12 items-center rounded-full bg-[#ff1f4c] px-4 text-[18px] font-medium text-white">{upcomingCourse.source === "preview" ? "D-6" : "예정"}</span>
-                  <span className="truncate text-[18px] tracking-[-0.45px] text-[#111111]">{upcomingCourse.source === "preview" ? "2026.08.10 월요일 10:30" : `${upcomingCourse.date} 저장`}</span>
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex h-8 items-center rounded-full bg-[#ff1f4c] px-3 text-[14px] font-medium text-white">{upcomingCourse.source === "preview" ? "D-6" : "예정"}</span>
+                  <span className="truncate text-[14px] tracking-[-0.35px] text-[#111111]">{upcomingCourse.source === "preview" ? "2026.08.10 월요일 10:30" : `${upcomingCourse.date} 저장`}</span>
                 </div>
-                <p className="mt-[11px] truncate text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111111]">{upcomingCourse.title}</p>
-                <p className="mt-1 truncate text-[18px] leading-[1.4] tracking-[-0.45px] text-[#111111]">{ZONE_LABEL[upcomingCourse.zone] ?? upcomingCourse.zone} · 장소 {upcomingCourse.spotCount}곳</p>
+                <p className="mt-2 truncate text-[18px] font-bold leading-[1.4] tracking-[-0.45px] text-[#111111]">{upcomingCourse.title}</p>
+                <p className="mt-1 truncate text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">{ZONE_LABEL[upcomingCourse.zone] ?? upcomingCourse.zone} · 장소 {upcomingCourse.spotCount}곳</p>
               </div>
-              <ChevronRight className="h-9 w-9 shrink-0 text-[#505050]" strokeWidth={2} />
+              <ChevronRight className="h-7 w-7 shrink-0 text-[#505050]" strokeWidth={2} />
             </Link>
           ) : (
             <div className="mt-6 rounded-[28px] border border-[#f1f1f5] px-6 py-9 text-center text-[16px] text-[#767676]">다가오는 여행이 없어요.</div>
           )}
         </section>
 
-        <section className="mt-[76px]">
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 className="mr-2 text-[24px] font-medium leading-[1.4] tracking-[-0.6px] text-[#111111]">저장한 코스 목록</h2>
+        <section className="mt-[52px]">
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <h2 className="mr-auto text-[20px] font-medium leading-[1.4] tracking-[-0.5px] text-[#111111]">저장한 코스 목록</h2>
             {(Object.keys(statusMeta) as SavedCourseStatus[]).map((status) => (
               <button
                 key={status}
-                className={`h-[53px] rounded-full border px-[19px] text-[20px] font-medium leading-[1.4] tracking-[-0.5px] ${selectedStatus === status ? "border-[#ff1f4c] text-[#ff1f4c]" : "border-[#e1e2ea] text-[#8a8a8a]"}`}
+                className={`h-8 rounded-full border px-3 text-[14px] font-medium leading-[1.4] tracking-[-0.35px] ${selectedStatus === status ? "border-[#ff1f4c] text-[#ff1f4c]" : "border-[#e1e2ea] text-[#8a8a8a]"}`}
                 onClick={() => setSelectedStatus(status)}
                 type="button"
               >
@@ -99,20 +99,20 @@ function SavedCourseMobileView({ courses }: { courses: MobileCourse[] }) {
             ))}
           </div>
 
-          <div className="mt-[38px] space-y-[18px]">
+          <div className="mt-5 space-y-[10px]">
             {filteredCourses.length ? filteredCourses.map((course) => {
               const meta = statusMeta[course.status];
               return (
-                <Link key={course.id} className="flex min-h-[111px] items-center gap-5 rounded-[28px] border border-[#e1e2ea] px-9 py-5 shadow-[0_4px_8px_rgba(17,17,17,0.08)]" href={`/course/saved?courseId=${encodeURIComponent(course.id)}`}>
+                <Link key={course.id} className="flex min-h-[88px] items-center gap-3 rounded-[20px] border border-[#e1e2ea] px-5 py-3 shadow-[0_4px_8px_rgba(17,17,17,0.08)]" href={`/course/saved?courseId=${encodeURIComponent(course.id)}`}>
                   <StatusIcon status={course.status} />
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-3">
-                      <p className="truncate text-[20px] font-medium leading-[1.4] tracking-[-0.5px] text-[#111111]">{course.title}</p>
-                      <span className={`shrink-0 rounded-full px-3 py-1 text-[16px] font-semibold leading-[1.4] tracking-[-0.4px] ${meta.badgeClassName}`}>{meta.label}</span>
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-[16px] font-medium leading-[1.4] tracking-[-0.4px] text-[#111111]">{course.title}</p>
+                      <span className={`shrink-0 rounded-full px-2 py-1 text-[12px] font-semibold leading-[1.4] tracking-[-0.3px] ${meta.badgeClassName}`}>{meta.label}</span>
                     </div>
-                    <p className="mt-1 text-[18px] leading-[1.4] tracking-[-0.45px] text-[#767676]">{course.date} · 장소 {course.spotCount}곳</p>
+                    <p className="mt-1 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#767676]">{course.date} · 장소 {course.spotCount}곳</p>
                   </div>
-                  <ChevronRight className="h-8 w-8 shrink-0 text-[#505050]" strokeWidth={2} />
+                  <ChevronRight className="h-6 w-6 shrink-0 text-[#505050]" strokeWidth={2} />
                 </Link>
               );
             }) : <p className="py-8 text-center text-[16px] text-[#767676]">{statusMeta[selectedStatus].label}인 코스가 없어요.</p>}
