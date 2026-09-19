@@ -203,7 +203,12 @@ export default function SavedCoursePage() {
       <SavedCourseMobileView courses={mobileCourses} />
       <div className="mx-auto hidden max-w-[1240px] justify-center px-4 py-[60px] md:flex lg:px-0">
         <div className="w-full max-w-[432px]">
-          <h1 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111111]">저장한 코스</h1>
+          <nav aria-label="현재 위치" className="flex items-center gap-1 text-[14px] leading-[1.4] tracking-[-0.35px]">
+            <Link className="text-[#767676] transition-colors hover:text-[#111111]" href="/records">나의 기록</Link>
+            <ChevronRight className="h-4 w-4 text-[#767676]" strokeWidth={2} />
+            <span className="font-semibold text-[#111111]">저장한 코스</span>
+          </nav>
+          <h1 className="mt-5 text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111111]">저장한 코스</h1>
 
           {error ? <p className="mt-4 text-[14px] text-[#f30031]">{error}</p> : null}
 
