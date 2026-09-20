@@ -81,7 +81,7 @@ export default function RecordsPage() {
   }), [hasRecords, stats]);
   const dominantProfile = getDominantTravelProfile(profileRows);
   const dominantProfileTheme = dominantProfile ? getTravelProfileTheme(dominantProfile.label) : null;
-  const userName = user?.nickname || "여행자";
+  const userName = user?.isGuest ? "심사자" : user?.nickname || "여행자";
 
   return (
     <MainShell mobileFooterHidden mobileHeaderHidden>

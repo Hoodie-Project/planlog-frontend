@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { listAccommodations, type AccommodationDto } from "@/api/platform";
+import { getAccommodation, listAccommodations, type AccommodationDetailDto, type AccommodationDto } from "@/api/platform";
 import { createSavedCourse, replaceSavedCourseItem } from "@/api/saved-courses";
 import { CourseMapLayout } from "@/components/course-result/CourseMapLayout";
 import { useAuthStore } from "@/store/auth-store";
@@ -43,17 +43,42 @@ function stayMarkerHtml(selected: boolean, hasSelection: boolean) {
   return `<div style="width:${size}px;height:${size}px;border-radius:999px;background:${color};display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(255,31,76,.28)"><svg aria-hidden="true" width="${Math.round(size * 0.58)}" height="${Math.round(size * 0.58)}" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.4697 9.84076C17.7626 9.54787 18.2374 9.54787 18.5303 9.84076L27.2197 18.5301C27.5126 18.823 27.9874 18.823 28.2803 18.5301C28.5732 18.2372 28.5732 17.7623 28.2803 17.4694L19.591 8.7801C18.7123 7.90142 17.2877 7.90142 16.409 8.7801L7.71967 17.4694C7.42678 17.7623 7.42678 18.2372 7.71967 18.5301C8.01256 18.823 8.48744 18.823 8.78033 18.5301L17.4697 9.84076Z" fill="white"/><path d="M18 11.4318L26.159 19.5908C26.1887 19.6205 26.2191 19.6492 26.25 19.6769V25.8748C26.25 26.9103 25.4105 27.7498 24.375 27.7498H21C20.5858 27.7498 20.25 27.414 20.25 26.9998V22.4998C20.25 22.0856 19.9142 21.7498 19.5 21.7498H16.5C16.0858 21.7498 15.75 22.0856 15.75 22.4998V26.9998C15.75 27.414 15.4142 27.7498 15 27.7498H11.625C10.5895 27.7498 9.75 26.9103 9.75 25.8748V19.6769C9.78093 19.6492 9.81127 19.6205 9.84099 19.5908L18 11.4318Z" fill="white"/></svg></div>`;
 }
 
-function StayDetailPanel({ stay, onClose, onSelect }: { stay: AccommodationDto; onClose: () => void; onSelect: () => void }) {
-  const image = secureImageUrl(stay.image);
+function availabilityLabel(value?: boolean | null) {
+  if (value === true) return "가능";
+  if (value === false) return "불가";
+  return null;
+}
+
+function StayDetailPanel({ detail, detailError, isLoading, stay, onClose, onSelect }: { detail: AccommodationDetailDto | null; detailError: string | null; isLoading: boolean; stay: AccommodationDto; onClose: () => void; onSelect: () => void }) {
+  const accommodation = detail ?? stay;
+  const image = secureImageUrl(accommodation.image);
+  const homepage = detail?.homepage ?? detail?.reservationUrl;
+  const checkinTime = detail?.checkinTime ?? detail?.checkin;
+  const checkoutTime = detail?.checkoutTime ?? detail?.checkout;
+  const parking = availabilityLabel(detail?.parkingAvailable ?? detail?.parking);
+  const cooking = availabilityLabel(detail?.cookingAvailable ?? detail?.cooking);
 
   return <div className="absolute left-4 top-4 z-20 hidden xl:block">
     <section className="h-[calc(100vh-128px)] min-h-[650px] w-[350px] overflow-y-auto rounded-2xl border border-[#e5e5ec] bg-white shadow-[0px_2px_6px_rgba(17,17,17,0.08)]">
       <div className="flex items-center justify-between px-6 py-5"><ChevronLeft className="h-6 w-6" strokeWidth={1.8} /><button aria-label="숙소 상세 닫기" onClick={onClose} type="button"><X className="h-6 w-6" strokeWidth={1.8} /></button></div>
       <div className="px-6 pb-8">
-        <h2 className="text-[24px] font-bold tracking-[-0.6px] text-[#111111]">{stay.title}</h2>
-        <div className="mt-4 flex gap-2"><button className="h-9 rounded-full border border-[#ff1f4c] px-4 text-[14px] font-semibold text-[#111111]" onClick={onSelect} type="button">숙소 선택하기</button><a className="inline-flex h-9 items-center rounded-full border border-[#ff1f4c] px-4 text-[14px] font-semibold text-[#111111]" href={image ?? undefined} rel="noreferrer" target="_blank">이미지 보기</a></div>
-        <div className="mt-6 space-y-2 text-[14px] leading-[1.5] tracking-[-0.35px] text-[#505050]"><p>{stay.address ?? "주소 정보가 준비 중입니다."}</p>{stay.tel ? <p><strong className="text-[#111111]">연락처</strong> {stay.tel}</p> : null}<p><strong className="text-[#111111]">숙소 유형</strong> {stayTypeLabel(stay.stayType)}</p></div>
-        {image ? <img alt={stay.title} className="mt-6 h-[238px] w-full rounded-[2px] object-cover" src={image} /> : <div className="mt-6 flex h-[238px] items-center justify-center rounded-[2px] bg-[#f7f7fa] text-[14px] text-[#777]">숙소 이미지 없음</div>}
+        <h2 className="text-[24px] font-bold tracking-[-0.6px] text-[#111111]">{accommodation.title}</h2>
+        <div className="mt-4 flex gap-2"><button className="h-9 rounded-full border border-[#ff1f4c] px-4 text-[14px] font-semibold text-[#111111]" onClick={onSelect} type="button">숙소 선택하기</button>{homepage ? <a className="inline-flex h-9 items-center rounded-full border border-[#ff1f4c] px-4 text-[14px] font-semibold text-[#111111]" href={homepage} rel="noreferrer" target="_blank">홈페이지</a> : image ? <a className="inline-flex h-9 items-center rounded-full border border-[#ff1f4c] px-4 text-[14px] font-semibold text-[#111111]" href={image} rel="noreferrer" target="_blank">이미지 보기</a> : null}</div>
+        {isLoading ? <p className="mt-5 text-[13px] text-[#777]">숙소 상세 정보를 불러오는 중이에요.</p> : null}
+        {detailError ? <p className="mt-5 text-[13px] text-[#f30031]">{detailError}</p> : null}
+        <div className="mt-6 space-y-2 text-[14px] leading-[1.5] tracking-[-0.35px] text-[#505050]">
+          <p>{accommodation.address ?? "주소 정보가 준비 중입니다."}</p>
+          {accommodation.tel ? <p><strong className="text-[#111111]">연락처</strong> {accommodation.tel}</p> : null}
+          <p><strong className="text-[#111111]">숙소 유형</strong> {stayTypeLabel(accommodation.stayType)}</p>
+          {checkinTime ? <p><strong className="text-[#111111]">체크인</strong> {checkinTime}</p> : null}
+          {checkoutTime ? <p><strong className="text-[#111111]">체크아웃</strong> {checkoutTime}</p> : null}
+          {detail?.roomCount != null ? <p><strong className="text-[#111111]">객실 수</strong> {detail.roomCount}실</p> : null}
+          {parking ? <p className={parking === "불가" ? "text-[#f30031]" : undefined}><strong className="text-[#111111]">주차</strong> {parking}</p> : null}
+          {cooking ? <p><strong className="text-[#111111]">취사</strong> {cooking}</p> : null}
+          {detail?.facilities?.length ? <p><strong className="text-[#111111]">부대시설</strong> {detail.facilities.join(" · ")}</p> : null}
+          {detail?.overview ? <p className="pt-1 text-[#777]">{detail.overview}</p> : null}
+        </div>
+        {image ? <img alt={accommodation.title} className="mt-6 h-[238px] w-full rounded-[2px] object-cover" src={image} /> : <div className="mt-6 flex h-[238px] items-center justify-center rounded-[2px] bg-[#f7f7fa] text-[14px] text-[#777]">숙소 이미지 없음</div>}
       </div>
     </section>
   </div>;
@@ -71,6 +96,9 @@ export default function CourseStayPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedStayId, setSelectedStayId] = useState<string | null>(null);
+  const [selectedStayDetail, setSelectedStayDetail] = useState<AccommodationDetailDto | null>(null);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
   const [selectionStep, setSelectionStep] = useState<"confirm" | "form" | null>(null);
   const [stayName, setStayName] = useState("");
   const [stayAddress, setStayAddress] = useState("");
@@ -109,6 +137,39 @@ export default function CourseStayPage() {
   );
   const center = mappableStays[0] ? { lat: Number(mappableStays[0].mapY), lng: Number(mappableStays[0].mapX) } : defaultCenter;
   const selectedStay = stays.find((stay) => stay.contentId === selectedStayId) ?? null;
+
+  useEffect(() => {
+    let isActive = true;
+
+    if (!selectedStay) {
+      setSelectedStayDetail(null);
+      setDetailError(null);
+      setIsDetailLoading(false);
+      return () => {
+        isActive = false;
+      };
+    }
+
+    const loadAccommodationDetail = async () => {
+      setSelectedStayDetail(null);
+      setDetailError(null);
+      setIsDetailLoading(true);
+
+      try {
+        const detail = await getAccommodation(selectedStay.contentId);
+        if (isActive) setSelectedStayDetail(detail);
+      } catch {
+        if (isActive) setDetailError("숙소 상세 정보를 불러오지 못했어요.");
+      } finally {
+        if (isActive) setIsDetailLoading(false);
+      }
+    };
+
+    void loadAccommodationDetail();
+    return () => {
+      isActive = false;
+    };
+  }, [selectedStay]);
   const markers = useMemo(
     () => mappableStays.map((stay, index) => {
       const selected = stay.contentId === selectedStayId;
@@ -193,7 +254,7 @@ export default function CourseStayPage() {
   );
 
   return <>
-    <CourseMapLayout center={center} focus={selectedStay ? { lat: Number(selectedStay.mapY), lng: Number(selectedStay.mapX) } : center} mapOverlay={selectedStay ? <StayDetailPanel onClose={() => setSelectedStayId(null)} onSelect={openStayConfirmation} stay={selectedStay} /> : null} markers={markers} mobileSummary={<div><h2 className="text-[20px] font-bold tracking-[-0.5px] text-[#111111]">추천 숙소</h2><p className="mt-2 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#505050]">{isLoading ? "추천 숙소를 불러오는 중이에요." : "코스와 가까운 숙소를 확인해 보세요!"}</p></div>} onMarkerClick={selectStayByMarkerId} panel={content} />
+    <CourseMapLayout center={center} focus={selectedStay ? { lat: Number(selectedStay.mapY), lng: Number(selectedStay.mapX) } : center} mapOverlay={selectedStay ? <StayDetailPanel detail={selectedStayDetail} detailError={detailError} isLoading={isDetailLoading} onClose={() => setSelectedStayId(null)} onSelect={openStayConfirmation} stay={selectedStay} /> : null} markers={markers} mobileSummary={<div><h2 className="text-[20px] font-bold tracking-[-0.5px] text-[#111111]">추천 숙소</h2><p className="mt-2 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#505050]">{isLoading ? "추천 숙소를 불러오는 중이에요." : "코스와 가까운 숙소를 확인해 보세요!"}</p></div>} onMarkerClick={selectStayByMarkerId} panel={content} />
     {selectionStep === "confirm" ? <StaySelectionConfirm onCancel={() => setSelectionStep(null)} onConfirm={openStayForm} /> : null}
     {selectionStep === "form" ? <StaySelectionForm address={stayAddress} error={selectionError} isSubmitting={isAddingStay} name={stayName} onAddressChange={setStayAddress} onCancel={() => setSelectionStep(null)} onNameChange={setStayName} onSubmit={addStayToCourse} /> : null}
   </>;

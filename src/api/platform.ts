@@ -7,7 +7,23 @@ export type NotificationSettingsDto = { ddayAlert: boolean; festivalAlert: boole
 export type RecordDto = { id: string; title: string; travelDate: string; location: string; zone: CourseZone; note: string; mood: string | null; image: string | null; tags: string[]; createdAt: string; savedCourseId: string | null; spotCount: number | null; totalDistance: number | null; nights: number | null; stamps: Array<{ id: string; zone: CourseZone; contentId: string; title: string; image: string | null; visitedAt: string }> };
 export type RecordTraitsDto = { totalRecords: number; traits: Array<{ zone: CourseZone; label: string; count: number; percent: number }>; travelType: { zone: CourseZone; percent: number; title: string; description: string } | null };
 export type PlaceDto = { contentId: string; title: string; address?: string; image?: string | null; mapX?: string; mapY?: string; zone?: CourseZone; dist?: number; overview?: string };
+export type FestivalDto = PlaceDto & { eventStartDate?: string | null; eventEndDate?: string | null; isThisWeekend?: boolean };
 export type AccommodationDto = PlaceDto & { contentTypeId: string; sigunguCode?: string; tel?: string; stayType?: "HEALING" | "VALUE" | "SOCIAL" | string | null };
+export type AccommodationDetailDto = AccommodationDto & {
+  overview?: string | null;
+  checkinTime?: string | null;
+  checkoutTime?: string | null;
+  checkin?: string | null;
+  checkout?: string | null;
+  roomCount?: number | null;
+  cookingAvailable?: boolean | null;
+  cooking?: boolean | null;
+  parkingAvailable?: boolean | null;
+  parking?: boolean | null;
+  reservationUrl?: string | null;
+  homepage?: string | null;
+  facilities?: string[] | null;
+};
 
 const auth = (accessToken: string) => ({ accessToken });
 
@@ -23,8 +39,9 @@ export const getNotificationSettings = (accessToken: string) => apiFetch<Notific
 export const updateNotificationSettings = (accessToken: string, dto: Partial<NotificationSettingsDto>) => apiFetch<NotificationSettingsDto>("/api/notification-settings", { ...auth(accessToken), method: "PATCH", body: JSON.stringify(dto) });
 export const listStations = (type?: "TRAIN" | "BUS") => apiFetch<Array<{ type: "TRAIN" | "BUS"; name: string; mapX: string; mapY: string }>>("/api/stations", { query: { type } });
 export const getStampTraits = (accessToken: string) => apiFetch<{ totalStamps: number; traits: Array<{ zone: CourseZone; label: string; count: number; percent: number }> }>("/api/stamps/traits", auth(accessToken));
-export const listFestivals = (query: Record<string, string | number | boolean | undefined> = {}) => apiFetch<PlaceDto[]>("/api/festivals", { query });
+export const listFestivals = (query: Record<string, string | number | boolean | undefined> = {}) => apiFetch<FestivalDto[]>("/api/festivals", { query });
 export const listAccommodations = (query: Record<string, string | number | boolean | undefined> = {}) => apiFetch<AccommodationDto[]>("/api/accommodations", { query });
+export const getAccommodation = (contentId: string) => apiFetch<AccommodationDetailDto>(`/api/accommodations/${encodeURIComponent(contentId)}`);
 export const listCampings = (query: Record<string, string | number | boolean | undefined> = {}) => apiFetch<PlaceDto[]>("/api/campings", { query });
 export const getCongestion = () => apiFetch<{ weekdays: Array<{ weekdayCode: string; weekday: string; index: number; level: string; avgVisitors: number }>; leastBusy: unknown; busiest: unknown }>("/api/congestion");
 export const listRelatedSpots = (query: Record<string, string | number | boolean | undefined>) => apiFetch<unknown[]>("/api/related-spots", { query });

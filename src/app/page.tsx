@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { MainShell } from "@/components/layout/MainShell";
+import { FestivalCarousel } from "@/components/landing/FestivalCarousel";
 import { Button } from "@/components/ui/Button";
 import landingCompleteStamp from "@/asset/svgs/landing-complete.svg";
 import landingIncompleteStamp from "@/asset/svgs/landing-incomplete.svg";
 import {
-  festivalCards,
   howToMakeCourse,
   landingPreviews,
   landingStampProgress,
@@ -72,27 +72,7 @@ export default function HomePage() {
             <h2 className="text-[24px] font-bold tracking-[-0.6px] text-slate-900">강원도 HOT 축제</h2>
             <p className="text-[16px] tracking-[-0.4px] text-slate-600">바로 즐길 수 있는 이번주 축제</p>
           </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            {festivalCards.map((festival) => (
-              <article
-                key={festival.title}
-                className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_2px_6px_rgba(17,17,17,0.08)]"
-              >
-                <img alt={festival.title} className="h-[150px] w-[200px] rounded-lg object-cover" src={festival.image} />
-                <div className="min-w-0">
-                  <span className="inline-flex h-6 items-center rounded-full bg-slate-100 px-3 text-[12px] font-semibold text-slate-600">
-                    {festival.badge}
-                  </span>
-                  <h3 className="mt-3 text-[16px] font-semibold text-slate-900">{festival.title}</h3>
-                  <div className="mt-1 flex items-center gap-2 text-[14px] text-slate-700">
-                    <span>{festival.location}</span>
-                    <span className="h-2.5 w-px rounded-full bg-slate-400" />
-                    <span>{festival.period}</span>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+          <FestivalCarousel />
         </div>
       </section>
 
