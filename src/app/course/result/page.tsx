@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, ArrowUpRight, BadgeCheck, Bookmark, ChevronDown, ChevronLeft, Home, MessageCircleMore, Plus, RefreshCw, X } from "lucide-react";
 import { CourseMapLayout } from "@/components/course-result/CourseMapLayout";
 import { MainShell } from "@/components/layout/MainShell";
 import { Button } from "@/components/ui/Button";
 import { ApiError } from "@/api/client";
-import { createSavedCourse } from "@/api/saved-courses";
+import { completeSavedCourse, createSavedCourse, getSavedCourse, startSavedCourse } from "@/api/saved-courses";
+import { createStamp, getStampEligibility, type StampEligibilityDto } from "@/api/stamps";
+import { StampReviewModal } from "@/components/review/StampReviewModal";
+import type { SavedCourseDto } from "@/types/course";
 import { useAuthStore } from "@/store/auth-store";
 import { useCourseStore } from "@/store/course-store";
 
@@ -23,6 +26,8 @@ type CourseMapPlace = {
   congestionTone: string;
   image: string;
   travelMinutesFromPrev?: number;
+  contentId: string;
+  zone: NonNullable<import("@/types/course").CourseItemDto["zone"]>;
   lat?: number;
   lng?: number;
 };
@@ -39,15 +44,26 @@ export default function CourseResultPage() {
   const generatedCourse = useCourseStore((state) => state.generatedCourse);
   const accessToken = useAuthStore((state) => state.accessToken);
   const openLoginModal = useAuthStore((state) => state.openLoginModal);
+  const setGeneratedCourse = useCourseStore((state) => state.setGeneratedCourse);
+  const activeSavedCourseId = useCourseStore((state) => state.activeSavedCourseId);
+  const setActiveSavedCourseId = useCourseStore((state) => state.setActiveSavedCourseId);
   const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(1);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [savedCourse, setSavedCourse] = useState<SavedCourseDto | null>(null);
+  const [refreshOpen, setRefreshOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [stampEligibility, setStampEligibility] = useState<StampEligibilityDto | null>(null);
+  const [location, setLocation] = useState<{ mapX: string; mapY: string } | null>(null);
+  const [stampPending, setStampPending] = useState(false);
 
   const places = useMemo<CourseMapPlace[]>(() => {
     const items = generatedCourse?.days.flatMap((day) => day.items) ?? [];
 
     return items.map((item, index) => ({
       id: index + 1,
+      contentId: item.contentId,
+      zone: item.zone ?? generatedCourse?.zone ?? "SEA",
       name: item.title,
       time: item.arriveTime,
       tags: [`#${generatedCourse?.zoneLabel ?? "추천"}`, `#${item.type === "MEAL" ? "식사" : item.type === "STAY" ? "숙소" : "추천 장소"}`],
@@ -74,6 +90,25 @@ export default function CourseResultPage() {
   const selectedPlace = places.find((place) => place.id === selectedPlaceId) ?? null;
   const courseTitle = generatedCourse ? `${generatedCourse.zoneLabel} 추천 코스` : "추천 코스";
 
+  useEffect(() => {
+    if (!accessToken || !activeSavedCourseId) return;
+    getSavedCourse(accessToken, activeSavedCourseId).then(setSavedCourse).catch(() => setActiveSavedCourseId(null));
+  }, [accessToken, activeSavedCourseId, setActiveSavedCourseId]);
+
+  useEffect(() => {
+    if (!accessToken || !selectedPlace) return;
+    getStampEligibility(accessToken, selectedPlace.contentId, location ?? undefined).then(setStampEligibility).catch(() => setStampEligibility(null));
+  }, [accessToken, selectedPlace, location]);
+
+  const ensureSavedCourse = async () => {
+    if (!generatedCourse || !accessToken) throw new Error("로그인이 필요합니다.");
+    if (savedCourse) return savedCourse;
+    const created = await createSavedCourse(accessToken, generatedCourse);
+    setSavedCourse(created);
+    setActiveSavedCourseId(created.id);
+    return created;
+  };
+
   const handleSaveCourse = async () => {
     if (!generatedCourse) return;
     if (!accessToken) {
@@ -84,7 +119,7 @@ export default function CourseResultPage() {
     setSaveStatus("saving");
     setSaveError(null);
     try {
-      await createSavedCourse(accessToken, generatedCourse);
+      await ensureSavedCourse();
       setSaveStatus("saved");
     } catch (error) {
       setSaveStatus("error");
@@ -92,17 +127,38 @@ export default function CourseResultPage() {
     }
   };
 
+  const handleStartCourse = async () => {
+    if (!accessToken) return openLoginModal("protected-route");
+    try { setSaveStatus("saving"); const course = await ensureSavedCourse(); setSavedCourse(await startSavedCourse(accessToken, course.id)); setSaveStatus("saved"); } catch (error) { setSaveStatus("error"); setSaveError(error instanceof Error ? error.message : "코스를 시작하지 못했어요."); }
+  };
+
+  const handleCompleteCourse = async () => {
+    if (!accessToken) return openLoginModal("protected-route");
+    try { const course = await ensureSavedCourse(); setSavedCourse(await completeSavedCourse(accessToken, course.id)); setReviewOpen(false); } catch (error) { setSaveError(error instanceof Error ? error.message : "코스를 종료하지 못했어요."); }
+  };
+
+  const requestLocation = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition((position) => setLocation({ mapX: String(position.coords.longitude), mapY: String(position.coords.latitude) }), () => setLocation(null), { enableHighAccuracy: true, timeout: 10000 });
+  };
+
+  const handleReceiveStamp = async () => {
+    if (!accessToken || !selectedPlace || !stampEligibility || !["ELIGIBLE", "REVIEWER"].includes(stampEligibility.state)) return;
+    try { setStampPending(true); await createStamp(accessToken, { zone: selectedPlace.zone, contentId: selectedPlace.contentId, title: selectedPlace.name, image: selectedPlace.image || undefined, curMapX: location?.mapX, curMapY: location?.mapY }); setStampEligibility(await getStampEligibility(accessToken, selectedPlace.contentId, location ?? undefined)); } finally { setStampPending(false); }
+  };
+
   if (!generatedCourse || places.length === 0) {
     return <CourseResultEmptyState hasEmptyGeneratedCourse={Boolean(generatedCourse)} />;
   }
 
   return (
+    <>
     <CourseMapLayout
       center={mapData.center}
       markers={mapData.markers}
       path={mapData.path}
       onMarkerClick={setSelectedPlaceId}
-      mapOverlay={selectedPlace ? <PlaceOverlay place={selectedPlace} onClose={() => setSelectedPlaceId(null)} /> : null}
+      mapOverlay={selectedPlace ? <PlaceOverlay eligibility={stampEligibility} onReceiveStamp={handleReceiveStamp} onRequestLocation={requestLocation} place={selectedPlace} stampPending={stampPending} onClose={() => setSelectedPlaceId(null)} /> : null}
       mobileSummary={
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -111,7 +167,7 @@ export default function CourseResultPage() {
             <p className="mt-3 text-[18px] text-[#111]">코스 소요시간: {Math.floor(generatedCourse.totalTravelMinutes / 60)}h {generatedCourse.totalTravelMinutes % 60}m</p>
             <p className="mt-6 border-t border-[#e5e5ec] pt-5 text-[22px] font-bold text-[#111]">{places[0]?.time} &nbsp;{places[0]?.name}</p>
           </div>
-          <div className="flex gap-3"><Bookmark className="h-8 w-8" /><RefreshCw className="h-8 w-8" /></div>
+          <div className="flex gap-3"><button aria-label="코스 저장" onClick={handleSaveCourse} type="button"><Bookmark className="h-8 w-8" /></button><button aria-label="다시 추천받기" onClick={() => setRefreshOpen(true)} type="button"><RefreshCw className="h-8 w-8" /></button></div>
         </div>
       }
       panel={
@@ -119,12 +175,13 @@ export default function CourseResultPage() {
           <div>
             <h1 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111111]">{courseTitle}</h1>
             <div className="mt-[13px] flex flex-wrap items-center gap-1">
-              <button className="inline-flex h-8 items-center justify-center rounded-full bg-[#ff1f4c] px-4 text-[14px] font-bold tracking-[-0.35px] text-white transition hover:bg-[#eb1b47] disabled:cursor-not-allowed disabled:bg-[#d4d4d4]" disabled={saveStatus === "saving" || saveStatus === "saved"} onClick={handleSaveCourse} type="button">
-                <Bookmark className="mr-1 h-4 w-4" strokeWidth={2.2} />{saveStatus === "saved" ? "저장됨" : saveStatus === "saving" ? "저장 중..." : "저장하기"}
+              <button className="inline-flex h-8 items-center justify-center rounded-full bg-[#ff1f4c] px-4 text-[14px] font-bold tracking-[-0.35px] text-white transition hover:bg-[#eb1b47] disabled:cursor-not-allowed disabled:bg-[#d4d4d4]" disabled={saveStatus === "saving" || savedCourse?.status === "COMPLETED"} onClick={savedCourse?.status === "IN_PROGRESS" ? () => setReviewOpen(true) : handleStartCourse} type="button">
+                {savedCourse?.status === "IN_PROGRESS" ? "코스 종료하기" : savedCourse?.status === "COMPLETED" ? "코스 완료" : "코스 시작하기"}
               </button>
-              <Link className="inline-flex h-8 items-center justify-center rounded-full bg-[#ffeaee] px-4 text-[14px] font-bold tracking-[-0.35px] text-[#111111] transition hover:bg-[#ffe0e7]" href="/course/create?step=1">
+              <button className="inline-flex h-8 items-center justify-center rounded-full border border-[#ff1f4c] px-3 text-[#ff1f4c]" disabled={saveStatus === "saving" || Boolean(savedCourse)} onClick={handleSaveCourse} type="button"><Bookmark className="h-4 w-4" /></button>
+              <button className="inline-flex h-8 items-center justify-center rounded-full bg-[#ffeaee] px-4 text-[14px] font-bold tracking-[-0.35px] text-[#111111] transition hover:bg-[#ffe0e7]" onClick={() => setRefreshOpen(true)} type="button">
                 <RefreshCw className="mr-1 h-4 w-4" strokeWidth={2.2} />다시 추천받기
-              </Link>
+              </button>
             </div>
           </div>
           <div className="flex-1 pt-[11px]">
@@ -148,6 +205,9 @@ export default function CourseResultPage() {
         </div>
       }
     />
+      {refreshOpen ? <ConfirmModal confirmLabel="다시 추천받기" description="새로운 조건으로 코스를 다시 추천받을 수 있어요." onClose={() => setRefreshOpen(false)} onConfirm={() => { setGeneratedCourse(null); setRefreshOpen(false); window.location.assign("/course/create?step=1"); }} title="다른 코스를 추천받을까요?" /> : null}
+      {reviewOpen ? <StampReviewModal mode="write" onClose={() => setReviewOpen(false)} onSave={handleCompleteCourse} /> : null}
+    </>
   );
 }
 
@@ -178,7 +238,16 @@ function CourseResultEmptyState({ hasEmptyGeneratedCourse = false }: { hasEmptyG
   );
 }
 
-function PlaceOverlay({ place, onClose }: { place: CourseMapPlace; onClose: () => void }) {
+function StampControl({ eligibility, onReceiveStamp, onRequestLocation, pending }: { eligibility: StampEligibilityDto | null; onReceiveStamp: () => void; onRequestLocation: () => void; pending: boolean }) {
+  const state = eligibility?.state;
+  const enabled = state === "ELIGIBLE" || state === "REVIEWER";
+  const label = state === "ALREADY_STAMPED" ? "스탬프 받기 (완료)" : state === "NO_LOCATION" ? "위치 권한 허용하기" : pending ? "스탬프 수령 중..." : "스탬프 받기";
+  const reason = eligibility?.reason ?? (state === "NO_LOCATION" ? "위치 권한을 허용하면 스탬프 수령 가능 여부를 확인할 수 있어요." : state === "TOO_FAR" ? "현재 위치가 장소에서 2km 이상 떨어져 있어요." : state === "REVIEWER" ? "심사자 계정은 위치 권한 없이 스탬프를 받을 수 있어요." : "");
+  const disabled = (!enabled && state !== "NO_LOCATION") || pending;
+  return <div className="mt-4 rounded-xl border border-[#e5e5ec] p-3"><p className="text-[14px] font-bold text-[#111]">포토 스탬프</p>{reason ? <p className="mt-1 text-[12px] text-[#666]">{reason}</p> : null}<button className={`mt-3 h-9 w-full rounded-lg text-[13px] font-bold text-white ${enabled || state === "NO_LOCATION" ? state === "REVIEWER" ? "bg-[#b649f2]" : "bg-[#ff1f4c]" : "bg-[#a9a9a9]"}`} disabled={disabled} onClick={state === "NO_LOCATION" ? onRequestLocation : onReceiveStamp} type="button">{label}</button></div>;
+}
+
+function PlaceOverlay({ place, onClose, eligibility, onReceiveStamp, onRequestLocation, stampPending }: { place: CourseMapPlace; onClose: () => void; eligibility: StampEligibilityDto | null; onReceiveStamp: () => void; onRequestLocation: () => void; stampPending: boolean }) {
   return (
     <>
       <div className="absolute left-4 top-4 z-20 hidden xl:block">
@@ -189,13 +258,18 @@ function PlaceOverlay({ place, onClose }: { place: CourseMapPlace; onClose: () =
               <div className="flex h-[224px] items-center justify-center overflow-hidden rounded-[2px] bg-[#f5f5f5] text-[14px] text-[#767676]">{place.image ? <img alt={place.name} className="h-full w-full object-cover" src={place.image} /> : "이미지 준비 중"}</div>
               <div className="mt-3"><h3 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111111]">{place.name}</h3><div className="mt-1 flex flex-wrap items-center gap-2 text-[16px] tracking-[-0.4px] text-[#111111]">{place.tags.map((tag) => <span key={tag}>{tag}</span>)}</div></div>
               <div className="mt-3 space-y-1 text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111111]"><p>{place.address}</p><div className="flex flex-wrap items-center gap-1"><span className="font-bold">{place.status}</span><span>{place.hours}</span><ChevronDown className="h-3 w-3" strokeWidth={2} /></div><div className="flex items-center gap-1"><span className="font-bold">혼잡도</span><span className={`font-bold ${place.congestionTone}`}>{place.congestion}</span></div></div>
+              <StampControl eligibility={eligibility} onReceiveStamp={onReceiveStamp} onRequestLocation={onRequestLocation} pending={stampPending} />
             </div>
             <div className="flex-1 bg-white" />
           </div>
         </div>
         <button className="absolute left-[350px] top-[420px] flex h-[60px] w-10 items-center justify-center rounded-br-[16px] rounded-tr-[16px] border border-[#e5e5ec] border-l-0 bg-white shadow-[0px_2px_6px_rgba(17,17,17,0.08)]" onClick={onClose} type="button"><ChevronLeft className="h-6 w-6 text-[#111111]" strokeWidth={1.9} /></button>
       </div>
-      <div className="absolute inset-x-4 top-4 z-20 xl:hidden"><div className="overflow-hidden rounded-[16px] border border-[#e5e5ec] bg-white shadow-[0px_2px_6px_rgba(17,17,17,0.08)]"><div className="flex items-center justify-between px-4 py-3"><button className="text-[#111111]" onClick={onClose} type="button"><ChevronLeft className="h-5 w-5" strokeWidth={1.9} /></button><button className="text-[#111111]" onClick={onClose} type="button"><X className="h-5 w-5" strokeWidth={1.9} /></button></div><div className="border-t border-[#f2f2f4] px-4 pb-4 pt-1"><p className="text-[20px] font-bold tracking-[-0.5px] text-[#111111]">{place.name}</p><p className="mt-1 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">{place.address}</p></div></div></div>
+      <div className="absolute inset-x-4 top-4 z-20 xl:hidden"><div className="overflow-hidden rounded-[16px] border border-[#e5e5ec] bg-white shadow-[0px_2px_6px_rgba(17,17,17,0.08)]"><div className="flex items-center justify-between px-4 py-3"><button className="text-[#111111]" onClick={onClose} type="button"><ChevronLeft className="h-5 w-5" strokeWidth={1.9} /></button><button className="text-[#111111]" onClick={onClose} type="button"><X className="h-5 w-5" strokeWidth={1.9} /></button></div><div className="border-t border-[#f2f2f4] px-4 pb-4 pt-1"><p className="text-[20px] font-bold tracking-[-0.5px] text-[#111111]">{place.name}</p><p className="mt-1 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">{place.address}</p><StampControl eligibility={eligibility} onReceiveStamp={onReceiveStamp} onRequestLocation={onRequestLocation} pending={stampPending} /></div></div></div>
     </>
   );
+}
+
+function ConfirmModal({ title, description, confirmLabel, onConfirm, onClose }: { title: string; description: string; confirmLabel: string; onConfirm: () => void; onClose: () => void }) {
+  return <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/20 px-4 backdrop-blur-sm" onClick={onClose}><section aria-modal="true" className="w-full max-w-[360px] rounded-2xl bg-white p-7 text-center shadow-xl" onClick={(event) => event.stopPropagation()} role="dialog"><h2 className="text-[18px] font-bold text-[#111]">{title}</h2><p className="mt-3 text-[14px] leading-5 text-[#555]">{description}</p><div className="mt-6 flex gap-2"><button className="h-10 flex-1 rounded-lg border border-[#e5e5ec] text-[14px]" onClick={onClose} type="button">아니요</button><button className="h-10 flex-1 rounded-lg bg-[#ff1f4c] text-[14px] font-bold text-white" onClick={onConfirm} type="button">{confirmLabel}</button></div></section></div>;
 }

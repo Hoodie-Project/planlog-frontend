@@ -32,3 +32,15 @@ export async function deleteSavedCourse(accessToken: string, id: string) {
     accessToken,
   });
 }
+
+export async function startSavedCourse(accessToken: string, id: string) {
+  return apiFetch<SavedCourseDto>(`/api/saved-courses/${encodeURIComponent(id)}/start`, { method: "PATCH", accessToken });
+}
+
+export async function completeSavedCourse(accessToken: string, id: string) {
+  return apiFetch<SavedCourseDto>(`/api/saved-courses/${encodeURIComponent(id)}/complete`, { method: "PATCH", accessToken });
+}
+
+export async function replaceSavedCourseItem(accessToken: string, id: string, item: { day: number; order?: number; type?: "SPOT" | "MEAL" | "STAY"; contentId: string; title: string; mapX: string; mapY: string; address?: string; image?: string; zone?: CourseDto["zone"] }) {
+  return apiFetch<SavedCourseDto>(`/api/saved-courses/${encodeURIComponent(id)}/items`, { method: "PATCH", accessToken, body: JSON.stringify(item) });
+}

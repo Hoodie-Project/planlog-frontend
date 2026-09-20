@@ -109,7 +109,9 @@ src/
 - `POST /api/courses/generate`
 - `GET|POST /api/saved-courses`
 - `GET|DELETE /api/saved-courses/:id`
+- `PATCH /api/saved-courses/:id/start`, `PATCH /api/saved-courses/:id/complete`, `PATCH /api/saved-courses/:id/items`
 - `GET|POST /api/stamps`
+- `GET /api/stamps/eligibility`
 - `GET /api/stamps/progress`
 - `GET|POST /api/bookmarks`
 - `DELETE /api/bookmarks/:id`

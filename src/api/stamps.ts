@@ -28,15 +28,21 @@ export type StampProgressDto = {
   reward: { badge: string; title: string } | null;
 };
 
+export type StampEligibilityDto = { state: "ALREADY_STAMPED" | "REVIEWER" | "NO_LOCATION" | "TOO_FAR" | "ELIGIBLE"; reason: string | null; distance?: number };
+
 export async function createStamp(
   accessToken: string,
-  dto: { zone: CourseZone; contentId: string; title: string; image?: string }
+  dto: { zone: CourseZone; contentId: string; title: string; image?: string; curMapX?: string; curMapY?: string }
 ) {
   return apiFetch<StampDto>("/api/stamps", {
     method: "POST",
     accessToken,
     body: JSON.stringify(dto),
   });
+}
+
+export async function getStampEligibility(accessToken: string, contentId: string, location?: { mapX: string; mapY: string }) {
+  return apiFetch<StampEligibilityDto>("/api/stamps/eligibility", { accessToken, query: { contentId, curMapX: location?.mapX, curMapY: location?.mapY } });
 }
 
 export async function listStamps(accessToken: string, options: { zone?: CourseZone; order?: "asc" | "desc" } = {}) {

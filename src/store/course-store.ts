@@ -18,9 +18,11 @@ export type SavedCourse = {
 type CourseStore = {
   preferences: CoursePreferenceDraft;
   generatedCourse: CourseDto | null;
+  activeSavedCourseId: string | null;
   savedCourses: SavedCourse[];
   updatePreferences: (payload: Partial<CoursePreferenceDraft>) => void;
   setGeneratedCourse: (course: CourseDto | null) => void;
+  setActiveSavedCourseId: (id: string | null) => void;
   saveGeneratedCourse: () => string | null;
   startCourse: (courseId: string) => void;
   completeCourse: (courseId: string, review: string) => void;
@@ -47,6 +49,7 @@ export const useCourseStore = create<CourseStore>()(
     (set, get) => ({
       preferences: defaultPreferences,
       generatedCourse: null,
+      activeSavedCourseId: null,
       savedCourses: initialSavedCourses,
       updatePreferences: (payload) =>
         set((state) => ({
@@ -55,7 +58,8 @@ export const useCourseStore = create<CourseStore>()(
             ...payload,
           },
         })),
-      setGeneratedCourse: (generatedCourse) => set({ generatedCourse }),
+      setGeneratedCourse: (generatedCourse) => set({ generatedCourse, activeSavedCourseId: null }),
+      setActiveSavedCourseId: (activeSavedCourseId) => set({ activeSavedCourseId }),
       saveGeneratedCourse: () => {
         const { generatedCourse, preferences, savedCourses } = get();
 
@@ -102,6 +106,7 @@ export const useCourseStore = create<CourseStore>()(
       partialize: (state) => ({
         preferences: state.preferences,
         generatedCourse: state.generatedCourse,
+        activeSavedCourseId: state.activeSavedCourseId,
         savedCourses: state.savedCourses,
       }),
     }
