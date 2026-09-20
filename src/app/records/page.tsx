@@ -11,6 +11,7 @@ import { getDominantTravelProfile, getTravelProfileTheme, type TravelProfileMetr
 import { useRecordsPreviewStore } from "@/store/records-preview-store";
 import { useAuthStore } from "@/store/auth-store";
 import { getMeStats, getRecordTraits, getStampTraits, type MeStatsDto, type RecordTraitsDto } from "@/api/platform";
+import type { CourseZone } from "@/types/course";
 
 const travelProfileRows: TravelProfileMetric[] = [
   { label: "동해 바다", percent: 72 },
@@ -19,6 +20,14 @@ const travelProfileRows: TravelProfileMetric[] = [
   { label: "레트로·문화", percent: 17 },
   { label: "절경·포토", percent: 46 },
 ] as const;
+
+const profileLabelByZone: Record<CourseZone, TravelProfileMetric["label"]> = {
+  SEA: "동해 바다",
+  SNOW: "설원·산악",
+  VALLEY: "계곡·자연",
+  RETRO: "레트로·문화",
+  PHOTO: "절경·포토",
+};
 
 const previewSummary = {
   empty: [
@@ -60,7 +69,7 @@ export default function RecordsPage() {
   }, [accessToken, hydrated]);
 
   const activeTraits = recordTraits?.traits.length ? recordTraits.traits : stampTraits;
-  const profileRows = useMemo<TravelProfileMetric[]>(() => activeTraits?.map((trait) => ({ label: trait.label as TravelProfileMetric["label"], percent: trait.percent })) ?? travelProfileRows, [activeTraits]);
+  const profileRows = useMemo<TravelProfileMetric[]>(() => activeTraits?.map((trait) => ({ label: profileLabelByZone[trait.zone], percent: trait.percent })) ?? travelProfileRows, [activeTraits]);
   const summaryCards = useMemo(() => (hasRecords ? previewSummary.populated : previewSummary.empty).map((item) => {
     if (!stats) return item;
     return {
