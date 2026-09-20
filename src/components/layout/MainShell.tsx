@@ -21,9 +21,9 @@ export function MainShell({
   const router = useRouter();
   const hydrated = useAuthStore((state) => state.hydrated);
   const accessToken = useAuthStore((state) => state.accessToken);
-  const user = useAuthStore((state) => state.user);
   const openLoginModal = useAuthStore((state) => state.openLoginModal);
   const signIn = useAuthStore((state) => state.signIn);
+  const signOut = useAuthStore((state) => state.signOut);
 
   const navItems = [
     { href: "/", label: "ABOUT", exact: true },
@@ -108,11 +108,12 @@ export function MainShell({
                   return;
                 }
 
-                router.push("/my");
+                signOut();
+                router.push("/");
               }}
               type="button"
             >
-              {user ? `${user.nickname}님` : "로그인"}
+              {accessToken ? "로그아웃" : "로그인"}
             </button>
           </nav>
         </div>
