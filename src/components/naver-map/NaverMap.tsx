@@ -20,6 +20,8 @@ type NaverMapProps = {
   markers: MarkerItem[];
   className?: string;
   onMarkerClick?: (markerId: number) => void;
+  fitBounds?: boolean;
+  focus?: Coordinate | null;
 };
 
 function createMarkerContent(id: number) {
@@ -41,12 +43,18 @@ function createMarkerContent(id: number) {
   `;
 }
 
-export function NaverMap({ center, path = [], markers, className, onMarkerClick }: NaverMapProps) {
+export function NaverMap({ center, path = [], markers, className, onMarkerClick, fitBounds = false, focus = null }: NaverMapProps) {
   const mapElementRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<any>(null);
   const overlaysRef = useRef<any[]>([]);
+  const initialCenterRef = useRef(center);
+  const markerClickRef = useRef(onMarkerClick);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mapReady, setMapReady] = useState(false);
+
+  useEffect(() => {
+    markerClickRef.current = onMarkerClick;
+  }, [onMarkerClick]);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,7 +68,7 @@ export function NaverMap({ center, path = [], markers, className, onMarkerClick 
         const { maps } = window.naver;
 
         mapInstanceRef.current = new (maps as any).Map(mapElementRef.current, {
-          center: new (maps as any).LatLng(center.lat, center.lng),
+          center: new (maps as any).LatLng(initialCenterRef.current.lat, initialCenterRef.current.lng),
           zoom: 14,
           minZoom: 11,
           zoomControl: false,
@@ -81,9 +89,12 @@ export function NaverMap({ center, path = [], markers, className, onMarkerClick 
 
     return () => {
       cancelled = true;
+      overlaysRef.current.forEach((overlay) => overlay?.setMap?.(null));
+      overlaysRef.current = [];
+      mapInstanceRef.current = null;
       setMapReady(false);
     };
-  }, [center.lat, center.lng]);
+  }, []);
 
   useEffect(() => {
     if (!mapReady || !mapInstanceRef.current || !window.naver?.maps) {
@@ -124,15 +135,37 @@ export function NaverMap({ center, path = [], markers, className, onMarkerClick 
         },
       });
 
-      if (onMarkerClick) {
-        (maps as any).Event.addListener(instance, "click", () => onMarkerClick(marker.id));
+      if (markerClickRef.current) {
+        (maps as any).Event.addListener(instance, "click", () => markerClickRef.current?.(marker.id));
       }
 
       return instance;
     });
 
     overlaysRef.current = [...(polyline ? [polyline] : []), ...mapMarkers];
-  }, [mapReady, markers, onMarkerClick, path]);
+  }, [mapReady, markers, path]);
+
+  useEffect(() => {
+    if (!mapReady || !mapInstanceRef.current || !window.naver?.maps) return;
+
+    const { maps } = window.naver;
+    const map = mapInstanceRef.current;
+
+    if (focus) {
+      map.panTo(new (maps as any).LatLng(focus.lat, focus.lng));
+      map.setZoom(15, true);
+      return;
+    }
+
+    if (fitBounds && markers.length > 1) {
+      const bounds = new (maps as any).LatLngBounds();
+      markers.forEach((marker) => bounds.extend(new (maps as any).LatLng(marker.lat, marker.lng)));
+      map.fitBounds(bounds);
+      return;
+    }
+
+    map.setCenter(new (maps as any).LatLng(center.lat, center.lng));
+  }, [center.lat, center.lng, fitBounds, focus?.lat, focus?.lng, mapReady, markers]);
 
   return (
     <div className={className}>

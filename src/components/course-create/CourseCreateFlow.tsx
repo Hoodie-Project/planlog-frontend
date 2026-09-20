@@ -26,7 +26,7 @@ import { generateCourse } from "@/api/courses/generate";
 import { MainShell } from "@/components/layout/MainShell";
 import { parseCourseCreateStep, toCreateCourseRequest } from "@/lib/course-create";
 import { originOptions, transportOptions } from "@/lib/mock-data";
-import { coursePreferenceSchema, courseStep1Schema, courseStep2Schema, courseStep3Schema, courseStep4Schema, isArrivalDateAtLeastTomorrow } from "@/lib/schemas";
+import { coursePreferenceSchema, courseStep1Schema, courseStep2Schema, courseStep3Schema, courseStep4Schema, getMinimumArrivalTimeForToday, isArrivalDateTodayOrLater, isArrivalTimeInFutureForToday } from "@/lib/schemas";
 import { useCourseStore } from "@/store/course-store";
 
 const totalSteps = 4;
@@ -170,17 +170,18 @@ export function CourseCreateFlow() {
   const canProceed = currentStepValidation.success && !isSubmitting;
   const arrivalDateValue = preferences.arrivalDate ? dayjs(preferences.arrivalDate) : null;
   const arrivalTimeValue = preferences.arrivalTime ? dayjs(`2026-01-01T${preferences.arrivalTime}`) : null;
-  const minimumArrivalDate = dayjs().add(1, "day").startOf("day");
+  const minimumArrivalDate = dayjs().startOf("day");
+  const minimumArrivalTime = arrivalDateValue?.isSame(dayjs(), "day") ? dayjs(getMinimumArrivalTimeForToday()) : undefined;
 
   const handleArrivalDateChange = (value: Dayjs | null) => {
-    updatePreferences({
-      arrivalDate: value?.isValid() && isArrivalDateAtLeastTomorrow(value.format("YYYY-MM-DD")) ? value.format("YYYY-MM-DD") : "",
-    });
+    const arrivalDate = value?.isValid() && isArrivalDateTodayOrLater(value.format("YYYY-MM-DD")) ? value.format("YYYY-MM-DD") : "";
+    const arrivalTime = arrivalDate && preferences.arrivalTime && !isArrivalTimeInFutureForToday(arrivalDate, preferences.arrivalTime) ? "" : preferences.arrivalTime;
+    updatePreferences({ arrivalDate, arrivalTime });
   };
 
   const handleArrivalTimeChange = (value: Dayjs | null) => {
     updatePreferences({
-      arrivalTime: value?.isValid() ? value.format("HH:mm") : "",
+      arrivalTime: value?.isValid() && (!preferences.arrivalDate || isArrivalTimeInFutureForToday(preferences.arrivalDate, value.format("HH:mm"))) ? value.format("HH:mm") : "",
     });
   };
 
@@ -450,6 +451,8 @@ export function CourseCreateFlow() {
                     <TimePicker
                       ampm
                       format="A hh:mm"
+                      minTime={minimumArrivalTime}
+                      timeSteps={{ minutes: 15 }}
                       onChange={handleArrivalTimeChange}
                       onClose={() => setTimePickerOpen(false)}
                       open={timePickerOpen}
@@ -579,9 +582,7 @@ export function CourseCreateFlow() {
                             {originList.map((origin, index) => (
                               <button
                                 key={origin}
-                                className={`flex h-[60px] w-full items-center px-[18px] text-left text-[16px] tracking-[-0.4px] text-[#111] ${
-                                  index === 1 ? "bg-[#f1f1f5]" : "bg-white"
-                                } ${index !== 0 ? "border-t border-[#e5e5ec]" : ""}`}
+                                className={`flex h-[60px] w-full items-center bg-white px-[18px] text-left text-[16px] tracking-[-0.4px] text-[#111] hover:bg-[#f6f6f6] ${index !== 0 ? "border-t border-[#e5e5ec]" : ""}`}
                                 onClick={() => handleOriginSelect(origin)}
                                 type="button"
                               >

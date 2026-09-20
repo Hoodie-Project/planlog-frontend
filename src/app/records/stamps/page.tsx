@@ -11,6 +11,8 @@ import photoCameraIcon from "@/asset/svgs/photo-camera.svg";
 import { StampReviewModal } from "@/components/review/StampReviewModal";
 import { MainShell } from "@/components/layout/MainShell";
 import { listStamps, type StampDto } from "@/api/stamps";
+import { listRecords } from "@/api/platform";
+import { getStampReview } from "@/lib/stamp-review";
 import { useAuthStore } from "@/store/auth-store";
 
 const themes = ["바다", "산악", "자연", "문화", "포토"] as const;
@@ -73,15 +75,22 @@ export default function CompletedStampsPage() {
       return;
     }
 
-    listStamps(accessToken, { zone: themeToZone[selectedTheme], order: sortOrder === "latest" ? "desc" : "asc" })
-      .then((items) => setApiStamps(items.map((stamp) => ({
+    Promise.all([
+      listStamps(accessToken, { zone: themeToZone[selectedTheme], order: sortOrder === "latest" ? "desc" : "asc" }),
+      listRecords(accessToken),
+    ])
+      .then(([items, records]) => setApiStamps(items.map((stamp) => {
+        const stampReview = getStampReview(stamp, records);
+
+        return {
         id: stamp.id,
         theme: zoneToTheme[stamp.zone],
         place: stamp.title,
         date: new Date(stamp.visitedAt).toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).replace(/\. /g, ".").replace(/\.$/, ""),
-        emotion: stamp.mood ?? "",
-        review: "등록된 리뷰가 없어요.",
-      }))))
+        emotion: stampReview.emotion,
+        review: stampReview.review,
+      };
+      })))
       .catch(() => setApiStamps([]));
   }, [accessToken, hydrated, selectedTheme, sortOrder]);
 

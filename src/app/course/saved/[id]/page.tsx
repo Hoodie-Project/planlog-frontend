@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ChevronRight, MapPin } from "lucide-react";
+import { BadgeCheck, ChevronRight } from "lucide-react";
 import coffeeIcon from "@/asset/svgs/coffee.svg";
 import completedStampIcon from "@/asset/svgs/completed-stamp.svg";
 import mountainStampIcon from "@/asset/svgs/completed-stamp-mountain.svg";
@@ -11,8 +11,10 @@ import natureStampIcon from "@/asset/svgs/completed-stamp-nature.svg";
 import photoCameraIcon from "@/asset/svgs/photo-camera.svg";
 import { getSavedCourse } from "@/api/saved-courses";
 import { listStamps, type StampDto } from "@/api/stamps";
+import { listRecords, type RecordDto } from "@/api/platform";
 import { MainShell } from "@/components/layout/MainShell";
 import { StampReviewModal } from "@/components/review/StampReviewModal";
+import { getStampReview } from "@/lib/stamp-review";
 import { useAuthStore } from "@/store/auth-store";
 import type { CourseZone, SavedCourseDto } from "@/types/course";
 
@@ -29,26 +31,24 @@ function formatDate(value: string) {
   return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
 }
 
-function spotCountOf(course: SavedCourseDto) {
-  return course.payload.days.reduce((count, day) => count + day.items.filter((item) => item.type === "SPOT").length, 0);
-}
-
 export default function SavedCourseDetailPage() {
   const params = useParams<{ id: string }>();
   const accessToken = useAuthStore((state) => state.accessToken);
   const hydrated = useAuthStore((state) => state.hydrated);
   const [course, setCourse] = useState<SavedCourseDto | null>(null);
   const [stamps, setStamps] = useState<StampDto[]>([]);
+  const [records, setRecords] = useState<RecordDto[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedStampId, setSelectedStampId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!hydrated || !accessToken || !params.id) return;
 
-    Promise.all([getSavedCourse(accessToken, params.id), listStamps(accessToken)])
-      .then(([savedCourse, collectedStamps]) => {
+    Promise.all([getSavedCourse(accessToken, params.id), listStamps(accessToken), listRecords(accessToken)])
+      .then(([savedCourse, collectedStamps, savedRecords]) => {
         setCourse(savedCourse);
         setStamps(collectedStamps);
+        setRecords(savedRecords);
       })
       .catch(() => setError("저장한 코스 상세를 불러오지 못했습니다."));
   }, [accessToken, hydrated, params.id]);
@@ -58,7 +58,16 @@ export default function SavedCourseDetailPage() {
     const coursePlaceIds = new Set(course.payload.days.flatMap((day) => day.items.map((item) => item.contentId)));
     return stamps.filter((stamp) => coursePlaceIds.has(stamp.contentId));
   }, [course, stamps]);
+  const courseSpots = course?.payload.days.flatMap((day) => day.items).filter((item) => item.type === "SPOT") ?? [];
+  const completedContentIds = useMemo(() => new Set(completedStamps.map((stamp) => stamp.contentId)), [completedStamps]);
+  const courseReview = useMemo(() => {
+    if (!course) return null;
+    return records
+      .filter((record) => record.savedCourseId === course.id && record.stamps.length === 0)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0] ?? null;
+  }, [course, records]);
   const selectedStamp = completedStamps.find((stamp) => stamp.id === selectedStampId) ?? null;
+  const selectedStampReview = selectedStamp ? getStampReview(selectedStamp, records) : null;
 
   return (
     <MainShell>
@@ -77,8 +86,8 @@ export default function SavedCourseDetailPage() {
             <h1 className="text-[24px] font-bold tracking-[-0.6px] text-[#111111]">여행 요약</h1>
             <p className="mt-1 text-[14px] tracking-[-0.35px] text-[#505050]">여행에서 남긴 코스와 스탬프를 모아 볼 수 있어요.</p>
             <div className="mt-5 grid grid-cols-3 gap-2">
-              <SummaryCard label="방문 장소" value={`${spotCountOf(course)}곳`} />
-              <SummaryCard label="획득 스탬프" value={`${course.stampProgress.earned}개`} />
+              <SummaryCard label="방문 장소" value={`${completedStamps.length}곳`} />
+              <SummaryCard label="획득 스탬프" value={`${completedStamps.length}개`} />
               <SummaryCard label="총 이동거리" value={`${(course.payload.totalDistance / 1000).toFixed(1)}km`} />
             </div>
           </section>
@@ -86,13 +95,15 @@ export default function SavedCourseDetailPage() {
           <section className="mt-10">
             <h2 className="text-[18px] font-bold tracking-[-0.45px] text-[#111111]">저장한 코스</h2>
             <article className="mt-3 rounded-2xl border border-[#f1f1f5] p-5 shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)]">
-              <div className="flex items-center gap-2 text-[12px] text-[#505050]"><span className="rounded-full bg-[#f6f6f6] px-2 py-1">{course.status === "COMPLETED" ? "완료" : course.status === "IN_PROGRESS" ? "진행중" : "대기중"}</span><span>{formatDate(course.travelDate ?? course.createdAt)}</span></div>
+              <div className="flex items-center gap-2 text-[12px] text-[#505050]"><span className="rounded-full bg-[#f6f6f6] px-2 py-1">{courseReview?.mood ?? (course.status === "COMPLETED" ? "완료" : course.status === "IN_PROGRESS" ? "진행중" : "대기중")}</span><span>{formatDate(course.travelDate ?? course.createdAt)}</span></div>
               <h3 className="mt-3 text-[18px] font-bold tracking-[-0.45px] text-[#111111]">{course.title}</h3>
-              <p className="mt-1 text-[14px] text-[#505050]">{course.payload.summary}</p>
+              <p className="mt-1 text-[14px] text-[#505050]">{courseReview?.note || course.payload.summary}</p>
               <ul className="mt-4 space-y-2 text-[14px] text-[#111111]">
-                {course.payload.days.flatMap((day) => day.items).filter((item) => item.type === "SPOT").map((item) => (
-                  <li key={`${item.contentId}-${item.order}`} className="flex items-center gap-2"><MapPin className="h-4 w-4 text-[#ff1f4c]" fill="currentColor" />{item.title}</li>
-                ))}
+                {courseSpots.map((item) => {
+                  const visited = completedContentIds.has(item.contentId);
+
+                  return <li key={`${item.contentId}-${item.order}`} className="flex items-center gap-2"><BadgeCheck className={`h-4 w-4 shrink-0 ${visited ? "fill-[#ff1f4c] text-white" : "fill-[#a9a9a9] text-white"}`} strokeWidth={2.6} />{item.title}</li>;
+                })}
               </ul>
             </article>
           </section>
@@ -111,7 +122,7 @@ export default function SavedCourseDetailPage() {
           </section>
         </> : null}
       </main>
-      {selectedStamp ? <StampReviewModal emotion={selectedStamp.mood ?? ""} mode="read" onClose={() => setSelectedStampId(null)} review="등록된 리뷰가 없어요." /> : null}
+      {selectedStamp && selectedStampReview ? <StampReviewModal emotion={selectedStampReview.emotion} mode="read" onClose={() => setSelectedStampId(null)} review={selectedStampReview.review} /> : null}
     </MainShell>
   );
 }

@@ -42,6 +42,7 @@ const previewSummary = {
 
 export default function RecordsPage() {
   const accessToken = useAuthStore((state) => state.accessToken);
+  const user = useAuthStore((state) => state.user);
   const hydrated = useAuthStore((state) => state.hydrated);
   const hasRecords = useRecordsPreviewStore((state) => state.hasRecords);
   const setHasRecords = useRecordsPreviewStore((state) => state.setHasRecords);
@@ -80,6 +81,7 @@ export default function RecordsPage() {
   }), [hasRecords, stats]);
   const dominantProfile = getDominantTravelProfile(profileRows);
   const dominantProfileTheme = dominantProfile ? getTravelProfileTheme(dominantProfile.label) : null;
+  const userName = user?.nickname || "여행자";
 
   return (
     <MainShell mobileFooterHidden mobileHeaderHidden>
@@ -96,7 +98,7 @@ export default function RecordsPage() {
             <CardContent className="grid gap-5 p-6 md:p-[19px] lg:grid-cols-[1fr_302px] lg:items-center">
               <div>
                 <p className="text-[18px] font-semibold leading-[1.4] tracking-[-0.45px] text-[#ff1f4c]">나의 기록</p>
-                <h2 className="mt-[14px] text-[24px] font-semibold leading-[1.4] tracking-[-0.6px] text-[#111111]">하영님의 여행 기록 보관함</h2>
+                <h2 className="mt-[14px] text-[24px] font-semibold leading-[1.4] tracking-[-0.6px] text-[#111111]">{userName}님의 여행 기록 보관함</h2>
                 <p className="mt-[7px] text-[14px] leading-[1.4] tracking-[-0.35px] text-[#505050]">
                   여행 성향·저장한 코스·최근 완료 ·스탬프 진행도를
                   <br />
@@ -129,7 +131,7 @@ export default function RecordsPage() {
             <Card className="mt-[18px] min-h-[468px] rounded-2xl border-[#f1f1f5] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)] md:min-h-0">
               <CardContent className="grid gap-8 p-[28px] md:p-[23px] lg:grid-cols-[365px_1fr] lg:gap-5">
                 <div>
-                  <p className="text-[18px] font-semibold leading-[1.4] tracking-[-0.45px] text-[#111111]">하영님은</p>
+                  <p className="text-[18px] font-semibold leading-[1.4] tracking-[-0.45px] text-[#111111]">{userName}님은</p>
                   <p className="mt-2 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">여유롭게 바다를 거닐며 충전하는 여행자</p>
                   <div className="mt-[21px] h-[153px] rounded-lg border border-[#f1f1f5] bg-white px-6 pt-9 shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)] md:h-[132px] md:pt-7">
                     <div className="flex items-center justify-center gap-[2px]">

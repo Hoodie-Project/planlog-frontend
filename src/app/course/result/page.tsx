@@ -41,6 +41,13 @@ const toNumber = (value?: string) => {
 const fallbackMapCenter = { lat: 37.7519, lng: 128.8761 };
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
+function courseMarkerHtml(id: number, selected: boolean, hasSelection: boolean) {
+  const size = selected ? 48 : 36;
+  const color = hasSelection && !selected ? "#ff96ab" : "#ff1f4c";
+
+  return `<span style="display:flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:9999px;background:${color};color:#fff;font-weight:700;font-size:${selected ? 22 : 20}px;line-height:1;box-shadow:0 8px 20px rgba(255,31,76,.28)">${id}</span>`;
+}
+
 export default function CourseResultPage() {
   const generatedCourse = useCourseStore((state) => state.generatedCourse);
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -48,7 +55,7 @@ export default function CourseResultPage() {
   const setGeneratedCourse = useCourseStore((state) => state.setGeneratedCourse);
   const activeSavedCourseId = useCourseStore((state) => state.activeSavedCourseId);
   const setActiveSavedCourseId = useCourseStore((state) => state.setActiveSavedCourseId);
-  const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(1);
+  const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedCourse, setSavedCourse] = useState<SavedCourseDto | null>(null);
@@ -84,14 +91,24 @@ export default function CourseResultPage() {
   }, [generatedCourse]);
 
   const mappablePlaces = places.filter((place): place is CourseMapPlace & { lat: number; lng: number } => place.lat !== undefined && place.lng !== undefined);
+  const hasSelectedPlace = selectedPlaceId !== null;
   const mapData = mappablePlaces.length
     ? {
         center: { lat: mappablePlaces[0].lat, lng: mappablePlaces[0].lng },
-        markers: mappablePlaces.map(({ id, lat, lng }) => ({ id, lat, lng })),
+        markers: mappablePlaces.map(({ id, lat, lng }) => ({
+          id,
+          lat,
+          lng,
+          html: courseMarkerHtml(id, selectedPlaceId === id, hasSelectedPlace),
+          anchor: selectedPlaceId === id ? 24 : 18,
+        })),
         path: mappablePlaces.map(({ lat, lng }) => ({ lat, lng })),
       }
     : { center: fallbackMapCenter, markers: [], path: [] };
   const selectedPlace = places.find((place) => place.id === selectedPlaceId) ?? null;
+  const selectedPlacePosition = selectedPlace?.lat !== undefined && selectedPlace.lng !== undefined
+    ? { lat: selectedPlace.lat, lng: selectedPlace.lng }
+    : null;
   const courseTitle = generatedCourse ? `${generatedCourse.zoneLabel} 추천 코스` : "추천 코스";
 
   useEffect(() => {
@@ -150,9 +167,26 @@ export default function CourseResultPage() {
     try { setSaveStatus("saving"); const course = await ensureSavedCourse(); setSavedCourse(await startSavedCourse(accessToken, course.id)); setSaveStatus("saved"); } catch (error) { setSaveStatus("error"); setSaveError(error instanceof Error ? error.message : "코스를 시작하지 못했어요."); }
   };
 
-  const handleCompleteCourse = async () => {
+  const handleCompleteCourse = async ({ emotion, review }: { emotion: string; review: string }) => {
     if (!accessToken) return openLoginModal("protected-route");
-    try { const course = await ensureSavedCourse(); setSavedCourse(await completeSavedCourse(accessToken, course.id)); setReviewOpen(false); } catch (error) { setSaveError(error instanceof Error ? error.message : "코스를 종료하지 못했어요."); }
+    try {
+      const course = await ensureSavedCourse();
+      await createRecord(accessToken, {
+        title: `${course.title} 여행 기록`,
+        travelDate: course.travelDate ?? new Date().toISOString().slice(0, 10),
+        location: course.payload.zoneLabel,
+        zone: course.zone,
+        note: review,
+        mood: emotion,
+        image: null,
+        tags: [course.title, course.payload.zoneLabel],
+        savedCourseId: course.id,
+      });
+      setSavedCourse(await completeSavedCourse(accessToken, course.id));
+      setReviewOpen(false);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "코스를 종료하지 못했어요.");
+    }
   };
 
   const requestLocation = () => {
@@ -208,6 +242,7 @@ export default function CourseResultPage() {
     <>
     <CourseMapLayout
       center={mapData.center}
+      focus={selectedPlacePosition}
       markers={mapData.markers}
       path={mapData.path}
       onMarkerClick={setSelectedPlaceId}
@@ -220,7 +255,7 @@ export default function CourseResultPage() {
             <p className="mt-3 text-[18px] text-[#111]">코스 소요시간: {Math.floor(generatedCourse.totalTravelMinutes / 60)}h {generatedCourse.totalTravelMinutes % 60}m</p>
             <p className="mt-6 border-t border-[#e5e5ec] pt-5 text-[22px] font-bold text-[#111]">{places[0]?.time} &nbsp;{places[0]?.name}</p>
           </div>
-          <div className="flex gap-3"><button aria-label="코스 저장" onClick={handleSaveCourse} type="button"><Bookmark className="h-8 w-8" /></button><button aria-label="다시 추천받기" onClick={() => setRefreshOpen(true)} type="button"><RefreshCw className="h-8 w-8" /></button></div>
+          <div className="flex gap-3"><button aria-label={savedCourse ? "코스 저장 완료" : "코스 저장"} disabled={saveStatus === "saving" || Boolean(savedCourse)} onClick={handleSaveCourse} type="button"><Bookmark className={`h-8 w-8 text-[#ff1f4c] ${savedCourse ? "fill-[#ff1f4c]" : ""}`} /></button><button aria-label="다시 추천받기" onClick={() => setRefreshOpen(true)} type="button"><RefreshCw className="h-8 w-8" /></button></div>
         </div>
       }
       panel={
@@ -231,7 +266,7 @@ export default function CourseResultPage() {
               <button className="inline-flex h-8 items-center justify-center rounded-full bg-[#ff1f4c] px-4 text-[14px] font-bold tracking-[-0.35px] text-white transition hover:bg-[#eb1b47] disabled:cursor-not-allowed disabled:bg-[#d4d4d4]" disabled={saveStatus === "saving" || savedCourse?.status === "COMPLETED"} onClick={savedCourse?.status === "IN_PROGRESS" ? () => setReviewOpen(true) : handleStartCourse} type="button">
                 {savedCourse?.status === "IN_PROGRESS" ? "코스 종료하기" : savedCourse?.status === "COMPLETED" ? "코스 완료" : "코스 시작하기"}
               </button>
-              <button className="inline-flex h-8 items-center justify-center rounded-full border border-[#ff1f4c] px-3 text-[#ff1f4c]" disabled={saveStatus === "saving" || Boolean(savedCourse)} onClick={handleSaveCourse} type="button"><Bookmark className="h-4 w-4" /></button>
+              <button aria-label={savedCourse ? "코스 저장 완료" : "코스 저장"} className="inline-flex h-8 items-center justify-center rounded-full border border-[#ff1f4c] px-3 text-[#ff1f4c]" disabled={saveStatus === "saving" || Boolean(savedCourse)} onClick={handleSaveCourse} type="button"><Bookmark className={`h-4 w-4 ${savedCourse ? "fill-[#ff1f4c]" : ""}`} /></button>
               <button className="inline-flex h-8 items-center justify-center rounded-full bg-[#ffeaee] px-4 text-[14px] font-bold tracking-[-0.35px] text-[#111111] transition hover:bg-[#ffe0e7]" onClick={() => setRefreshOpen(true)} type="button">
                 <RefreshCw className="mr-1 h-4 w-4" strokeWidth={2.2} />다시 추천받기
               </button>
