@@ -21,6 +21,7 @@ import petsIcon from "@/asset/svgs/pets.svg";
 import photoCameraIcon from "@/asset/svgs/photo-camera.svg";
 import sentimentCalmIcon from "@/asset/svgs/sentiment-calm.svg";
 import wavesIcon from "@/asset/svgs/waves.svg";
+import courseCheckIcon from "@/asset/svgs/course-check.svg";
 import { generateCourse } from "@/api/courses/generate";
 import { MainShell } from "@/components/layout/MainShell";
 import { parseCourseCreateStep, toCreateCourseRequest } from "@/lib/course-create";
@@ -31,7 +32,6 @@ import { useCourseStore } from "@/store/course-store";
 const totalSteps = 4;
 type TransportOption = (typeof transportOptions)[number];
 const transportOptionSet = new Set<TransportOption>(transportOptions);
-const completedStepCheckIcon = "https://www.figma.com/api/mcp/asset/81572b10-cc1a-4e45-b0aa-bb8e887dc567";
 const step1ThemeIcons = {
   sea: {
     base: wavesIcon.src,
@@ -257,7 +257,7 @@ export function CourseCreateFlow() {
                         }`}
                       >
                         {completed ? (
-                          <img alt="" aria-hidden="true" className="h-[14px] w-[14px]" src={completedStepCheckIcon} />
+                          <img alt="" aria-hidden="true" className="h-5 w-5" src={courseCheckIcon.src} />
                         ) : (
                           current
                         )}
