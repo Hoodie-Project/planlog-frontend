@@ -8,7 +8,7 @@ import { MainShell } from "@/components/layout/MainShell";
 import { Button } from "@/components/ui/Button";
 import { ApiError } from "@/api/client";
 import { completeSavedCourse, createSavedCourse, getSavedCourse, startSavedCourse } from "@/api/saved-courses";
-import { createStamp, getStampEligibility, type StampEligibilityDto } from "@/api/stamps";
+import { createStamp, getStampEligibility, listStamps, type StampEligibilityDto } from "@/api/stamps";
 import { StampReviewModal } from "@/components/review/StampReviewModal";
 import type { SavedCourseDto } from "@/types/course";
 import { useAuthStore } from "@/store/auth-store";
@@ -56,6 +56,7 @@ export default function CourseResultPage() {
   const [stampEligibility, setStampEligibility] = useState<StampEligibilityDto | null>(null);
   const [location, setLocation] = useState<{ mapX: string; mapY: string } | null>(null);
   const [stampPending, setStampPending] = useState(false);
+  const [stampedContentIds, setStampedContentIds] = useState<Set<string>>(new Set());
 
   const places = useMemo<CourseMapPlace[]>(() => {
     const items = generatedCourse?.days.flatMap((day) => day.items) ?? [];
@@ -99,6 +100,15 @@ export default function CourseResultPage() {
     if (!accessToken || !selectedPlace) return;
     getStampEligibility(accessToken, selectedPlace.contentId, location ?? undefined).then(setStampEligibility).catch(() => setStampEligibility(null));
   }, [accessToken, selectedPlace, location]);
+
+  useEffect(() => {
+    if (!accessToken) {
+      setStampedContentIds(new Set());
+      return;
+    }
+
+    listStamps(accessToken).then((stamps) => setStampedContentIds(new Set(stamps.map((stamp) => stamp.contentId)))).catch(() => setStampedContentIds(new Set()));
+  }, [accessToken]);
 
   const ensureSavedCourse = async () => {
     if (!generatedCourse || !accessToken) throw new Error("로그인이 필요합니다.");
@@ -144,7 +154,7 @@ export default function CourseResultPage() {
 
   const handleReceiveStamp = async () => {
     if (!accessToken || !selectedPlace || !stampEligibility || !["ELIGIBLE", "REVIEWER"].includes(stampEligibility.state)) return;
-    try { setStampPending(true); await createStamp(accessToken, { zone: selectedPlace.zone, contentId: selectedPlace.contentId, title: selectedPlace.name, image: selectedPlace.image || undefined, curMapX: location?.mapX, curMapY: location?.mapY }); setStampEligibility(await getStampEligibility(accessToken, selectedPlace.contentId, location ?? undefined)); } finally { setStampPending(false); }
+    try { setStampPending(true); await createStamp(accessToken, { zone: selectedPlace.zone, contentId: selectedPlace.contentId, title: selectedPlace.name, image: selectedPlace.image || undefined, curMapX: location?.mapX, curMapY: location?.mapY }); setStampedContentIds((ids) => new Set(ids).add(selectedPlace.contentId)); setStampEligibility(await getStampEligibility(accessToken, selectedPlace.contentId, location ?? undefined)); } finally { setStampPending(false); }
   };
 
   if (!generatedCourse || places.length === 0) {
@@ -186,12 +196,12 @@ export default function CourseResultPage() {
           </div>
           <div className="flex-1 pt-[11px]">
             <div className="space-y-5 border-b border-[#e5e5ec] pb-4 text-[16px] font-semibold leading-[1.4] tracking-[-0.4px] text-[#111111]">
-              {places.map((item, index) => {
-                const endpoint = index === 0 || index === places.length - 1;
+              {places.map((item) => {
+                const stamped = stampedContentIds.has(item.contentId);
 
                 return (
                   <button key={item.id} className="flex w-full items-start gap-3 text-left" onClick={() => setSelectedPlaceId(item.id)} type="button">
-                    <BadgeCheck className={`mt-0.5 h-8 w-8 shrink-0 ${endpoint ? "fill-[#ff1f4c] text-white" : "fill-[#a9a9a9] text-white"}`} strokeWidth={2.6} />
+                    <BadgeCheck className={`mt-0.5 h-8 w-8 shrink-0 ${stamped ? "fill-[#ff1f4c] text-white" : "fill-[#a9a9a9] text-white"}`} strokeWidth={2.6} />
                     <span className="min-w-0"><span className="block text-[18px] font-bold leading-[1.35] tracking-[-0.45px] text-[#111111]"><span className="mr-2 inline-block w-[50px] text-[16px]">{item.time}</span>{item.name}</span>{item.travelMinutesFromPrev !== undefined ? <span className="mt-1 block text-[15px] font-medium tracking-[-0.35px] text-[#505050]">이동 {item.travelMinutesFromPrev}분</span> : null}</span>
                   </button>
                 );
