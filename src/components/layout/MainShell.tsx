@@ -5,7 +5,6 @@ import { ReactNode, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { MobileBottomNavigation } from "@/components/layout/MobileBottomNavigation";
-import { MANUAL_MOCK_AUTH_RESPONSE } from "@/lib/mock-auth";
 import { useAuthStore } from "@/store/auth-store";
 
 export function MainShell({
@@ -22,7 +21,6 @@ export function MainShell({
   const hydrated = useAuthStore((state) => state.hydrated);
   const accessToken = useAuthStore((state) => state.accessToken);
   const openLoginModal = useAuthStore((state) => state.openLoginModal);
-  const signIn = useAuthStore((state) => state.signIn);
   const signOut = useAuthStore((state) => state.signOut);
 
   const navItems = [
@@ -88,18 +86,6 @@ export function MainShell({
             })}
           </nav>
           <nav className="hidden items-center gap-3 md:flex">
-            {!accessToken ? (
-              <button
-                className="inline-flex h-9 items-center justify-center rounded-full border border-slate-200 px-5 text-[15px] font-medium text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
-                onClick={() => {
-                  // TODO: 실제 로그인 기능 개발 시 삭제
-                  signIn(MANUAL_MOCK_AUTH_RESPONSE);
-                }}
-                type="button"
-              >
-                수동 로그인
-              </button>
-            ) : null}
             <button
               className="inline-flex h-9 items-center justify-center rounded-full border border-[#f30031] px-5 text-[16px] text-slate-900"
               onClick={() => {
