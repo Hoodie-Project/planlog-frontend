@@ -464,34 +464,9 @@ export const howToMakeCourse = [
 ];
 
 export const landingStampProgress = [
-  {
-    badge: "https://www.figma.com/api/mcp/asset/03ed6a2d-047e-40c1-b446-1978e6934519.svg",
-    outer: "https://www.figma.com/api/mcp/asset/74ea3d8b-ef73-4f8d-b430-4a8a21359aba.svg",
-    inner: "https://www.figma.com/api/mcp/asset/2706a691-49b9-44c6-8e83-0d0c86be90ab.svg",
-    done: true,
-  },
-  {
-    badge: "https://www.figma.com/api/mcp/asset/03ed6a2d-047e-40c1-b446-1978e6934519.svg",
-    outer: "https://www.figma.com/api/mcp/asset/74ea3d8b-ef73-4f8d-b430-4a8a21359aba.svg",
-    inner: "https://www.figma.com/api/mcp/asset/2706a691-49b9-44c6-8e83-0d0c86be90ab.svg",
-    done: true,
-  },
-  {
-    badge: "https://www.figma.com/api/mcp/asset/e8e1514b-a2a7-461d-94eb-d0d4de318173.svg",
-    outer: "https://www.figma.com/api/mcp/asset/08383550-0a88-4d0c-8d06-e4438c5bbaf9.svg",
-    inner: "https://www.figma.com/api/mcp/asset/f62de102-c5e6-4ca2-8edb-fcbd2cf5976c.svg",
-    done: false,
-  },
-  {
-    badge: "https://www.figma.com/api/mcp/asset/e8e1514b-a2a7-461d-94eb-d0d4de318173.svg",
-    outer: "https://www.figma.com/api/mcp/asset/08383550-0a88-4d0c-8d06-e4438c5bbaf9.svg",
-    inner: "https://www.figma.com/api/mcp/asset/f62de102-c5e6-4ca2-8edb-fcbd2cf5976c.svg",
-    done: false,
-  },
-  {
-    badge: "https://www.figma.com/api/mcp/asset/e8e1514b-a2a7-461d-94eb-d0d4de318173.svg",
-    outer: "https://www.figma.com/api/mcp/asset/08383550-0a88-4d0c-8d06-e4438c5bbaf9.svg",
-    inner: "https://www.figma.com/api/mcp/asset/f62de102-c5e6-4ca2-8edb-fcbd2cf5976c.svg",
-    done: false,
-  },
+  { done: true },
+  { done: true },
+  { done: false },
+  { done: false },
+  { done: false },
 ] as const;

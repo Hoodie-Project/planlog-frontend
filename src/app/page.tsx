@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { MainShell } from "@/components/layout/MainShell";
 import { Button } from "@/components/ui/Button";
+import landingCompleteStamp from "@/asset/svgs/landing-complete.svg";
+import landingIncompleteStamp from "@/asset/svgs/landing-incomplete.svg";
 import {
   festivalCards,
   howToMakeCourse,
@@ -160,16 +162,7 @@ export default function HomePage() {
               <div className="mt-7 flex items-center gap-2">
                 {landingStampProgress.map((stamp, index) => (
                   <div key={`stamp-${index}`} className="relative h-[60px] w-[60px] shrink-0">
-                    <img alt="" aria-hidden="true" className="absolute inset-0 h-full w-full" src={stamp.badge} />
-                    <img alt="" aria-hidden="true" className="absolute left-[8px] top-[8px] h-[44px] w-[44px]" src={stamp.outer} />
-                    <img alt="" aria-hidden="true" className="absolute left-[10px] top-[10px] h-[41px] w-[41px]" src={stamp.inner} />
-                    <span
-                      className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[12px] font-semibold tracking-[-0.3px] ${
-                        stamp.done ? "text-[#f30031]" : "text-[#999999]"
-                      }`}
-                    >
-                      완료
-                    </span>
+                    <img alt={stamp.done ? "완료한 스탬프" : "미완료 스탬프"} className="h-full w-full" src={stamp.done ? landingCompleteStamp.src : landingIncompleteStamp.src} />
                   </div>
                 ))}
               </div>
