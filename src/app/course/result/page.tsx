@@ -93,7 +93,7 @@ export default function CourseResultPage() {
   };
 
   if (!generatedCourse || places.length === 0) {
-    return <CourseResultEmptyState />;
+    return <CourseResultEmptyState hasEmptyGeneratedCourse={Boolean(generatedCourse)} />;
   }
 
   return (
@@ -152,7 +152,7 @@ export default function CourseResultPage() {
   );
 }
 
-function CourseResultEmptyState() {
+function CourseResultEmptyState({ hasEmptyGeneratedCourse = false }: { hasEmptyGeneratedCourse?: boolean }) {
   return (
     <MainShell mobileFooterHidden mobileHeaderHidden>
       <section className="relative min-h-[100svh] overflow-hidden bg-white md:min-h-[calc(100vh-80px)]">
@@ -169,8 +169,8 @@ function CourseResultEmptyState() {
           <div className="relative flex flex-1 items-center justify-center px-4 py-10 sm:px-6 lg:px-10">
             <div className="absolute left-1/2 top-7 z-30 flex -translate-x-1/2 rounded-full bg-white p-1 shadow-[0_8px_30px_rgba(17,17,17,0.1)] md:hidden"><span className="rounded-full border-2 border-[#ff1f4c] px-4 py-2 text-[16px] font-semibold">추천 코스</span><Link className="px-4 py-2 text-[16px] font-semibold text-[#999]" href="/course/result/stays">추천 숙소</Link><span className="px-4 py-2 text-[16px] font-semibold text-[#999]">코스 후기</span></div>
             <div className="w-full max-w-[400px] rounded-[28px] border border-[#d4d4d4] bg-white px-7 py-12 shadow-[0_2px_6px_rgba(17,17,17,0.08)] sm:px-10 sm:py-8">
-              <div className="text-center"><h1 className="text-[18px] font-bold leading-[1.4] tracking-[-0.45px] text-[#111111]">아직 코스가 없어요</h1><p className="mt-6 text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111111]">여행시간, 감성을 선택하면<br />나에게 맞는 하루 코스를 만들어드려요!</p></div>
-              <div className="mt-10 flex flex-col items-center"><Button asChild className="h-12 w-full rounded-[16px] bg-[#ff1f4c] px-5 text-[16px] font-bold tracking-[-0.4px] text-white shadow-[0_2px_6px_rgba(17,17,17,0.08)] hover:bg-[#eb1b47]"><Link href="/course/create?step=1"><Plus className="mr-1 h-5 w-5" strokeWidth={2.4} />코스 만들기</Link></Button><p className="mt-4 text-center text-[14px] leading-[1.4] tracking-[-0.35px] text-[#767676]">코스 생성 후, 지도 위에 추천코스가 표기됩니다.</p></div>
+              <div className="text-center"><h1 className="text-[18px] font-bold leading-[1.4] tracking-[-0.45px] text-[#111111]">{hasEmptyGeneratedCourse ? "조건에 맞는 코스를 찾지 못했어요" : "아직 코스가 없어요"}</h1><p className="mt-6 text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111111]">{hasEmptyGeneratedCourse ? <>선택한 출발지 주변에 추천 장소가 없어요.<br />출발지나 이동 방식을 바꿔 다시 추천받아 보세요.</> : <>여행시간, 감성을 선택하면<br />나에게 맞는 하루 코스를 만들어드려요!</>}</p></div>
+              <div className="mt-10 flex flex-col items-center"><Button asChild className="h-12 w-full rounded-[16px] bg-[#ff1f4c] px-5 text-[16px] font-bold tracking-[-0.4px] text-white shadow-[0_2px_6px_rgba(17,17,17,0.08)] hover:bg-[#eb1b47]"><Link href={hasEmptyGeneratedCourse ? "/course/create?step=4" : "/course/create?step=1"}><Plus className="mr-1 h-5 w-5" strokeWidth={2.4} />{hasEmptyGeneratedCourse ? "출발지 다시 선택하기" : "코스 만들기"}</Link></Button><p className="mt-4 text-center text-[14px] leading-[1.4] tracking-[-0.35px] text-[#767676]">코스 생성 후, 지도 위에 추천코스가 표기됩니다.</p></div>
             </div>
           </div>
         </div>

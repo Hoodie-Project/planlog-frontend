@@ -217,6 +217,13 @@ export function CourseCreateFlow() {
     try {
       setIsSubmitting(true);
       const course = await generateCourse(toCreateCourseRequest(finalValidation.data));
+
+      if (course.days.every((day) => day.items.length === 0)) {
+        setGeneratedCourse(null);
+        setError("선택한 출발지 주변에서 방문할 장소를 찾지 못했어요. 다른 출발지나 이동 방식을 선택해 주세요.");
+        return;
+      }
+
       setGeneratedCourse(course);
       router.push("/course/result");
     } catch (caughtError) {
