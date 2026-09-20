@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { X } from "lucide-react";
 import { guestLogin } from "@/api/auth/guest-login";
 import { kakaoLogin } from "@/api/auth/kakao-login";
 import { getKakaoAccessToken } from "@/lib/kakao-sdk";
 import { useAuthStore } from "@/store/auth-store";
 
 const kakaoIcon = "https://www.figma.com/api/mcp/asset/9792c010-3954-4969-8649-970bc85b1624";
-const closeIcon = "https://www.figma.com/api/mcp/asset/55f7a4d3-3bf3-4e43-8178-6222999c1195";
 
 export function LoginModal() {
   const router = useRouter();
@@ -78,8 +78,8 @@ export function LoginModal() {
             >
               로그인
             </button>
-            <button className="flex h-6 w-6 items-center justify-center" onClick={handleClose} type="button">
-              <img alt="닫기" className="h-6 w-6" src={closeIcon} />
+            <button aria-label="닫기" className="flex h-6 w-6 items-center justify-center" onClick={handleClose} type="button">
+              <X aria-hidden="true" className="h-6 w-6 text-[#111111]" strokeWidth={2} />
             </button>
           </div>
           <p className="text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111]">
