@@ -127,6 +127,7 @@ export function CourseCreateFlow() {
   const preferences = useCourseStore((state) => state.preferences);
   const updatePreferences = useCourseStore((state) => state.updatePreferences);
   const setGeneratedCourse = useCourseStore((state) => state.setGeneratedCourse);
+  const resetPreferences = useCourseStore((state) => state.resetPreferences);
 
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -226,6 +227,7 @@ export function CourseCreateFlow() {
       }
 
       setGeneratedCourse(course);
+      resetPreferences();
       router.push("/course/result");
     } catch (caughtError) {
       const message = caughtError instanceof Error ? caughtError.message : "코스 생성에 실패했습니다.";

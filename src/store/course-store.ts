@@ -94,7 +94,7 @@ export const useCourseStore = create<CourseStore>()(
         set((state) => ({
           savedCourses: state.savedCourses.map((course) => (course.id === courseId && course.status === "IN_PROGRESS" ? { ...course, status: "COMPLETED", review } : course)),
         })),
-      resetPreferences: () => set({ preferences: defaultPreferences, generatedCourse: null }),
+      resetPreferences: () => set({ preferences: defaultPreferences }),
     }),
     {
       name: "planlog-course-create",
