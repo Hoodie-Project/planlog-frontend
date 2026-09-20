@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MainShell } from "@/components/layout/MainShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { listSavedCourses } from "@/api/saved-courses";
-import { getStampProgress } from "@/api/stamps";
+import { getMeStats, getNotificationSettings, listRecentActivities, type MeStatsDto, type NotificationSettingsDto, type RecentActivityDto, updateNotificationSettings } from "@/api/platform";
 import { useAuthStore } from "@/store/auth-store";
 
 export default function MyPage() {
@@ -16,21 +15,16 @@ export default function MyPage() {
   const closeLoginModal = useAuthStore((state) => state.closeLoginModal);
   const signOut = useAuthStore((state) => state.signOut);
 
-  const [savedCourseCount, setSavedCourseCount] = useState<number | null>(null);
-  const [stampCount, setStampCount] = useState<number | null>(null);
+  const [summaryStats, setSummaryStats] = useState<MeStatsDto | null>(null);
+  const [settings, setSettings] = useState<NotificationSettingsDto | null>(null);
+  const [activities, setActivities] = useState<RecentActivityDto[]>([]);
 
   useEffect(() => {
     if (!hydrated || !accessToken) return;
 
-    Promise.all([listSavedCourses(accessToken), getStampProgress(accessToken)])
-      .then(([courses, progress]) => {
-        setSavedCourseCount(courses.length);
-        setStampCount(progress.totalStamps);
-      })
-      .catch(() => {
-        setSavedCourseCount(0);
-        setStampCount(0);
-      });
+    Promise.all([getMeStats(accessToken), getNotificationSettings(accessToken), listRecentActivities(accessToken, 5)])
+      .then(([nextStats, nextSettings, nextActivities]) => { setSummaryStats(nextStats); setSettings(nextSettings); setActivities(nextActivities); })
+      .catch(() => { setSummaryStats(null); setSettings(null); setActivities([]); });
   }, [accessToken, hydrated]);
 
   const handleSignOut = () => {
@@ -39,11 +33,18 @@ export default function MyPage() {
     router.replace("/");
   };
 
-  const stats = [
-    `저장한 코스 ${savedCourseCount ?? "-"}`,
-    `스탬프 ${stampCount ?? "-"}`,
-    `여행 기록 ${savedCourseCount ?? "-"}`,
+  const statLabels = [
+    `저장한 코스 ${summaryStats?.savedCoursesCount ?? "-"}`,
+    `스탬프 ${summaryStats?.stampsCount ?? "-"}`,
+    `여행 기록 ${summaryStats?.recordsCount ?? "-"}`,
   ];
+
+  const toggleSetting = async (key: keyof NotificationSettingsDto) => {
+    if (!accessToken || !settings) return;
+    const next = { ...settings, [key]: !settings[key] };
+    setSettings(next);
+    try { setSettings(await updateNotificationSettings(accessToken, { [key]: next[key] })); } catch { setSettings(settings); }
+  };
 
   return (
     <MainShell>
@@ -58,7 +59,7 @@ export default function MyPage() {
               <p className="text-xl font-semibold">{user?.nickname ?? "게스트"}님</p>
               <p className="text-slate-600">{user?.provider ?? "GUEST"} 계정으로 로그인 중</p>
               <div className="grid grid-cols-3 gap-3">
-                {stats.map((item) => (
+                {statLabels.map((item) => (
                   <div key={item} className="rounded-lg bg-slate-100 p-4 text-sm">
                     {item}
                   </div>
@@ -73,12 +74,18 @@ export default function MyPage() {
                 <CardTitle>알림 설정</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {["D-Day 알림", "축제 알림", "코스 리마인드"].map((item) => (
-                  <div key={item} className="flex items-center justify-between rounded-lg border p-4">
-                    <span>{item}</span>
-                    <span className="text-sm text-cyan-700">ON</span>
-                  </div>
+                {([ ["D-Day 알림", "ddayAlert"], ["축제 알림", "festivalAlert"], ["코스 리마인드", "courseReminder"] ] as const).map(([label, key]) => (
+                  <button key={key} className="flex w-full items-center justify-between rounded-lg border p-4 text-left" onClick={() => toggleSetting(key)} type="button">
+                    <span>{label}</span>
+                    <span className={`text-sm ${settings?.[key] ? "text-cyan-700" : "text-slate-400"}`}>{settings?.[key] ? "ON" : "OFF"}</span>
+                  </button>
                 ))}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>최근 활동</CardTitle></CardHeader>
+              <CardContent className="space-y-2">
+                {activities.length ? activities.map((activity) => <div key={`${activity.type}-${activity.occurredAt}`} className="rounded-lg bg-slate-50 p-3 text-sm"><p>{activity.title}</p><p className="mt-1 text-xs text-slate-500">{new Date(activity.occurredAt).toLocaleDateString("ko-KR")}</p></div>) : <p className="text-sm text-slate-500">최근 활동이 없어요.</p>}
               </CardContent>
             </Card>
 

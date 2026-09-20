@@ -113,6 +113,10 @@ src/
 - `GET /api/stamps/progress`
 - `GET|POST /api/bookmarks`
 - `DELETE /api/bookmarks/:id`
+- `GET /api/auth/me/stats`, `GET /api/auth/me/recent-activities`
+- `GET|POST /api/records`, `GET|DELETE /api/records/:id`, `GET /api/records/highlights`, `GET /api/records/traits`
+- `GET|PATCH /api/notification-settings`, `GET|POST /api/course-feedback`
+- 신규 탐색 API(역·축제·숙소·캠핑·혼잡도·연관 관광지·반려동물·관광지·매칭)는 `src/app/api/[...path]` 공통 프록시를 통해 same-origin으로 전달
 - `GET /api/bookmarks/upcoming`
 
 추천 코스 일정 목록은 시작·종료 지점을 강조하는 체크 배지와 장소별 이동 시간을 표시하며, `숙소 추가하기`는 `/course/result/stays`로 이동한다.
@@ -136,6 +140,7 @@ src/
 - spotCount
 - nights
 - travelDate
+- startTime
 - startMapX
 - startMapY
 - seed
@@ -161,7 +166,7 @@ src/
 ### CompletedStamp
 
 - `theme`, `place`, `completedAt`, `emotion`, `review`
-- 완료 스탬프 목록은 테마·완료일 정렬을 클라이언트에서 적용하고, 리뷰 모달은 `read`/`write` 모드로 재사용
+- 완료 스탬프 목록은 `zone`·`order`를 API 쿼리로 전달하고, 리뷰 모달은 `read`/`write` 모드로 재사용
 
 ### SavedCourse
 

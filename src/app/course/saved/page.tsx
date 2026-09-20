@@ -6,7 +6,7 @@ import { ArrowLeft, ChevronRight, Coffee, FlagTriangleRight, Trees } from "lucid
 import { MainShell } from "@/components/layout/MainShell";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
-import { deleteSavedCourse, listSavedCourses } from "@/api/saved-courses";
+import { deleteSavedCourse, listSavedCourses, listUpcomingSavedCourses } from "@/api/saved-courses";
 import { useAuthStore } from "@/store/auth-store";
 import { type SavedCourse, type SavedCourseStatus, useCourseStore } from "@/store/course-store";
 import type { SavedCourseDto } from "@/types/course";
@@ -34,7 +34,7 @@ const statusMeta: Record<SavedCourseStatus, { label: string; badgeClassName: str
   COMPLETED: { label: "완료", badgeClassName: "bg-[#ff1f4c] text-white", iconClassName: "text-[#bf43ed]" },
 };
 
-type MobileCourse = SavedCourse & { source: "api" | "preview" };
+type MobileCourse = SavedCourse & { source: "api" | "preview"; daysUntil?: number };
 
 function StatusIcon({ status }: { status: SavedCourseStatus }) {
   const className = `h-7 w-7 shrink-0 ${statusMeta[status].iconClassName}`;
@@ -44,10 +44,10 @@ function StatusIcon({ status }: { status: SavedCourseStatus }) {
   return <FlagTriangleRight className={className} strokeWidth={2.3} />;
 }
 
-function SavedCourseMobileView({ courses }: { courses: MobileCourse[] }) {
+function SavedCourseMobileView({ courses, upcoming }: { courses: MobileCourse[]; upcoming: MobileCourse | null }) {
   const [selectedStatus, setSelectedStatus] = useState<SavedCourseStatus>("WAITING");
   const filteredCourses = courses.filter((course) => course.status === selectedStatus);
-  const upcomingCourse = courses.find((course) => course.status === "WAITING") ?? courses[0] ?? null;
+  const upcomingCourse = upcoming ?? courses.find((course) => course.status === "WAITING") ?? courses[0] ?? null;
 
   return (
     <div className="pb-[112px] md:hidden">
@@ -71,8 +71,8 @@ function SavedCourseMobileView({ courses }: { courses: MobileCourse[] }) {
             <Link className="mt-3 flex min-h-[124px] items-center gap-3 rounded-[20px] border-2 border-[#ff1f4c] px-[22px] py-4 shadow-[0_4px_8px_rgba(17,17,17,0.08)]" href={`/course/saved?courseId=${encodeURIComponent(upcomingCourse.id)}`}>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-3">
-                  <span className="inline-flex h-8 items-center rounded-full bg-[#ff1f4c] px-3 text-[14px] font-medium text-white">{upcomingCourse.source === "preview" ? "D-6" : "예정"}</span>
-                  <span className="truncate text-[14px] tracking-[-0.35px] text-[#111111]">{upcomingCourse.source === "preview" ? "2026.08.10 월요일 10:30" : `${upcomingCourse.date} 저장`}</span>
+                  <span className="inline-flex h-8 items-center rounded-full bg-[#ff1f4c] px-3 text-[14px] font-medium text-white">{upcomingCourse.daysUntil != null ? `D-${upcomingCourse.daysUntil}` : upcomingCourse.source === "preview" ? "D-6" : "예정"}</span>
+                  <span className="truncate text-[14px] tracking-[-0.35px] text-[#111111]">{upcomingCourse.source === "preview" ? "2026.08.10 월요일 10:30" : upcomingCourse.date}</span>
                 </div>
                 <p className="mt-2 truncate text-[18px] font-bold leading-[1.4] tracking-[-0.45px] text-[#111111]">{upcomingCourse.title}</p>
                 <p className="mt-1 truncate text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">{ZONE_LABEL[upcomingCourse.zone] ?? upcomingCourse.zone} · 장소 {upcomingCourse.spotCount}곳</p>
@@ -131,6 +131,7 @@ export default function SavedCoursePage() {
   const previewCourses = useCourseStore((state) => state.savedCourses);
 
   const [courses, setCourses] = useState<SavedCourseDto[] | null>(null);
+  const [upcomingCourses, setUpcomingCourses] = useState<Array<SavedCourseDto & { daysUntil: number }>>([]);
   const [error, setError] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
 
@@ -139,9 +140,9 @@ export default function SavedCoursePage() {
       return courses.map((course) => ({
         id: course.id,
         title: course.title,
-        date: formatDate(course.createdAt),
+        date: formatDate(course.travelDate ?? course.createdAt),
         spotCount: spotCountOf(course),
-        status: "WAITING",
+        status: course.status === "PENDING" ? "WAITING" : course.status,
         zone: course.zone,
         source: "api",
       }));
@@ -150,15 +151,34 @@ export default function SavedCoursePage() {
     return previewCourses.map((course) => ({ ...course, source: "preview" }));
   }, [courses, previewCourses]);
 
+  const mobileUpcomingCourse = useMemo<MobileCourse | null>(() => {
+    const course = upcomingCourses[0];
+    if (!course) return null;
+    return {
+      id: course.id,
+      title: course.title,
+      date: formatDate(course.travelDate ?? course.createdAt),
+      spotCount: spotCountOf(course),
+      status: course.status === "PENDING" ? "WAITING" : course.status,
+      zone: course.zone,
+      daysUntil: course.daysUntil,
+      source: "api",
+    };
+  }, [upcomingCourses]);
+
   useEffect(() => {
     if (!hydrated) return;
     if (!accessToken) {
       setCourses(null);
+      setUpcomingCourses([]);
       return;
     }
 
-    listSavedCourses(accessToken)
-      .then(setCourses)
+    Promise.all([listSavedCourses(accessToken), listUpcomingSavedCourses(accessToken)])
+      .then(([savedCourses, upcoming]) => {
+        setCourses(savedCourses);
+        setUpcomingCourses(upcoming);
+      })
       .catch(() => {
         setError("저장한 코스를 불러오지 못했습니다.");
         setCourses([]);
@@ -200,7 +220,7 @@ export default function SavedCoursePage() {
 
   return (
     <MainShell mobileFooterHidden mobileHeaderHidden>
-      <SavedCourseMobileView courses={mobileCourses} />
+      <SavedCourseMobileView courses={mobileCourses} upcoming={mobileUpcomingCourse} />
       <div className="mx-auto hidden max-w-[1240px] justify-center px-4 py-[60px] md:flex lg:px-0">
         <div className="w-full max-w-[432px]">
           <nav aria-label="현재 위치" className="flex items-center gap-1 text-[14px] leading-[1.4] tracking-[-0.35px]">

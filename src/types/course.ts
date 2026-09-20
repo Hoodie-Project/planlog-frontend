@@ -1,6 +1,6 @@
 export type CourseZone = "SEA" | "SNOW" | "VALLEY" | "RETRO" | "PHOTO";
 export type CourseTransport = "WALK" | "KTX" | "CAR";
-export type CourseStyle = "SOLO" | "PET";
+export type CourseStyle = "SOLO" | "PET" | "FAMILY" | "CALM";
 export type CourseItemType = "SPOT" | "MEAL" | "STAY";
 export type CongestionLevel = "LOW" | "MEDIUM" | "HIGH";
 
@@ -12,6 +12,7 @@ export type CreateCourseRequest = {
   nights?: number;
   seed?: number;
   travelDate?: string;
+  startTime?: string;
   debug?: boolean;
   startMapX?: string;
   startMapY?: string;
@@ -85,7 +86,10 @@ export type SavedCourseDto = {
   title: string;
   zone: CourseZone;
   nights: number;
+  travelDate: string | null;
+  completedAt: string | null;
+  status: "PENDING" | "IN_PROGRESS" | "COMPLETED";
+  stampProgress: { earned: number; total: number };
   payload: CourseDto;
   createdAt: string;
 };
-

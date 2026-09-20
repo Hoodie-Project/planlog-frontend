@@ -9,6 +9,7 @@ export type StampDto = {
   title: string;
   image: string | null;
   visitedAt: string;
+  mood: string | null;
 };
 
 export type StampZoneProgress = {
@@ -38,9 +39,10 @@ export async function createStamp(
   });
 }
 
-export async function listStamps(accessToken: string) {
+export async function listStamps(accessToken: string, options: { zone?: CourseZone; order?: "asc" | "desc" } = {}) {
   return apiFetch<StampDto[]>("/api/stamps", {
     accessToken,
+    query: options,
   });
 }
 

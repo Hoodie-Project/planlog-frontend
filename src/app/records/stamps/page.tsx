@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import coffeeIcon from "@/asset/svgs/coffee.svg";
@@ -10,6 +10,8 @@ import natureStampIcon from "@/asset/svgs/completed-stamp-nature.svg";
 import photoCameraIcon from "@/asset/svgs/photo-camera.svg";
 import { StampReviewModal } from "@/components/review/StampReviewModal";
 import { MainShell } from "@/components/layout/MainShell";
+import { listStamps, type StampDto } from "@/api/stamps";
+import { useAuthStore } from "@/store/auth-store";
 
 const themes = ["바다", "산악", "자연", "문화", "포토"] as const;
 type StampTheme = (typeof themes)[number];
@@ -23,7 +25,9 @@ const themeStyle: Record<StampTheme, { background: string; text: string; icon: s
   포토: { background: "#ffdfdf", text: "#ff5858", icon: photoCameraIcon.src },
 };
 
-const stamps = [
+type StampItem = { id: string; theme: StampTheme; place: string; date: string; emotion: string; review: string };
+
+const previewStamps: StampItem[] = [
   { id: "sea-1", theme: "바다", place: "정동진해변", date: "2026.09.04", emotion: "평온함", review: "혼자여도 충분한 하루" },
   { id: "sea-2", theme: "바다", place: "주문진해수욕장", date: "2026.08.18", emotion: "즐거운", review: "파도 소리가 좋았어요" },
   { id: "sea-3", theme: "바다", place: "안목해변", date: "2025.07.12", emotion: "기분좋은", review: "커피와 바다가 잘 어울려요" },
@@ -36,15 +40,54 @@ const stamps = [
   { id: "culture-2", theme: "문화", place: "강릉 선교장", date: "2023.08.10", emotion: "설렘", review: "고즈넉한 시간이었어요" },
   { id: "photo-1", theme: "포토", place: "속초 천국의 계단", date: "2026.10.22", emotion: "기분좋은", review: "사진이 정말 잘 나와요" },
   { id: "photo-2", theme: "포토", place: "강릉 BTS 버스 정류장", date: "2026.10.22", emotion: "설렘", review: "기억에 남는 포토 스팟" },
-] as const;
+];
+
+const themeToZone: Record<StampTheme, StampDto["zone"]> = {
+  바다: "SEA",
+  산악: "SNOW",
+  자연: "VALLEY",
+  문화: "RETRO",
+  포토: "PHOTO",
+};
+
+const zoneToTheme: Record<StampDto["zone"], StampTheme> = {
+  SEA: "바다",
+  SNOW: "산악",
+  VALLEY: "자연",
+  RETRO: "문화",
+  PHOTO: "포토",
+};
 
 export default function CompletedStampsPage() {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const hydrated = useAuthStore((state) => state.hydrated);
   const [selectedTheme, setSelectedTheme] = useState<StampTheme>("바다");
   const [sortOrder, setSortOrder] = useState<SortOrder>("latest");
   const [sortOpen, setSortOpen] = useState(false);
   const [selectedStampId, setSelectedStampId] = useState<string | null>(null);
+  const [apiStamps, setApiStamps] = useState<StampItem[] | null>(null);
+
+  useEffect(() => {
+    if (!hydrated || !accessToken) {
+      setApiStamps(null);
+      return;
+    }
+
+    listStamps(accessToken, { zone: themeToZone[selectedTheme], order: sortOrder === "latest" ? "desc" : "asc" })
+      .then((items) => setApiStamps(items.map((stamp) => ({
+        id: stamp.id,
+        theme: zoneToTheme[stamp.zone],
+        place: stamp.title,
+        date: new Date(stamp.visitedAt).toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).replace(/\. /g, ".").replace(/\.$/, ""),
+        emotion: stamp.mood ?? "",
+        review: "등록된 리뷰가 없어요.",
+      }))))
+      .catch(() => setApiStamps([]));
+  }, [accessToken, hydrated, selectedTheme, sortOrder]);
+
+  const stamps = apiStamps ?? previewStamps;
   const selectedStamp = stamps.find((stamp) => stamp.id === selectedStampId) ?? null;
-  const visibleStamps = useMemo(() => stamps.filter((stamp) => stamp.theme === selectedTheme).sort((a, b) => sortOrder === "latest" ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date)), [selectedTheme, sortOrder]);
+  const visibleStamps = useMemo(() => apiStamps !== null ? stamps : stamps.filter((stamp) => stamp.theme === selectedTheme).sort((a, b) => sortOrder === "latest" ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date)), [apiStamps, selectedTheme, sortOrder, stamps]);
 
   return <MainShell>
     <main className="mx-auto w-full max-w-[432px] px-4 py-[30px] lg:px-0">

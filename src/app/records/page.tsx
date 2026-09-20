@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ChevronRight, Plus } from "lucide-react";
 import sentimentCalmIcon from "@/asset/svgs/sentiment-calm.svg";
@@ -8,6 +9,8 @@ import { MainShell } from "@/components/layout/MainShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { getDominantTravelProfile, getTravelProfileTheme, type TravelProfileMetric } from "@/lib/records-theme";
 import { useRecordsPreviewStore } from "@/store/records-preview-store";
+import { useAuthStore } from "@/store/auth-store";
+import { getMeStats, getRecordTraits, getStampTraits, type MeStatsDto, type RecordTraitsDto } from "@/api/platform";
 
 const travelProfileRows: TravelProfileMetric[] = [
   { label: "동해 바다", percent: 72 },
@@ -29,10 +32,44 @@ const previewSummary = {
 } as const;
 
 export default function RecordsPage() {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const hydrated = useAuthStore((state) => state.hydrated);
   const hasRecords = useRecordsPreviewStore((state) => state.hasRecords);
   const setHasRecords = useRecordsPreviewStore((state) => state.setHasRecords);
-  const summaryCards = hasRecords ? previewSummary.populated : previewSummary.empty;
-  const dominantProfile = getDominantTravelProfile(travelProfileRows);
+  const [stats, setStats] = useState<MeStatsDto | null>(null);
+  const [recordTraits, setRecordTraits] = useState<RecordTraitsDto | null>(null);
+  const [stampTraits, setStampTraits] = useState<RecordTraitsDto["traits"] | null>(null);
+
+  useEffect(() => {
+    if (!hydrated || !accessToken) {
+      setStats(null);
+      setRecordTraits(null);
+      setStampTraits(null);
+      return;
+    }
+
+    Promise.all([getMeStats(accessToken), getRecordTraits(accessToken), getStampTraits(accessToken)])
+      .then(([nextStats, nextRecordTraits, nextStampTraits]) => {
+        setStats(nextStats);
+        setRecordTraits(nextRecordTraits);
+        setStampTraits(nextStampTraits.traits);
+      })
+      .catch(() => {
+        // 화면의 상태 전환용 미리보기는 API 오류와 별개로 계속 사용할 수 있습니다.
+      });
+  }, [accessToken, hydrated]);
+
+  const activeTraits = recordTraits?.traits.length ? recordTraits.traits : stampTraits;
+  const profileRows = useMemo<TravelProfileMetric[]>(() => activeTraits?.map((trait) => ({ label: trait.label as TravelProfileMetric["label"], percent: trait.percent })) ?? travelProfileRows, [activeTraits]);
+  const summaryCards = useMemo(() => (hasRecords ? previewSummary.populated : previewSummary.empty).map((item) => {
+    if (!stats) return item;
+    return {
+      ...item,
+      value: item.label === "저장한 코스" ? String(stats.savedCoursesCount) : String(stats.stampsCount),
+      detail: "",
+    };
+  }), [hasRecords, stats]);
+  const dominantProfile = getDominantTravelProfile(profileRows);
   const dominantProfileTheme = dominantProfile ? getTravelProfileTheme(dominantProfile.label) : null;
 
   return (
@@ -95,7 +132,7 @@ export default function RecordsPage() {
                 </div>
 
                 <div className="space-y-2 lg:pt-[69px]">
-                  {travelProfileRows.map((row) => {
+                  {profileRows.map((row) => {
                     const theme = getTravelProfileTheme(row.label);
 
                     return (

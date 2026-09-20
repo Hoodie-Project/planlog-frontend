@@ -12,8 +12,8 @@ const moodToZoneMap: Record<CoursePreferenceInput["mood"], CourseZone> = {
 const tripStyleToStyleMap: Record<CoursePreferenceInput["tripStyle"], CourseStyle> = {
   "혼자 떠나요": "SOLO",
   "반려동물과 함께": "PET",
-  "가족과 함께": "SOLO",
-  "조용히 쉬고 싶어요": "SOLO",
+  "가족과 함께": "FAMILY",
+  "조용히 쉬고 싶어요": "CALM",
 };
 
 const transportModeToTransportMap: Record<CoursePreferenceInput["transportMode"], CourseTransport> = {
@@ -52,6 +52,7 @@ export function toCreateCourseRequest(preferences: CoursePreferenceInput): Creat
     nights: 0,
     spotCount: 3,
     travelDate: preferences.arrivalDate,
+    startTime: preferences.arrivalTime,
     startMapX: coordinates?.mapX,
     startMapY: coordinates?.mapY,
     debug: false,
@@ -98,4 +99,3 @@ export function toCourseResultView(course: CourseDto) {
     ],
   };
 }
-
