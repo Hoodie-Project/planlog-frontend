@@ -3,12 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
+import kakaoIcon from "@/asset/svgs/카카오톡.svg";
 import { guestLogin } from "@/api/auth/guest-login";
 import { kakaoLogin } from "@/api/auth/kakao-login";
 import { getKakaoAccessToken } from "@/lib/kakao-sdk";
 import { useAuthStore } from "@/store/auth-store";
-
-const kakaoIcon = "https://www.figma.com/api/mcp/asset/9792c010-3954-4969-8649-970bc85b1624";
 
 export function LoginModal() {
   const router = useRouter();
@@ -95,7 +94,7 @@ export function LoginModal() {
           onClick={handleKakaoLogin}
           type="button"
         >
-          <img alt="" aria-hidden="true" className="h-5 w-5" src={kakaoIcon} />
+          <img alt="" aria-hidden="true" className="h-5 w-5" src={kakaoIcon.src} />
           <span className="text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111]">{isSubmitting ? "처리 중..." : "카카오톡 로그인"}</span>
         </button>
 
