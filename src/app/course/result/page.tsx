@@ -139,7 +139,6 @@ export default function CourseResultPage() {
                   </button>
                 );
               })}
-              <Link className="flex items-start gap-1 text-left text-[#111111]" href="/course/create?step=1"><span className="text-[20px] leading-none text-[#ff1f4c]">+</span><span>일정 추가하기</span></Link>
               <Link className="flex items-start gap-1 text-left text-[#111111]" href="/course/result/stays"><span className="text-[20px] leading-none text-[#ff1f4c]">+</span><span>숙소 추가하기</span></Link>
             </div>
             <Link className="mt-4 inline-flex items-center gap-0.5 text-[14px] font-semibold leading-[1.4] tracking-[-0.35px] text-[#505050] transition hover:text-slate-900" href="/course/saved">상세보기<ArrowRight className="h-4 w-4" strokeWidth={2.1} /></Link>
