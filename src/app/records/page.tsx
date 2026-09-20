@@ -93,7 +93,7 @@ export default function RecordsPage() {
       <main className="mx-auto max-w-[1240px] px-[34px] pb-[112px] pt-[26px] md:px-4 md:py-[60px] lg:px-0">
         <section className="mx-auto max-w-[820px]">
           <Card className="h-auto rounded-2xl border-[#f1f1f5] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)] lg:h-40">
-            <CardContent className="grid gap-5 p-6 md:p-[19px] lg:grid-cols-[1fr_252px] lg:items-center">
+            <CardContent className="grid gap-5 p-6 md:p-[19px] lg:grid-cols-[1fr_302px] lg:items-center">
               <div>
                 <p className="text-[18px] font-semibold leading-[1.4] tracking-[-0.45px] text-[#ff1f4c]">나의 기록</p>
                 <h2 className="mt-[14px] text-[24px] font-semibold leading-[1.4] tracking-[-0.6px] text-[#111111]">하영님의 여행 기록 보관함</h2>
@@ -108,7 +108,7 @@ export default function RecordsPage() {
                 {summaryCards.map((item) => (
                   <Link
                     key={item.label}
-                    className="relative h-[118px] rounded-2xl border border-[#f1f1f5] bg-white px-[19px] py-[16px] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)] transition-transform hover:-translate-y-[1px] md:h-[100px] lg:h-[120px] lg:py-[19px]"
+                    className="relative h-[118px] w-[146px] rounded-2xl border border-[#f1f1f5] bg-white px-[19px] py-[16px] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)] transition-transform hover:-translate-y-[1px] md:h-[100px] lg:h-[120px] lg:py-[19px]"
                     href={item.href}
                   >
                     <ChevronRight className="absolute right-[13px] top-[19px] h-5 w-5 text-[#505050]" strokeWidth={1.8} />

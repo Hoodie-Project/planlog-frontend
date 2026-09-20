@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { ApiError } from "@/api/client";
 import { completeSavedCourse, createSavedCourse, getSavedCourse, startSavedCourse } from "@/api/saved-courses";
 import { createStamp, getStampEligibility, listStamps, type StampEligibilityDto } from "@/api/stamps";
+import { createRecord } from "@/api/platform";
 import { StampReviewModal } from "@/components/review/StampReviewModal";
 import type { SavedCourseDto } from "@/types/course";
 import { useAuthStore } from "@/store/auth-store";
@@ -57,6 +58,8 @@ export default function CourseResultPage() {
   const [location, setLocation] = useState<{ mapX: string; mapY: string } | null>(null);
   const [stampPending, setStampPending] = useState(false);
   const [stampedContentIds, setStampedContentIds] = useState<Set<string>>(new Set());
+  const [stampReview, setStampReview] = useState<{ stampId: string; place: CourseMapPlace } | null>(null);
+  const [stampReviewSaving, setStampReviewSaving] = useState(false);
 
   const places = useMemo<CourseMapPlace[]>(() => {
     const items = generatedCourse?.days.flatMap((day) => day.items) ?? [];
@@ -93,8 +96,13 @@ export default function CourseResultPage() {
 
   useEffect(() => {
     if (!accessToken || !activeSavedCourseId) return;
-    getSavedCourse(accessToken, activeSavedCourseId).then(setSavedCourse).catch(() => setActiveSavedCourseId(null));
-  }, [accessToken, activeSavedCourseId, setActiveSavedCourseId]);
+    getSavedCourse(accessToken, activeSavedCourseId)
+      .then((course) => {
+        setSavedCourse(course);
+        setGeneratedCourse(course.payload);
+      })
+      .catch(() => setActiveSavedCourseId(null));
+  }, [accessToken, activeSavedCourseId, setActiveSavedCourseId, setGeneratedCourse]);
 
   useEffect(() => {
     if (!accessToken || !selectedPlace) return;
@@ -154,7 +162,42 @@ export default function CourseResultPage() {
 
   const handleReceiveStamp = async () => {
     if (!accessToken || !selectedPlace || !stampEligibility || !["ELIGIBLE", "REVIEWER"].includes(stampEligibility.state)) return;
-    try { setStampPending(true); await createStamp(accessToken, { zone: selectedPlace.zone, contentId: selectedPlace.contentId, title: selectedPlace.name, image: selectedPlace.image || undefined, curMapX: location?.mapX, curMapY: location?.mapY }); setStampedContentIds((ids) => new Set(ids).add(selectedPlace.contentId)); setStampEligibility(await getStampEligibility(accessToken, selectedPlace.contentId, location ?? undefined)); } finally { setStampPending(false); }
+    try {
+      setStampPending(true);
+      const stamp = await createStamp(accessToken, { zone: selectedPlace.zone, contentId: selectedPlace.contentId, title: selectedPlace.name, image: selectedPlace.image || undefined, curMapX: location?.mapX, curMapY: location?.mapY });
+      setStampedContentIds((ids) => new Set(ids).add(selectedPlace.contentId));
+      setStampEligibility(await getStampEligibility(accessToken, selectedPlace.contentId, location ?? undefined));
+      setStampReview({ stampId: stamp.id, place: selectedPlace });
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "스탬프를 받지 못했어요.");
+    } finally {
+      setStampPending(false);
+    }
+  };
+
+  const handleSaveStampReview = async ({ emotion, review }: { emotion: string; review: string }) => {
+    if (!accessToken || !stampReview || stampReviewSaving) return;
+
+    try {
+      setStampReviewSaving(true);
+      await createRecord(accessToken, {
+        title: `${stampReview.place.name} 방문 기록`,
+        travelDate: new Date().toISOString().slice(0, 10),
+        location: stampReview.place.address,
+        zone: stampReview.place.zone,
+        note: review,
+        mood: emotion,
+        image: stampReview.place.image || null,
+        tags: [stampReview.place.name, generatedCourse?.zoneLabel ?? "여행"],
+        savedCourseId: savedCourse?.id,
+        stampIds: [stampReview.stampId],
+      });
+      setStampReview(null);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "장소 리뷰를 저장하지 못했어요.");
+    } finally {
+      setStampReviewSaving(false);
+    }
   };
 
   if (!generatedCourse || places.length === 0) {
@@ -217,6 +260,7 @@ export default function CourseResultPage() {
     />
       {refreshOpen ? <ConfirmModal confirmLabel="다시 추천받기" description="새로운 조건으로 코스를 다시 추천받을 수 있어요." onClose={() => setRefreshOpen(false)} onConfirm={() => { setGeneratedCourse(null); setRefreshOpen(false); window.location.assign("/course/create?step=1"); }} title="다른 코스를 추천받을까요?" /> : null}
       {reviewOpen ? <StampReviewModal mode="write" onClose={() => setReviewOpen(false)} onSave={handleCompleteCourse} /> : null}
+      {stampReview ? <StampReviewModal mode="write" onClose={() => setStampReview(null)} onSave={handleSaveStampReview} /> : null}
     </>
   );
 }

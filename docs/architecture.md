@@ -91,6 +91,7 @@ src/
 /course/result         추천 코스 지도 결과 (코스 생성 API 응답을 우선 표시)
 /course/result/stays   추천 숙소 지도
 /course/saved          저장한 코스
+/course/saved/[id]     저장 코스 상세 및 코스별 완료 스탬프
 /records               나의 기록
 /records/stamps        완료한 스탬프
 /records/[id]          기록 카드 상세
@@ -122,6 +123,8 @@ src/
 - `GET /api/bookmarks/upcoming`
 
 추천 코스 일정 목록은 시작·종료 지점을 강조하는 체크 배지와 장소별 이동 시간을 표시하며, `숙소 추가하기`는 `/course/result/stays`로 이동한다.
+
+장소별 스탬프 수령 후 리뷰는 `POST /api/records`에 해당 스탬프 ID를 `stampIds`로 전달해 기록과 연결한다.
 
 ## 6. 데이터 모델 초안
 

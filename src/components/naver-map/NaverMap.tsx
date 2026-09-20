@@ -11,6 +11,7 @@ type Coordinate = {
 type MarkerItem = Coordinate & {
   id: number;
   html?: string;
+  anchor?: number;
 };
 
 type NaverMapProps = {
@@ -45,6 +46,7 @@ export function NaverMap({ center, path = [], markers, className, onMarkerClick 
   const mapInstanceRef = useRef<any>(null);
   const overlaysRef = useRef<any[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,6 +71,7 @@ export function NaverMap({ center, path = [], markers, className, onMarkerClick 
         });
 
         setErrorMessage(null);
+        setMapReady(true);
       })
       .catch((error: Error) => {
         if (!cancelled) {
@@ -78,11 +81,12 @@ export function NaverMap({ center, path = [], markers, className, onMarkerClick 
 
     return () => {
       cancelled = true;
+      setMapReady(false);
     };
   }, [center.lat, center.lng]);
 
   useEffect(() => {
-    if (!mapInstanceRef.current || !window.naver?.maps) {
+    if (!mapReady || !mapInstanceRef.current || !window.naver?.maps) {
       return;
     }
 
@@ -116,7 +120,7 @@ export function NaverMap({ center, path = [], markers, className, onMarkerClick 
         position: new (maps as any).LatLng(marker.lat, marker.lng),
         icon: {
           content: marker.html ?? createMarkerContent(marker.id),
-          anchor: new (maps as any).Point(18, 18),
+          anchor: new (maps as any).Point(marker.anchor ?? 18, marker.anchor ?? 18),
         },
       });
 
@@ -128,7 +132,7 @@ export function NaverMap({ center, path = [], markers, className, onMarkerClick 
     });
 
     overlaysRef.current = [...(polyline ? [polyline] : []), ...mapMarkers];
-  }, [markers, onMarkerClick, path]);
+  }, [mapReady, markers, onMarkerClick, path]);
 
   return (
     <div className={className}>

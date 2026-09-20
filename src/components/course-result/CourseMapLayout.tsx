@@ -8,7 +8,7 @@ import { MainShell } from "@/components/layout/MainShell";
 import { NaverMap } from "@/components/naver-map/NaverMap";
 
 type Coordinate = { lat: number; lng: number };
-type MarkerItem = Coordinate & { id: number; html?: string };
+type MarkerItem = Coordinate & { id: number; html?: string; anchor?: number };
 
 type CourseMapLayoutProps = {
   panel: ReactNode;

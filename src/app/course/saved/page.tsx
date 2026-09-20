@@ -2,14 +2,21 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ChevronRight, Coffee, FlagTriangleRight, Trees } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, ChevronRight } from "lucide-react";
 import { MainShell } from "@/components/layout/MainShell";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { deleteSavedCourse, listSavedCourses, listUpcomingSavedCourses } from "@/api/saved-courses";
 import { useAuthStore } from "@/store/auth-store";
 import { type SavedCourse, type SavedCourseStatus, useCourseStore } from "@/store/course-store";
-import type { SavedCourseDto } from "@/types/course";
+import type { CourseZone, SavedCourseDto } from "@/types/course";
+import { getDaysUntil } from "@/lib/date";
+import coffeeIcon from "@/asset/svgs/coffee.svg";
+import forestIcon from "@/asset/svgs/forest.svg";
+import mountainFlagIcon from "@/asset/svgs/mountain-flag.svg";
+import photoCameraIcon from "@/asset/svgs/photo-camera.svg";
+import wavesIcon from "@/asset/svgs/waves.svg";
 
 const ZONE_LABEL: Record<string, string> = {
   SEA: "동해 바다존",
@@ -28,23 +35,31 @@ function formatDate(iso: string) {
   return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
 }
 
-const statusMeta: Record<SavedCourseStatus, { label: string; badgeClassName: string; iconClassName: string }> = {
-  WAITING: { label: "대기중", badgeClassName: "bg-[#f4f4f4] text-[#505050]", iconClassName: "text-[#ffa346]" },
-  IN_PROGRESS: { label: "진행중", badgeClassName: "bg-[#dff6e9] text-[#17863b]", iconClassName: "text-[#55cc4b]" },
-  COMPLETED: { label: "완료", badgeClassName: "bg-[#ff1f4c] text-white", iconClassName: "text-[#bf43ed]" },
+const statusMeta: Record<SavedCourseStatus, { label: string; badgeClassName: string }> = {
+  WAITING: { label: "대기중", badgeClassName: "bg-[#f4f4f4] text-[#505050]" },
+  IN_PROGRESS: { label: "진행중", badgeClassName: "bg-[#dff6e9] text-[#17863b]" },
+  COMPLETED: { label: "완료", badgeClassName: "bg-[#ff1f4c] text-white" },
 };
 
-type MobileCourse = SavedCourse & { source: "api" | "preview"; daysUntil?: number };
+const themeIcons: Record<CourseZone, string> = {
+  SEA: wavesIcon.src,
+  SNOW: mountainFlagIcon.src,
+  VALLEY: forestIcon.src,
+  RETRO: coffeeIcon.src,
+  PHOTO: photoCameraIcon.src,
+};
 
-function StatusIcon({ status }: { status: SavedCourseStatus }) {
-  const className = `h-7 w-7 shrink-0 ${statusMeta[status].iconClassName}`;
-
-  if (status === "WAITING") return <Coffee className={className} strokeWidth={2.3} />;
-  if (status === "IN_PROGRESS") return <Trees className={className} strokeWidth={2.3} />;
-  return <FlagTriangleRight className={className} strokeWidth={2.3} />;
+function savedCourseStatus(status: SavedCourseDto["status"]): SavedCourseStatus {
+  return status === "PENDING" ? "WAITING" : status;
 }
 
-function SavedCourseMobileView({ courses, upcoming }: { courses: MobileCourse[]; upcoming: MobileCourse | null }) {
+type MobileCourse = SavedCourse & { source: "api" | "preview"; targetDate?: string };
+
+function ThemeIcon({ zone }: { zone: CourseZone }) {
+  return <img alt="" aria-hidden="true" className="h-7 w-7 shrink-0 object-contain" src={themeIcons[zone]} />;
+}
+
+function SavedCourseMobileView({ courses, upcoming, onUpcomingCourseClick }: { courses: MobileCourse[]; upcoming: MobileCourse | null; onUpcomingCourseClick: (id: string) => void }) {
   const [selectedStatus, setSelectedStatus] = useState<SavedCourseStatus>("WAITING");
   const filteredCourses = courses.filter((course) => course.status === selectedStatus);
   const upcomingCourse = upcoming ?? courses.find((course) => course.status === "WAITING") ?? courses[0] ?? null;
@@ -68,10 +83,10 @@ function SavedCourseMobileView({ courses, upcoming }: { courses: MobileCourse[];
         <section className="mt-6">
           <h2 className="text-[22px] font-medium leading-[1.4] tracking-[-0.55px] text-[#111111]">다가오는 여행</h2>
           {upcomingCourse ? (
-            <Link className="mt-3 flex min-h-[124px] items-center gap-3 rounded-[20px] border-2 border-[#ff1f4c] px-[22px] py-4 shadow-[0_4px_8px_rgba(17,17,17,0.08)]" href={`/course/saved?courseId=${encodeURIComponent(upcomingCourse.id)}`}>
+            <Link className="mt-3 flex min-h-[124px] items-center gap-3 rounded-[20px] border-2 border-[#ff1f4c] px-[22px] py-4 shadow-[0_4px_8px_rgba(17,17,17,0.08)]" href="/course/result" onClick={() => onUpcomingCourseClick(upcomingCourse.id)}>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-3">
-                  <span className="inline-flex h-8 items-center rounded-full bg-[#ff1f4c] px-3 text-[14px] font-medium text-white">{upcomingCourse.daysUntil != null ? `D-${upcomingCourse.daysUntil}` : upcomingCourse.source === "preview" ? "D-6" : "예정"}</span>
+                  <span className="inline-flex h-8 items-center rounded-full bg-[#ff1f4c] px-3 text-[14px] font-medium text-white">{upcomingCourse.source === "preview" ? "D-6" : `D-${getDaysUntil(upcomingCourse.targetDate ?? upcomingCourse.date)}`}</span>
                   <span className="truncate text-[14px] tracking-[-0.35px] text-[#111111]">{upcomingCourse.source === "preview" ? "2026.08.10 월요일 10:30" : upcomingCourse.date}</span>
                 </div>
                 <p className="mt-2 truncate text-[18px] font-bold leading-[1.4] tracking-[-0.45px] text-[#111111]">{upcomingCourse.title}</p>
@@ -103,8 +118,8 @@ function SavedCourseMobileView({ courses, upcoming }: { courses: MobileCourse[];
             {filteredCourses.length ? filteredCourses.map((course) => {
               const meta = statusMeta[course.status];
               return (
-                <Link key={course.id} className="flex min-h-[88px] items-center gap-3 rounded-[20px] border border-[#e1e2ea] px-5 py-3 shadow-[0_4px_8px_rgba(17,17,17,0.08)]" href={`/course/saved?courseId=${encodeURIComponent(course.id)}`}>
-                  <StatusIcon status={course.status} />
+                <Link key={course.id} className="flex min-h-[88px] items-center gap-3 rounded-[20px] border border-[#e1e2ea] px-5 py-3 shadow-[0_4px_8px_rgba(17,17,17,0.08)]" href={`/course/saved/${encodeURIComponent(course.id)}`}>
+                  <ThemeIcon zone={course.zone} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="truncate text-[16px] font-medium leading-[1.4] tracking-[-0.4px] text-[#111111]">{course.title}</p>
@@ -125,15 +140,18 @@ function SavedCourseMobileView({ courses, upcoming }: { courses: MobileCourse[];
 }
 
 export default function SavedCoursePage() {
+  const router = useRouter();
   const accessToken = useAuthStore((state) => state.accessToken);
   const hydrated = useAuthStore((state) => state.hydrated);
   const openLoginModal = useAuthStore((state) => state.openLoginModal);
   const previewCourses = useCourseStore((state) => state.savedCourses);
+  const setActiveSavedCourseId = useCourseStore((state) => state.setActiveSavedCourseId);
 
   const [courses, setCourses] = useState<SavedCourseDto[] | null>(null);
   const [upcomingCourses, setUpcomingCourses] = useState<Array<SavedCourseDto & { daysUntil: number }>>([]);
   const [error, setError] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [selectedDesktopStatus, setSelectedDesktopStatus] = useState<SavedCourseStatus>("WAITING");
 
   const mobileCourses = useMemo<MobileCourse[]>(() => {
     if (courses?.length) {
@@ -142,8 +160,9 @@ export default function SavedCoursePage() {
         title: course.title,
         date: formatDate(course.travelDate ?? course.createdAt),
         spotCount: spotCountOf(course),
-        status: course.status === "PENDING" ? "WAITING" : course.status,
+        status: savedCourseStatus(course.status),
         zone: course.zone,
+        targetDate: course.travelDate ?? course.createdAt,
         source: "api",
       }));
     }
@@ -159,9 +178,8 @@ export default function SavedCoursePage() {
       title: course.title,
       date: formatDate(course.travelDate ?? course.createdAt),
       spotCount: spotCountOf(course),
-      status: course.status === "PENDING" ? "WAITING" : course.status,
+      status: savedCourseStatus(course.status),
       zone: course.zone,
-      daysUntil: course.daysUntil,
       source: "api",
     };
   }, [upcomingCourses]);
@@ -217,10 +235,11 @@ export default function SavedCoursePage() {
 
   const latest = courses?.[0] ?? null;
   const rest = courses?.slice(1) ?? [];
+  const filteredRest = rest.filter((course) => savedCourseStatus(course.status) === selectedDesktopStatus);
 
   return (
     <MainShell mobileFooterHidden mobileHeaderHidden>
-      <SavedCourseMobileView courses={mobileCourses} upcoming={mobileUpcomingCourse} />
+      <SavedCourseMobileView courses={mobileCourses} upcoming={mobileUpcomingCourse} onUpcomingCourseClick={setActiveSavedCourseId} />
       <div className="mx-auto hidden max-w-[1240px] justify-center px-4 py-[60px] md:flex lg:px-0">
         <div className="w-full max-w-[432px]">
           <nav aria-label="현재 위치" className="flex items-center gap-1 text-[14px] leading-[1.4] tracking-[-0.35px]">
@@ -245,15 +264,13 @@ export default function SavedCoursePage() {
             <>
               {latest ? (
                 <section className="mt-[34px]">
-                  <p className="text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111111]">최근 저장한 코스</p>
+                  <p className="text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111111]">다가오는 여행</p>
 
-                  <Card className="mt-4 rounded-2xl border-[#FF1F4C] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)]">
+                  <Card className="mt-4 cursor-pointer rounded-2xl border-[#FF1F4C] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)]" onClick={() => { setActiveSavedCourseId(latest.id); router.push("/course/result"); }} role="link" tabIndex={0}>
                     <CardContent className="flex items-center gap-3 p-5">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-[6px]">
-                          <span className="inline-flex h-6 items-center rounded-full bg-[#FF1F4C] px-2 text-[12px] font-semibold leading-[1.4] tracking-[-0.3px] text-white">
-                            {ZONE_LABEL[latest.zone] ?? latest.zone}
-                          </span>
+                           <span className="inline-flex h-8 items-center rounded-full bg-[#ff1f4c] px-3 text-[14px] font-medium text-white">D-{getDaysUntil(latest.createdAt)}</span>
                           <span className="text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">{formatDate(latest.createdAt)}</span>
                         </div>
 
@@ -269,7 +286,7 @@ export default function SavedCoursePage() {
                       <button
                         className="text-[12px] text-[#999999] underline disabled:opacity-50"
                         disabled={removingId === latest.id}
-                        onClick={() => handleRemove(latest.id)}
+                        onClick={(event) => { event.stopPropagation(); handleRemove(latest.id); }}
                         type="button"
                       >
                         삭제
@@ -281,35 +298,52 @@ export default function SavedCoursePage() {
 
               {rest.length > 0 ? (
                 <section className="mt-[52px]">
-                  <p className="text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111111]">저장한 코스 목록</p>
+                  <div className="flex flex-wrap items-center gap-2 whitespace-nowrap">
+                    <p className="text-[16px] leading-[1.4] tracking-[-0.4px] text-[#111111]">저장한 코스 목록</p>
+                    {(Object.keys(statusMeta) as SavedCourseStatus[]).map((status) => (
+                      <button
+                        key={status}
+                        className={`h-8 rounded-full border px-3 text-[14px] font-medium leading-[1.4] tracking-[-0.35px] ${selectedDesktopStatus === status ? "border-[#ff1f4c] text-[#ff1f4c]" : "border-[#e1e2ea] text-[#8a8a8a]"}`}
+                        onClick={() => setSelectedDesktopStatus(status)}
+                        type="button"
+                      >
+                        {statusMeta[status].label}
+                      </button>
+                    ))}
+                  </div>
 
                   <div className="mt-4 space-y-[10px]">
-                    {rest.map((course) => (
-                      <Card key={course.id} className="rounded-2xl border-[#F1F1F5] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)]">
-                        <CardContent className="flex items-center justify-between gap-3 px-[19px] py-[19px]">
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="text-[14px] font-semibold leading-[1.4] text-[#111111]">{course.title}</p>
-                              <span className="text-[12px] leading-[1.4] tracking-[-0.3px] text-[#111111]">{formatDate(course.createdAt)}</span>
-                              <span className="h-[10px] w-px rounded-[9px] bg-[#999999]" />
-                              <span className="text-[12px] leading-[1.4] tracking-[-0.3px] text-[#111111]">장소 {spotCountOf(course)}곳</span>
-                            </div>
-                          </div>
+                    {filteredRest.length ? filteredRest.map((course) => {
+                      const status = savedCourseStatus(course.status);
+                      const meta = statusMeta[status];
 
-                          <div className="flex shrink-0 items-center gap-3">
-                            <button
-                              className="text-[12px] text-[#999999] underline disabled:opacity-50"
-                              disabled={removingId === course.id}
-                              onClick={() => handleRemove(course.id)}
-                              type="button"
-                            >
-                              삭제
-                            </button>
-                            <ChevronRight className="h-5 w-5 text-[#999999]" strokeWidth={1.8} />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                      return (
+                        <Card key={course.id} className="cursor-pointer rounded-2xl border-[#F1F1F5] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)]" onClick={() => router.push(`/course/saved/${encodeURIComponent(course.id)}`)} role="link" tabIndex={0}>
+                          <CardContent className="flex h-20 items-center justify-between gap-3 px-[19px] py-4">
+                            <ThemeIcon zone={course.zone} />
+                            <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+                                <p className="truncate whitespace-nowrap text-[14px] font-semibold leading-[1.4] text-[#111111]">{course.title}</p>
+                                <span className="shrink-0 whitespace-nowrap text-[12px] leading-[1.4] tracking-[-0.3px] text-[#111111]">{formatDate(course.travelDate ?? course.createdAt)}</span>
+                                <span className="h-[10px] w-px rounded-[9px] bg-[#999999]" />
+                                <span className="shrink-0 whitespace-nowrap text-[12px] leading-[1.4] tracking-[-0.3px] text-[#111111]">장소 {spotCountOf(course)}곳</span>
+                                <span className={`shrink-0 rounded-full px-2 py-1 text-[12px] font-semibold leading-[1.4] tracking-[-0.3px] ${meta.badgeClassName}`}>{meta.label}</span>
+                            </div>
+
+                            <div className="flex shrink-0 items-center gap-3">
+                              <button
+                                className="text-[12px] text-[#999999] underline disabled:opacity-50"
+                                disabled={removingId === course.id}
+                                onClick={(event) => { event.stopPropagation(); handleRemove(course.id); }}
+                                type="button"
+                              >
+                                삭제
+                              </button>
+                              <ChevronRight className="h-5 w-5 text-[#999999]" strokeWidth={1.8} />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    }) : <p className="py-8 text-center text-[14px] text-[#767676]">{statusMeta[selectedDesktopStatus].label}인 코스가 없어요.</p>}
                   </div>
                 </section>
               ) : null}
