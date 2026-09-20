@@ -536,9 +536,9 @@ export function CourseCreateFlow() {
                           return (
                             <button
                               key={origin}
-                              className={`flex h-[52px] items-center justify-center border-r border-t border-[#e5e5ec] px-5 text-[16px] tracking-[-0.4px] ${
+                              className={`flex h-[52px] items-center justify-center border-b border-r border-[#e5e5ec] px-5 text-[16px] tracking-[-0.4px] ${
                                 active ? "bg-[#ffeaee] font-semibold text-[#f30031]" : "text-[#505050]"
-                              } ${originList.indexOf(origin) < 3 ? "border-t-0" : ""} ${originList.indexOf(origin) % 3 === 2 ? "border-r-0" : ""} sm:[&:nth-child(-n+4)]:border-t-0 sm:[&:nth-child(4n)]:border-r-0`}
+                              }`}
                               onClick={() => handleOriginSelect(origin)}
                               type="button"
                             >
