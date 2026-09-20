@@ -25,7 +25,7 @@ import { generateCourse } from "@/api/courses/generate";
 import { MainShell } from "@/components/layout/MainShell";
 import { parseCourseCreateStep, toCreateCourseRequest } from "@/lib/course-create";
 import { originOptions, transportOptions } from "@/lib/mock-data";
-import { coursePreferenceSchema, courseStep1Schema, courseStep2Schema, courseStep3Schema, courseStep4Schema } from "@/lib/schemas";
+import { coursePreferenceSchema, courseStep1Schema, courseStep2Schema, courseStep3Schema, courseStep4Schema, isArrivalDateAtLeastTomorrow } from "@/lib/schemas";
 import { useCourseStore } from "@/store/course-store";
 
 const totalSteps = 4;
@@ -169,10 +169,11 @@ export function CourseCreateFlow() {
   const canProceed = currentStepValidation.success && !isSubmitting;
   const arrivalDateValue = preferences.arrivalDate ? dayjs(preferences.arrivalDate) : null;
   const arrivalTimeValue = preferences.arrivalTime ? dayjs(`2026-01-01T${preferences.arrivalTime}`) : null;
+  const minimumArrivalDate = dayjs().add(1, "day").startOf("day");
 
   const handleArrivalDateChange = (value: Dayjs | null) => {
     updatePreferences({
-      arrivalDate: value?.isValid() ? value.format("YYYY-MM-DD") : "",
+      arrivalDate: value?.isValid() && isArrivalDateAtLeastTomorrow(value.format("YYYY-MM-DD")) ? value.format("YYYY-MM-DD") : "",
     });
   };
 
@@ -423,6 +424,7 @@ export function CourseCreateFlow() {
 
                     <DatePicker
                       format="YYYY.MM.DD dddd"
+                      minDate={minimumArrivalDate}
                       onChange={handleArrivalDateChange}
                       onClose={() => setDatePickerOpen(false)}
                       open={datePickerOpen}
