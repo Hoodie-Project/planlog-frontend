@@ -4,21 +4,21 @@ export const festivalCards = [
     location: "강릉",
     period: "06.14 - 06.21",
     badge: "전통문화",
-    image: "https://www.figma.com/api/mcp/asset/e7cd4169-de8b-401e-a684-db56c477b2bf",
+    image: "/images/landing/dan5.png",
   },
   {
     title: "속초 해양 페스티벌",
     location: "속초",
     period: "06.15 - 06.22",
     badge: "바다",
-    image: "https://www.figma.com/api/mcp/asset/74754b94-2733-48b0-b2e1-4568b589540c",
+    image: "/images/landing/sokcho.png",
   },
   {
     title: "평창 허브나라 축제",
     location: "평창",
     period: "06.13 - 07.05",
     badge: "자연",
-    image: "https://www.figma.com/api/mcp/asset/dffae259-8eac-4cb1-ad92-83c523f762f4",
+    image: "/images/landing/hub.png",
   },
 ];
 
