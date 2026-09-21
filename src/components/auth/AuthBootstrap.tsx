@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { getMe } from "@/api/auth/me";
 import { MANUAL_MOCK_ACCESS_TOKEN, MANUAL_MOCK_AUTH_RESPONSE } from "@/lib/mock-auth";
+import { isGeneratedKakaoNickname } from "@/lib/auth-user";
 import { useAuthStore } from "@/store/auth-store";
 
 const ASSUME_LOGGED_IN = false;
@@ -10,6 +11,7 @@ const ASSUME_LOGGED_IN = false;
 export function AuthBootstrap() {
   const hydrated = useAuthStore((state) => state.hydrated);
   const accessToken = useAuthStore((state) => state.accessToken);
+  const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
   const signIn = useAuthStore((state) => state.signIn);
   const signOut = useAuthStore((state) => state.signOut);
@@ -46,13 +48,14 @@ export function AuthBootstrap() {
 
     void getMe(accessToken)
       .then((user) => {
-        setUser(user);
+        const shouldKeepProfileNickname = isGeneratedKakaoNickname(user) && !isGeneratedKakaoNickname(useAuthStore.getState().user);
+        setUser(shouldKeepProfileNickname ? { ...user, nickname: useAuthStore.getState().user?.nickname ?? user.nickname } : user);
       })
       .catch(() => {
         validatedTokenRef.current = null;
         signOut();
       });
-  }, [accessToken, hydrated, setUser, signIn, signOut]);
+  }, [accessToken, hydrated, setUser, signIn, signOut, user]);
 
   return null;
 }

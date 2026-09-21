@@ -1,10 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AppProviders } from "@/components/AppProviders";
 
 export const metadata: Metadata = {
   title: "PLANLOG",
   description: "감성 기반 강원도 하루 여행 플래너",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

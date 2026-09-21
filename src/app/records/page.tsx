@@ -11,6 +11,7 @@ import { getDominantTravelProfile, getTravelProfileTheme, type TravelProfileMetr
 import { useRecordsPreviewStore } from "@/store/records-preview-store";
 import { useAuthStore } from "@/store/auth-store";
 import { getMeStats, getRecordTraits, getStampTraits, type MeStatsDto, type RecordTraitsDto } from "@/api/platform";
+import { isGeneratedKakaoNickname } from "@/lib/auth-user";
 import type { CourseZone } from "@/types/course";
 
 const travelProfileRows: TravelProfileMetric[] = [
@@ -81,7 +82,7 @@ export default function RecordsPage() {
   }), [hasRecords, stats]);
   const dominantProfile = getDominantTravelProfile(profileRows);
   const dominantProfileTheme = dominantProfile ? getTravelProfileTheme(dominantProfile.label) : null;
-  const userName = user?.isGuest ? "심사자" : user?.nickname || "여행자";
+  const userName = user?.isGuest ? "심사자" : isGeneratedKakaoNickname(user) ? "여행자" : user?.nickname || "여행자";
 
   return (
     <MainShell mobileFooterHidden mobileHeaderHidden>

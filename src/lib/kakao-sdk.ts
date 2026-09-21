@@ -13,6 +13,13 @@ declare global {
         }) => void;
         getAccessToken: () => string | null;
       };
+      API: {
+        request: (options: {
+          url: string;
+          success: (response: { properties?: { nickname?: string } }) => void;
+          fail: (error: unknown) => void;
+        }) => void;
+      };
     };
   }
 }
@@ -91,4 +98,21 @@ export async function getKakaoAccessToken() {
       },
     });
   });
+}
+
+export async function getKakaoProfileNickname() {
+  const kakao = await ensureKakaoSdk();
+  if (!kakao.API) return null;
+
+  try {
+    return await new Promise<string | null>((resolve) => {
+      kakao.API.request({
+        url: "/v2/user/me",
+        success: (response) => resolve(response.properties?.nickname?.trim() || null),
+        fail: () => resolve(null),
+      });
+    });
+  } catch {
+    return null;
+  }
 }

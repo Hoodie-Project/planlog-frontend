@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import kakaoIcon from "@/asset/svgs/카카오톡.svg";
 import { kakaoLogin } from "@/api/auth/kakao-login";
-import { getKakaoAccessToken } from "@/lib/kakao-sdk";
+import { getKakaoAccessToken, getKakaoProfileNickname } from "@/lib/kakao-sdk";
 import { useAuthStore } from "@/store/auth-store";
 
 function MobileLoginPageContent() {
@@ -23,8 +23,9 @@ function MobileLoginPageContent() {
       setIsSubmitting(true);
       setErrorMessage(null);
       const accessToken = await getKakaoAccessToken();
+      const nickname = await getKakaoProfileNickname();
       const response = await kakaoLogin({ accessToken });
-      signIn(response);
+      signIn({ ...response, user: nickname ? { ...response.user, nickname } : response.user });
       router.replace(destination);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "카카오 로그인에 실패했습니다.");
