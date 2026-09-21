@@ -69,8 +69,8 @@ export default function HomePage() {
       <section className="bg-white py-[42px]">
         <div className="mx-auto max-w-[1240px] px-4 lg:px-0">
           <div className="mb-[14px] flex items-baseline gap-2">
-            <h2 className="text-[24px] font-bold tracking-[-0.6px] text-slate-900">강원도 HOT 축제</h2>
-            <p className="text-[16px] tracking-[-0.4px] text-slate-600">바로 즐길 수 있는 이번주 축제</p>
+            <h2 className="text-[24px] font-bold tracking-[-0.6px] text-slate-900">강원도 축제를 소개합니다</h2>
+            <p className="text-[16px] tracking-[-0.4px] text-slate-600">강원도의 다채로운 축제를 만나보세요</p>
           </div>
           <FestivalCarousel />
         </div>
