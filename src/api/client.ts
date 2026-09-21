@@ -29,6 +29,17 @@ function withQuery(path: string, query?: ApiFetchOptions["query"]) {
   return search ? `${path}${path.includes("?") ? "&" : "?"}${search}` : path;
 }
 
+function extractErrorMessage(status: number, payload: unknown): string {
+  if (payload && typeof payload === "object" && "message" in payload) {
+    const { message } = payload as { message?: unknown };
+    if (typeof message === "string" && message.trim()) return message;
+    if (Array.isArray(message) && message.length > 0) {
+      return message.filter((item): item is string => typeof item === "string").join(" ");
+    }
+  }
+  return `Request failed: ${status}`;
+}
+
 async function parseResponse<T>(response: Response): Promise<T> {
   const text = await response.text();
   let payload: unknown = null;
@@ -42,7 +53,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
   }
 
   if (!response.ok) {
-    throw new ApiError(`Request failed: ${response.status}`, response.status, payload);
+    throw new ApiError(extractErrorMessage(response.status, payload), response.status, payload);
   }
 
   return payload as T;
