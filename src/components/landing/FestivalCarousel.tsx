@@ -77,8 +77,20 @@ export function FestivalCarousel() {
   const moveCarousel = (direction: "previous" | "next") => {
     const element = carouselRef.current;
     if (!element) return;
-    const amount = Math.max(element.clientWidth * 0.8, 300);
-    element.scrollBy({ left: direction === "next" ? amount : -amount, behavior: "smooth" });
+
+    const cards = Array.from(element.children) as HTMLElement[];
+    const firstCard = cards[0];
+    if (!firstCard) return;
+
+    const gap = Number.parseFloat(window.getComputedStyle(element).columnGap) || 0;
+    const cardStep = firstCard.offsetWidth + gap;
+    const currentIndex = Math.round(element.scrollLeft / cardStep);
+    const nextIndex = Math.min(
+      Math.max(currentIndex + (direction === "next" ? 1 : -1), 0),
+      cards.length - 1
+    );
+
+    element.scrollTo({ left: nextIndex * cardStep, behavior: "smooth" });
   };
 
   if (isLoading) return <p className="py-10 text-center text-[14px] text-slate-500">이번 주 축제를 불러오는 중이에요.</p>;
@@ -92,9 +104,9 @@ export function FestivalCarousel() {
       <button aria-label="이전 축제 보기" className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#e5e5ec] bg-white text-[#505050] shadow-sm transition hover:border-[#f30031] hover:text-[#f30031]" onClick={() => moveCarousel("previous")} type="button"><ChevronLeft className="h-5 w-5" /></button>
       <button aria-label="다음 축제 보기" className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#e5e5ec] bg-white text-[#505050] shadow-sm transition hover:border-[#f30031] hover:text-[#f30031]" onClick={() => moveCarousel("next")} type="button"><ChevronRight className="h-5 w-5" /></button>
     </div>
-    <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 [scrollbar-width:none] lg:-mx-0 lg:px-0" ref={carouselRef}>
+    <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 [scrollbar-width:none]" ref={carouselRef}>
       {festivals.map((festival) => (
-        <article className="flex min-w-[calc(100%-1rem)] snap-start items-center gap-3 rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_2px_6px_rgba(17,17,17,0.08)] md:min-w-[calc((100%-32px)/3)]" key={festival.contentId}>
+        <article className="flex min-w-full snap-start [scroll-snap-stop:always] items-center gap-3 rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_2px_6px_rgba(17,17,17,0.08)] md:min-w-[calc((100%-32px)/3)]" key={festival.contentId}>
           <FestivalImage festival={festival} />
           <div className="min-w-0">
             <span className="inline-flex h-6 items-center rounded-full bg-slate-100 px-3 text-[12px] font-semibold text-slate-600">{festival.zone ? zoneLabels[festival.zone] ?? "축제" : "축제"}</span>

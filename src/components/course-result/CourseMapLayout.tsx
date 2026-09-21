@@ -25,7 +25,7 @@ type CourseMapLayoutProps = {
 const stageNavItems = [
   { href: "/course/result", label: "추천 코스", icon: ArrowUpRight },
   { href: "/course/result/stays", label: "추천 숙소", icon: Home },
-  { href: "#", label: "코스 후기", icon: MessageCircleMore },
+  { href: "/course/result/reviews", label: "코스 후기", icon: MessageCircleMore },
 ];
 
 export function CourseMapLayout({ panel, mobileSummary, center, markers, path, mapOverlay, onMarkerClick, fitBounds, focus }: CourseMapLayoutProps) {
@@ -48,7 +48,7 @@ export function CourseMapLayout({ panel, mobileSummary, center, markers, path, m
                   </div>
                 );
 
-                return item.href === "#" ? <div key={item.label}>{content}</div> : <Link key={item.label} href={item.href}>{content}</Link>;
+                return <Link key={item.label} href={item.href}>{content}</Link>;
               })}
             </div>
           </aside>
@@ -57,7 +57,7 @@ export function CourseMapLayout({ panel, mobileSummary, center, markers, path, m
             <NaverMap center={center} className="absolute inset-0" fitBounds={fitBounds} focus={focus} markers={markers} onMarkerClick={onMarkerClick} path={path} />
             {mapOverlay}
             <nav className="absolute left-1/2 top-7 z-30 flex -translate-x-1/2 rounded-full bg-white p-1 shadow-[0_8px_30px_rgba(17,17,17,0.1)] md:hidden">
-              {stageNavItems.map((item) => <Link key={item.label} href={item.href === "#" ? "/course/result" : item.href} className={`whitespace-nowrap rounded-full px-4 py-2 text-[16px] font-semibold tracking-[-0.4px] ${pathname === item.href ? "border-2 border-[#ff1f4c] text-[#111]" : "text-[#999]"}`}>{item.label}</Link>)}
+              {stageNavItems.map((item) => <Link key={item.label} href={item.href} className={`whitespace-nowrap rounded-full px-4 py-2 text-[16px] font-semibold tracking-[-0.4px] ${pathname === item.href ? "border-2 border-[#ff1f4c] text-[#111]" : "text-[#999]"}`}>{item.label}</Link>)}
             </nav>
             {mobileSummary ? <div className={`absolute inset-x-0 bottom-[88px] z-30 bg-white text-left shadow-[0_-8px_28px_rgba(17,17,17,0.08)] md:hidden ${mobilePanelOpen ? "hidden" : "block rounded-t-[28px] px-7 py-7"}`} onClick={(event) => { if ((event.target as HTMLElement).closest("button, a")) return; setMobilePanelOpen(true); }}>{mobileSummary}</div> : null}
             <div className={`absolute inset-x-0 bottom-[88px] z-30 overflow-y-auto rounded-t-[28px] bg-white shadow-[0_-8px_28px_rgba(17,17,17,0.1)] transition-transform duration-300 md:hidden ${mobilePanelOpen ? "h-[calc(100svh-138px)] translate-y-0" : "translate-y-full"}`}>

@@ -8,6 +8,11 @@ export type RecordDto = { id: string; title: string; travelDate: string; locatio
 export type RecordTraitsDto = { totalRecords: number; traits: Array<{ zone: CourseZone; label: string; count: number; percent: number }>; travelType: { zone: CourseZone; percent: number; title: string; description: string } | null };
 export type PlaceDto = { contentId: string; title: string; address?: string; image?: string | null; mapX?: string; mapY?: string; zone?: CourseZone; dist?: number; overview?: string };
 export type FestivalDto = PlaceDto & { eventStartDate?: string | null; eventEndDate?: string | null; isThisWeekend?: boolean };
+export type CourseReviewSummaryDto = {
+  totalCount: number;
+  topMoods: Array<{ mood: string; count: number }>;
+  reviews: Array<{ contentId: string; title: string; visitedAt: string; note: string; mood: string }>;
+};
 export type AccommodationDto = PlaceDto & { contentTypeId: string; sigunguCode?: string; tel?: string; stayType?: "HEALING" | "VALUE" | "SOCIAL" | string | null };
 export type AccommodationDetailDto = AccommodationDto & {
   overview?: string | null;
@@ -27,11 +32,16 @@ export type AccommodationDetailDto = AccommodationDto & {
 
 const auth = (accessToken: string) => ({ accessToken });
 
+function toDateOnly(value: string) {
+  const match = /^(\d{4}-\d{2}-\d{2})/.exec(value);
+  return match ? match[1] : value;
+}
+
 export const getMeStats = (accessToken: string) => apiFetch<MeStatsDto>("/api/auth/me/stats", auth(accessToken));
 export const listRecentActivities = (accessToken: string, limit?: number) => apiFetch<RecentActivityDto[]>("/api/auth/me/recent-activities", { ...auth(accessToken), query: { limit } });
 export const listRecords = (accessToken: string) => apiFetch<RecordDto[]>("/api/records", auth(accessToken));
 export const getRecord = (accessToken: string, id: string) => apiFetch<RecordDto>(`/api/records/${encodeURIComponent(id)}`, auth(accessToken));
-export const createRecord = (accessToken: string, dto: Omit<RecordDto, "id" | "createdAt" | "stamps" | "savedCourseId" | "spotCount" | "totalDistance" | "nights"> & { savedCourseId?: string; stampIds?: string[] }) => apiFetch<RecordDto>("/api/records", { ...auth(accessToken), method: "POST", body: JSON.stringify(dto) });
+export const createRecord = (accessToken: string, dto: Omit<RecordDto, "id" | "createdAt" | "stamps" | "savedCourseId" | "spotCount" | "totalDistance" | "nights"> & { savedCourseId?: string; stampIds?: string[] }) => apiFetch<RecordDto>("/api/records", { ...auth(accessToken), method: "POST", body: JSON.stringify({ ...dto, travelDate: toDateOnly(dto.travelDate) }) });
 export const deleteRecord = (accessToken: string, id: string) => apiFetch<{ deleted: boolean; id: string }>(`/api/records/${encodeURIComponent(id)}`, { ...auth(accessToken), method: "DELETE" });
 export const getRecordHighlights = (accessToken: string, limit?: number) => apiFetch<Array<{ rank: number; mood: string; quote: string }>>("/api/records/highlights", { ...auth(accessToken), query: { limit } });
 export const getRecordTraits = (accessToken: string) => apiFetch<RecordTraitsDto>("/api/records/traits", auth(accessToken));
@@ -40,6 +50,7 @@ export const updateNotificationSettings = (accessToken: string, dto: Partial<Not
 export const listStations = (type?: "TRAIN" | "BUS") => apiFetch<Array<{ type: "TRAIN" | "BUS"; name: string; mapX: string; mapY: string }>>("/api/stations", { query: { type } });
 export const getStampTraits = (accessToken: string) => apiFetch<{ totalStamps: number; traits: Array<{ zone: CourseZone; label: string; count: number; percent: number }> }>("/api/stamps/traits", auth(accessToken));
 export const listFestivals = (query: Record<string, string | number | boolean | undefined> = {}) => apiFetch<FestivalDto[]>("/api/festivals", { query });
+export const getCourseReviews = (contentIds: string[]) => apiFetch<CourseReviewSummaryDto>("/api/course-reviews", { query: { contentIds: contentIds.join(",") } });
 export const listAccommodations = (query: Record<string, string | number | boolean | undefined> = {}) => apiFetch<AccommodationDto[]>("/api/accommodations", { query });
 export const getAccommodation = (contentId: string) => apiFetch<AccommodationDetailDto>(`/api/accommodations/${encodeURIComponent(contentId)}`);
 export const listCampings = (query: Record<string, string | number | boolean | undefined> = {}) => apiFetch<PlaceDto[]>("/api/campings", { query });

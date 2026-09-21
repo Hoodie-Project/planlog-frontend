@@ -68,6 +68,26 @@ export default function CourseResultPage() {
   const [stampReview, setStampReview] = useState<{ stampId: string; place: CourseMapPlace } | null>(null);
   const [stampReviewSaving, setStampReviewSaving] = useState(false);
 
+  useEffect(() => {
+    const addBackNavigationGuard = () => {
+      window.history.pushState(
+        { ...window.history.state, planlogCourseResultGuard: true },
+        "",
+        window.location.href
+      );
+    };
+
+    const handlePopState = () => {
+      addBackNavigationGuard();
+      setRefreshOpen(true);
+    };
+
+    addBackNavigationGuard();
+    window.addEventListener("popstate", handlePopState);
+
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   const places = useMemo<CourseMapPlace[]>(() => {
     const items = generatedCourse?.days.flatMap((day) => day.items) ?? [];
 
@@ -293,7 +313,7 @@ export default function CourseResultPage() {
         </div>
       }
     />
-      {refreshOpen ? <ConfirmModal confirmLabel="다시 추천받기" description="새로운 조건으로 코스를 다시 추천받을 수 있어요." onClose={() => setRefreshOpen(false)} onConfirm={() => { setGeneratedCourse(null); setRefreshOpen(false); window.location.assign("/course/create?step=1"); }} title="다른 코스를 추천받을까요?" /> : null}
+      {refreshOpen ? <ConfirmModal confirmLabel="다시 추천받기" description={"새로운 코스를 만들면\n지금 보고 있는 코스는 사라져요!\n마음에 드는 코스라면 먼저 저장해 주세요."} onClose={() => setRefreshOpen(false)} onConfirm={() => { setGeneratedCourse(null); setRefreshOpen(false); window.location.assign("/course/create?step=1"); }} title="다른 코스를 추천받을까요?" /> : null}
       {reviewOpen ? <StampReviewModal mode="write" onClose={() => setReviewOpen(false)} onSave={handleCompleteCourse} /> : null}
       {stampReview ? <StampReviewModal mode="write" onClose={() => setStampReview(null)} onSave={handleSaveStampReview} /> : null}
     </>
@@ -360,5 +380,5 @@ function PlaceOverlay({ place, onClose, eligibility, onReceiveStamp, onRequestLo
 }
 
 function ConfirmModal({ title, description, confirmLabel, onConfirm, onClose }: { title: string; description: string; confirmLabel: string; onConfirm: () => void; onClose: () => void }) {
-  return <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/20 px-4 backdrop-blur-sm" onClick={onClose}><section aria-modal="true" className="w-full max-w-[360px] rounded-2xl bg-white p-7 text-center shadow-xl" onClick={(event) => event.stopPropagation()} role="dialog"><h2 className="text-[18px] font-bold text-[#111]">{title}</h2><p className="mt-3 text-[14px] leading-5 text-[#555]">{description}</p><div className="mt-6 flex gap-2"><button className="h-10 flex-1 rounded-lg border border-[#e5e5ec] text-[14px]" onClick={onClose} type="button">아니요</button><button className="h-10 flex-1 rounded-lg bg-[#ff1f4c] text-[14px] font-bold text-white" onClick={onConfirm} type="button">{confirmLabel}</button></div></section></div>;
+  return <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/20 px-4 backdrop-blur-sm" onClick={onClose}><section aria-modal="true" className="w-full max-w-[360px] rounded-2xl bg-white p-7 text-center shadow-xl" onClick={(event) => event.stopPropagation()} role="dialog"><h2 className="text-[18px] font-bold text-[#111]">{title}</h2><p className="mt-3 whitespace-pre-line text-[14px] leading-5 text-[#555]">{description}</p><div className="mt-6 flex gap-2"><button className="h-10 flex-1 rounded-lg border border-[#e5e5ec] text-[14px]" onClick={onClose} type="button">취소</button><button className="h-10 flex-1 rounded-lg bg-[#ff1f4c] text-[14px] font-bold text-white" onClick={onConfirm} type="button">{confirmLabel}</button></div></section></div>;
 }

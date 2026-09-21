@@ -8,19 +8,10 @@ import wavesIcon from "@/asset/svgs/waves.svg";
 import { MainShell } from "@/components/layout/MainShell";
 import { Card, CardContent } from "@/components/ui/Card";
 import { getDominantTravelProfile, getTravelProfileTheme, type TravelProfileMetric } from "@/lib/records-theme";
-import { useRecordsPreviewStore } from "@/store/records-preview-store";
 import { useAuthStore } from "@/store/auth-store";
-import { getMeStats, getRecordTraits, getStampTraits, type MeStatsDto, type RecordTraitsDto } from "@/api/platform";
+import { getMeStats, getRecordTraits, type MeStatsDto, type RecordTraitsDto } from "@/api/platform";
 import { isGeneratedKakaoNickname } from "@/lib/auth-user";
 import type { CourseZone } from "@/types/course";
-
-const travelProfileRows: TravelProfileMetric[] = [
-  { label: "동해 바다", percent: 72 },
-  { label: "설원·산악", percent: 22 },
-  { label: "계곡·자연", percent: 66 },
-  { label: "레트로·문화", percent: 17 },
-  { label: "절경·포토", percent: 46 },
-] as const;
 
 const profileLabelByZone: Record<CourseZone, TravelProfileMetric["label"]> = {
   SEA: "동해 바다",
@@ -31,57 +22,63 @@ const profileLabelByZone: Record<CourseZone, TravelProfileMetric["label"]> = {
 };
 
 const previewSummary = {
-  empty: [
-    { label: "저장한 코스", value: "0", detail: "", href: "/course/saved" },
-    { label: "완료한 스탬프", value: "0", detail: "", href: "/records/stamps" },
-  ],
-  populated: [
-    { label: "저장한 코스", value: "12", detail: "이번 달 +3", href: "/course/saved" },
-    { label: "완료한 스탬프", value: "18", detail: "이번 달 +6", href: "/records/stamps" },
-  ],
+  savedCourses: { label: "저장한 코스", value: "0", detail: "", href: "/course/saved" },
+  completedStamps: { label: "완료한 스탬프", value: "0", detail: "", href: "/records/stamps" },
 } as const;
 
 export default function RecordsPage() {
   const accessToken = useAuthStore((state) => state.accessToken);
   const user = useAuthStore((state) => state.user);
   const hydrated = useAuthStore((state) => state.hydrated);
-  const hasRecords = useRecordsPreviewStore((state) => state.hasRecords);
-  const setHasRecords = useRecordsPreviewStore((state) => state.setHasRecords);
   const [stats, setStats] = useState<MeStatsDto | null>(null);
   const [recordTraits, setRecordTraits] = useState<RecordTraitsDto | null>(null);
-  const [stampTraits, setStampTraits] = useState<RecordTraitsDto["traits"] | null>(null);
+  const [isTraitsLoading, setIsTraitsLoading] = useState(false);
+  const [traitsError, setTraitsError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!hydrated || !accessToken) {
       setStats(null);
       setRecordTraits(null);
-      setStampTraits(null);
+      setIsTraitsLoading(false);
+      setTraitsError(null);
       return;
     }
 
-    Promise.all([getMeStats(accessToken), getRecordTraits(accessToken), getStampTraits(accessToken)])
-      .then(([nextStats, nextRecordTraits, nextStampTraits]) => {
-        setStats(nextStats);
-        setRecordTraits(nextRecordTraits);
-        setStampTraits(nextStampTraits.traits);
-      })
-      .catch(() => {
-        // 화면의 상태 전환용 미리보기는 API 오류와 별개로 계속 사용할 수 있습니다.
-      });
+    let isActive = true;
+    setIsTraitsLoading(true);
+    setTraitsError(null);
+
+    void Promise.allSettled([getMeStats(accessToken), getRecordTraits(accessToken)]).then(([statsResult, traitsResult]) => {
+      if (!isActive) return;
+
+      if (statsResult.status === "fulfilled") setStats(statsResult.value);
+      if (traitsResult.status === "fulfilled") {
+        setRecordTraits(traitsResult.value);
+      } else {
+        setRecordTraits(null);
+        setTraitsError("나의 여행 성향을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
+      }
+      setIsTraitsLoading(false);
+    });
+
+    return () => {
+      isActive = false;
+    };
   }, [accessToken, hydrated]);
 
-  const activeTraits = recordTraits?.traits.length ? recordTraits.traits : stampTraits;
-  const profileRows = useMemo<TravelProfileMetric[]>(() => activeTraits?.map((trait) => ({ label: profileLabelByZone[trait.zone], percent: trait.percent })) ?? travelProfileRows, [activeTraits]);
-  const summaryCards = useMemo(() => (hasRecords ? previewSummary.populated : previewSummary.empty).map((item) => {
+  const profileRows = useMemo<TravelProfileMetric[]>(() => recordTraits?.traits.map((trait) => ({ label: profileLabelByZone[trait.zone], percent: trait.percent })) ?? [], [recordTraits]);
+  const summaryCards = useMemo(() => Object.values(previewSummary).map((item) => {
     if (!stats) return item;
     return {
       ...item,
       value: item.label === "저장한 코스" ? String(stats.savedCoursesCount) : String(stats.stampsCount),
       detail: "",
     };
-  }), [hasRecords, stats]);
+  }), [stats]);
   const dominantProfile = getDominantTravelProfile(profileRows);
   const dominantProfileTheme = dominantProfile ? getTravelProfileTheme(dominantProfile.label) : null;
+  const travelType = recordTraits?.travelType;
+  const hasRecords = Boolean(recordTraits && recordTraits.totalRecords > 0 && travelType);
   const userName = user?.isGuest ? "심사자" : isGeneratedKakaoNickname(user) ? "여행자" : user?.nickname || "여행자";
 
   return (
@@ -133,13 +130,13 @@ export default function RecordsPage() {
               <CardContent className="grid gap-8 p-[28px] md:p-[23px] lg:grid-cols-[365px_1fr] lg:gap-5">
                 <div>
                   <p className="text-[18px] font-semibold leading-[1.4] tracking-[-0.45px] text-[#111111]">{userName}님은</p>
-                  <p className="mt-2 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">여유롭게 바다를 거닐며 충전하는 여행자</p>
+                  <p className="mt-2 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">{travelType?.description}</p>
                   <div className="mt-[21px] h-[153px] rounded-lg border border-[#f1f1f5] bg-white px-6 pt-9 shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)] md:h-[132px] md:pt-7">
                     <div className="flex items-center justify-center gap-[2px]">
                       <img alt="" aria-hidden="true" className="h-11 w-11 object-contain" src={wavesIcon.src} style={dominantProfileTheme ? { filter: dominantProfileTheme.iconFilter } : undefined} />
                       <img alt="" aria-hidden="true" className="h-11 w-11 object-contain" src={sentimentCalmIcon.src} style={dominantProfileTheme ? { filter: dominantProfileTheme.iconFilter } : undefined} />
                     </div>
-                    <p className="mt-2 text-center text-[14px] font-semibold leading-[1.4] tracking-[-0.35px] text-[#111111]">조용한 바다 산책형</p>
+                    <p className="mt-2 text-center text-[14px] font-semibold leading-[1.4] tracking-[-0.35px] text-[#111111]">{travelType?.title}</p>
                   </div>
                 </div>
 
@@ -163,27 +160,24 @@ export default function RecordsPage() {
           ) : (
             <Card className="mt-[18px] h-[470px] rounded-2xl border-[#f1f1f5] shadow-[0px_2px_6px_-1px_rgba(17,17,17,0.08)] md:h-[249px]">
               <CardContent className="flex h-full flex-col items-center justify-center p-6 text-center">
-                <p className="text-[14px] leading-[1.4] tracking-[-0.35px] text-[#505050]">
-                  완료한 코스를 기반으로 나의 여행 성향이 정해져요.
-                  <br />
-                  코스를 먼저 생성해 주세요.
-                </p>
-                <Link className="mt-3 inline-flex h-8 items-center gap-1 rounded-full bg-[#ff1f4c] px-3 text-[14px] font-semibold leading-[1.4] tracking-[-0.35px] text-white" href="/course/create?step=1">
-                  <Plus className="h-4 w-4" strokeWidth={2.4} />
-                  코스 만들기
-                </Link>
+                {isTraitsLoading ? <p className="text-[14px] leading-[1.4] tracking-[-0.35px] text-[#505050]">나의 여행 성향을 불러오는 중이에요.</p> : null}
+                {traitsError ? <p className="text-[14px] leading-[1.4] tracking-[-0.35px] text-[#f30031]">{traitsError}</p> : null}
+                {!isTraitsLoading && !traitsError ? <>
+                  <p className="text-[14px] leading-[1.4] tracking-[-0.35px] text-[#505050]">
+                    완료한 코스를 기반으로 나의 여행 성향이 정해져요.
+                    <br />
+                    코스를 먼저 생성해 주세요.
+                  </p>
+                  <Link className="mt-3 inline-flex h-8 items-center gap-1 rounded-full bg-[#ff1f4c] px-3 text-[14px] font-semibold leading-[1.4] tracking-[-0.35px] text-white" href="/course/create?step=1">
+                    <Plus className="h-4 w-4" strokeWidth={2.4} />
+                    코스 만들기
+                  </Link>
+                </> : null}
               </CardContent>
             </Card>
           )}
         </section>
       </main>
-
-      <aside aria-label="나의 기록 미리보기 상태" className="fixed bottom-5 right-5 z-40 hidden rounded-xl border border-[#f1f1f5] bg-white p-1 shadow-[0px_2px_10px_rgba(17,17,17,0.12)] md:block">
-        <div className="flex text-[12px] font-semibold tracking-[-0.3px]">
-          <button className={`rounded-lg px-3 py-2 ${!hasRecords ? "bg-[#ffedf1] text-[#ff1f4c]" : "text-[#505050]"}`} onClick={() => setHasRecords(false)} type="button">기본</button>
-          <button className={`rounded-lg px-3 py-2 ${hasRecords ? "bg-[#ffedf1] text-[#ff1f4c]" : "text-[#505050]"}`} onClick={() => setHasRecords(true)} type="button">데이터 있음</button>
-        </div>
-      </aside>
     </MainShell>
   );
 }

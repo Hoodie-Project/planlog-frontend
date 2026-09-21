@@ -11,6 +11,7 @@ type AuthStore = {
   user: AuthUserDto | null;
   loginModalOpen: boolean;
   loginModalReason: LoginModalReason;
+  signOutRedirecting: boolean;
   hydrated: boolean;
   setHydrated: (hydrated: boolean) => void;
   openLoginModal: (reason?: LoginModalReason) => void;
@@ -18,6 +19,7 @@ type AuthStore = {
   signIn: (payload: AuthResponseDto) => void;
   setUser: (user: AuthUserDto | null) => void;
   signOut: () => void;
+  finishSignOutRedirect: () => void;
 };
 
 const defaultAuthState = {
@@ -31,6 +33,7 @@ export const useAuthStore = create<AuthStore>()(
       ...defaultAuthState,
       loginModalOpen: false,
       loginModalReason: "manual",
+      signOutRedirecting: false,
       hydrated: false,
       setHydrated: (hydrated) => set({ hydrated }),
       openLoginModal: (reason = "manual") => set({ loginModalOpen: true, loginModalReason: reason }),
@@ -40,13 +43,16 @@ export const useAuthStore = create<AuthStore>()(
           accessToken,
           user,
           loginModalOpen: false,
+          signOutRedirecting: false,
         }),
       setUser: (user) => set({ user }),
       signOut: () =>
         set({
           ...defaultAuthState,
           loginModalOpen: false,
+          signOutRedirecting: true,
         }),
+      finishSignOutRedirect: () => set({ signOutRedirecting: false }),
     }),
     {
       name: "planlog-auth",

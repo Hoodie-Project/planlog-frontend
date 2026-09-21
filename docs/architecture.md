@@ -30,10 +30,12 @@
    - `sessionStorage` persist로 새로고침/탭 내 이동 복구
    - 로그인 사용자 정보와 액세스 토큰
    - `localStorage` persist 기반 로그인 상태 유지
+   - 로그아웃 시 인증 가드보다 먼저 랜딩으로 이동시키는 일회성 리다이렉트 상태
    - 기록 화면 피그마 검증용 `hasRecords` 미리보기 플래그
    - 심사자 모드
    - 선택된 숙소와 현재 코스
    - `SavedCourseStatus(WAITING | IN_PROGRESS | COMPLETED)`와 코스 저장·시작·완료/리뷰 전환
+   - 추천 결과의 브라우저 뒤로가기는 히스토리 가드로 새 코스 생성 확인 모달을 우선 노출
 3. `TanStack Query`
    - 추천 코스 조회
    - 축제/숙소/장소 상세 조회
@@ -90,6 +92,7 @@ src/
 /course/create?step=4  무드 셀렉터 4단계 및 생성 호출
 /course/result         추천 코스 지도 결과 (코스 생성 API 응답을 우선 표시)
 /course/result/stays   추천 숙소 지도
+/course/result/reviews 추천 코스 SPOT 기반 공개 후기 지도
 /course/saved          저장한 코스
 /course/saved/[id]     저장 코스 상세 및 코스별 완료 스탬프
 /records               나의 기록
@@ -118,6 +121,7 @@ src/
 - `DELETE /api/bookmarks/:id`
 - `GET /api/auth/me/stats`, `GET /api/auth/me/recent-activities`
 - `GET|POST /api/records`, `GET|DELETE /api/records/:id`, `GET /api/records/highlights`, `GET /api/records/traits`
+- `GET /api/course-reviews?contentIds=:commaSeparatedSpotIds` (공개 조회)
 - `GET|PATCH /api/notification-settings`, `GET|POST /api/course-feedback`
 - 신규 탐색 API(역·축제·숙소·캠핑·혼잡도·연관 관광지·반려동물·관광지·매칭)는 `src/app/api/[...path]` 공통 프록시를 통해 same-origin으로 전달
 - `GET /api/bookmarks/upcoming`

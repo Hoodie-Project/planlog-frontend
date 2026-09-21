@@ -15,7 +15,7 @@ export default function HomePage() {
 
   return (
     <MainShell mobileHeaderHidden>
-      <section className="overflow-hidden bg-white">
+      <section className="overflow-x-hidden bg-white">
         <header className="flex h-14 items-center px-8 md:hidden">
           <Link className="text-[16px] font-extrabold tracking-[-0.4px] text-[#111111]" href="/">
             PLANLOG
@@ -41,7 +41,7 @@ export default function HomePage() {
 
           <div className="mt-9 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-3 text-left [scrollbar-width:none] md:mt-[72px] md:grid md:overflow-visible md:px-4 lg:grid-cols-3 lg:px-0">
             {landingPreviews.map((preview) => (
-              <article key={preview.title} className="h-[320px] w-[310px] shrink-0 snap-start rounded-[20px] border border-[#f30031] bg-white px-[25px] pb-4 pt-8 md:h-auto md:w-auto md:px-5 md:pt-5">
+              <article key={preview.title} className="h-[320px] w-full shrink-0 snap-start [scroll-snap-stop:always] rounded-[20px] border border-[#f30031] bg-white px-[25px] pb-4 pt-8 md:h-auto md:w-auto md:px-5 md:pt-5">
                 <h2 className="text-[16px] font-semibold leading-[1.4] tracking-[-0.4px] text-slate-900 md:text-[20px] md:tracking-[-0.5px]">{preview.title}</h2>
                 <div className="mt-[22px] space-y-[10px] text-[14px] leading-[1.4] tracking-[-0.35px] text-slate-900 md:text-[16px] md:tracking-[-0.4px]">
                   {preview.items.map(([time, label, tags]) => (
@@ -81,17 +81,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-[#ffeaee] py-10 md:py-[60px]">
+      <section className="overflow-x-hidden bg-[#ffeaee] py-10 md:py-[60px]">
         <div className="mx-auto max-w-[1240px] px-8 lg:px-0">
           <div className="mb-7 flex flex-wrap items-baseline gap-x-2 gap-y-1">
             <h2 className="text-[24px] font-bold tracking-[-0.6px] text-slate-900">코스 만드는 방법</h2>
             <p className="text-[16px] tracking-[-0.4px] text-slate-600">플랜로그와 함께 여행코스를 만들어보세요</p>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-3 [scrollbar-width:none] md:flex-row md:items-center md:justify-between">
+          <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-3 [scrollbar-width:none] md:flex-row md:items-center md:justify-between">
             {howToMakeCourse.map((item, index) => (
-              <div key={item.title} className="flex shrink-0 items-center gap-3">
+              <div key={item.title} className="flex w-full shrink-0 snap-start [scroll-snap-stop:always] items-center gap-3 md:w-auto">
                 <article
-                  className="h-[138px] w-[200px] rounded-2xl border bg-white px-6 py-6 shadow-[0_2px_3px_rgba(17,17,17,0.08)] md:h-auto md:w-[220px] md:pb-10"
+                  className="h-[138px] w-full rounded-2xl border bg-white px-6 py-6 shadow-[0_2px_3px_rgba(17,17,17,0.08)] md:h-auto md:w-[220px] md:pb-10"
                   style={{ borderColor: item.accent }}
                 >
                   <div className="flex items-center gap-1">

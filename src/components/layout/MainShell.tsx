@@ -20,8 +20,11 @@ export function MainShell({
   const router = useRouter();
   const hydrated = useAuthStore((state) => state.hydrated);
   const accessToken = useAuthStore((state) => state.accessToken);
+  const signOutRedirecting = useAuthStore((state) => state.signOutRedirecting);
   const openLoginModal = useAuthStore((state) => state.openLoginModal);
+  const closeLoginModal = useAuthStore((state) => state.closeLoginModal);
   const signOut = useAuthStore((state) => state.signOut);
+  const finishSignOutRedirect = useAuthStore((state) => state.finishSignOutRedirect);
 
   const navItems = [
     { href: "/", label: "ABOUT", exact: true },
@@ -41,12 +44,23 @@ export function MainShell({
         : null;
 
   useEffect(() => {
+    if (signOutRedirecting) {
+      closeLoginModal();
+
+      if (pathname === "/") {
+        finishSignOutRedirect();
+      } else {
+        router.replace("/");
+      }
+      return;
+    }
+
     if (!hydrated || accessToken || !isProtectedRoute) {
       return;
     }
 
     openLoginModal("protected-route");
-  }, [accessToken, hydrated, isProtectedRoute, openLoginModal]);
+  }, [accessToken, closeLoginModal, finishSignOutRedirect, hydrated, isProtectedRoute, openLoginModal, pathname, router, signOutRedirecting]);
 
   const handleProtectedNavigation = (href: string) => {
     if (!hydrated) {
@@ -95,14 +109,13 @@ export function MainShell({
                 }
 
                 signOut();
-                router.push("/");
               }}
               type="button"
             >
               {accessToken ? "로그아웃" : "로그인"}
             </button>
           </nav>
-          {!accessToken ? <button className="inline-flex h-8 items-center justify-center rounded-full border border-[#f30031] px-3 text-[13px] text-slate-900 md:hidden" onClick={() => router.push("/login")} type="button">로그인</button> : <button className="inline-flex h-8 items-center justify-center rounded-full border border-[#f30031] px-3 text-[13px] text-slate-900 md:hidden" onClick={() => { signOut(); router.push("/"); }} type="button">로그아웃</button>}
+          {!accessToken ? <button className="inline-flex h-8 items-center justify-center rounded-full border border-[#f30031] px-3 text-[13px] text-slate-900 md:hidden" onClick={() => router.push("/login")} type="button">로그인</button> : <button className="inline-flex h-8 items-center justify-center rounded-full border border-[#f30031] px-3 text-[13px] text-slate-900 md:hidden" onClick={signOut} type="button">로그아웃</button>}
         </div>
       </header>
       <main className="flex-1">{children}</main>
