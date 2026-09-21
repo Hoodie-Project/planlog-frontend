@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import kakaoIcon from "@/asset/svgs/카카오톡.svg";
@@ -9,7 +9,7 @@ import { kakaoLogin } from "@/api/auth/kakao-login";
 import { getKakaoAccessToken } from "@/lib/kakao-sdk";
 import { useAuthStore } from "@/store/auth-store";
 
-export default function MobileLoginPage() {
+function MobileLoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const signIn = useAuthStore((state) => state.signIn);
@@ -51,4 +51,8 @@ export default function MobileLoginPage() {
       </section>
     </div>
   </main>;
+}
+
+export default function MobileLoginPage() {
+  return <Suspense fallback={<main className="min-h-screen bg-white" />}><MobileLoginPageContent /></Suspense>;
 }

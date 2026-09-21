@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { GuestLoginForm } from "@/components/auth/GuestLoginForm";
 
-export default function MobileGuestLoginPage() {
+function MobileGuestLoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next");
@@ -25,4 +26,8 @@ export default function MobileGuestLoginPage() {
       </section>
     </div>
   </main>;
+}
+
+export default function MobileGuestLoginPage() {
+  return <Suspense fallback={<main className="min-h-screen bg-white" />}><MobileGuestLoginPageContent /></Suspense>;
 }
