@@ -1,5 +1,5 @@
 import { apiFetch } from "@/api/client";
-import type { CourseZone } from "@/types/course";
+import type { CongestionLevel, CourseZone } from "@/types/course";
 
 export type MeStatsDto = { savedCoursesCount: number; bookmarksCount: number; stampsCount: number; collectedZoneCount: number; totalZoneCount: number; recordsCount: number };
 export type RecentActivityDto = { type: "SAVED_COURSE" | "STAMP" | "RECORD"; title: string; occurredAt: string };
@@ -44,6 +44,8 @@ export const listAccommodations = (query: Record<string, string | number | boole
 export const getAccommodation = (contentId: string) => apiFetch<AccommodationDetailDto>(`/api/accommodations/${encodeURIComponent(contentId)}`);
 export const listCampings = (query: Record<string, string | number | boolean | undefined> = {}) => apiFetch<PlaceDto[]>("/api/campings", { query });
 export const getCongestion = () => apiFetch<{ weekdays: Array<{ weekdayCode: string; weekday: string; index: number; level: string; avgVisitors: number }>; leastBusy: unknown; busiest: unknown }>("/api/congestion");
+export type SpotCongestionForecastDto = { matched: boolean; title: string; sigungu: string | null; days: Array<{ date: string; rate: number; level: CongestionLevel }> };
+export const getSpotCongestion = (query: { zone: CourseZone; title: string; date?: string }) => apiFetch<SpotCongestionForecastDto>("/api/congestion/spot", { query });
 export const listRelatedSpots = (query: Record<string, string | number | boolean | undefined>) => apiFetch<unknown[]>("/api/related-spots", { query });
 export const listPetSpots = (query: Record<string, string | number | boolean | undefined> = {}) => apiFetch<PlaceDto[]>("/api/pet-spots", { query });
 export const getPetSpotInfo = (contentId: string) => apiFetch<unknown>(`/api/pet-spots/${encodeURIComponent(contentId)}/info`);

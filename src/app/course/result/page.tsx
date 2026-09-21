@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/Button";
 import { ApiError } from "@/api/client";
 import { completeSavedCourse, createSavedCourse, getSavedCourse, startSavedCourse } from "@/api/saved-courses";
 import { createStamp, getStampEligibility, listStamps, type StampEligibilityDto } from "@/api/stamps";
-import { createRecord } from "@/api/platform";
+import { createRecord, getSpotCongestion } from "@/api/platform";
 import { StampReviewModal } from "@/components/review/StampReviewModal";
-import type { SavedCourseDto } from "@/types/course";
+import type { CongestionLevel, SavedCourseDto } from "@/types/course";
 import { useAuthStore } from "@/store/auth-store";
 import { useCourseStore } from "@/store/course-store";
 
@@ -48,6 +48,14 @@ function courseMarkerHtml(id: number, selected: boolean, hasSelection: boolean) 
   return `<span style="display:flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:9999px;background:${color};color:#fff;font-weight:700;font-size:${selected ? 22 : 20}px;line-height:1;box-shadow:0 8px 20px rgba(255,31,76,.28)">${id}</span>`;
 }
 
+function congestionLabel(level?: CongestionLevel) {
+  return level === "HIGH" ? "높음" : level === "MEDIUM" ? "보통" : "낮음";
+}
+
+function congestionTone(level?: CongestionLevel) {
+  return level === "HIGH" ? "text-[#ff1f4c]" : level === "MEDIUM" ? "text-[#ff8a00]" : "text-[#48a600]";
+}
+
 export default function CourseResultPage() {
   const generatedCourse = useCourseStore((state) => state.generatedCourse);
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -67,28 +75,62 @@ export default function CourseResultPage() {
   const [stampedContentIds, setStampedContentIds] = useState<Set<string>>(new Set());
   const [stampReview, setStampReview] = useState<{ stampId: string; place: CourseMapPlace } | null>(null);
   const [stampReviewSaving, setStampReviewSaving] = useState(false);
+  const [spotCongestion, setSpotCongestion] = useState<Map<string, CongestionLevel>>(new Map());
+
+  useEffect(() => {
+    const items = generatedCourse?.days.flatMap((day) => day.items) ?? [];
+    if (items.length === 0) {
+      setSpotCongestion(new Map());
+      return;
+    }
+
+    let cancelled = false;
+    const date = generatedCourse?.congestion?.date;
+
+    Promise.all(
+      items.map((item) =>
+        getSpotCongestion({ zone: item.zone ?? generatedCourse?.zone ?? "SEA", title: item.title, date })
+          .then((forecast) => [item.contentId, forecast.matched ? forecast.days[0]?.level : undefined] as const)
+          .catch(() => [item.contentId, undefined] as const)
+      )
+    ).then((entries) => {
+      if (cancelled) return;
+      const map = new Map<string, CongestionLevel>();
+      for (const [contentId, level] of entries) {
+        if (level) map.set(contentId, level);
+      }
+      setSpotCongestion(map);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [generatedCourse]);
 
   const places = useMemo<CourseMapPlace[]>(() => {
     const items = generatedCourse?.days.flatMap((day) => day.items) ?? [];
 
-    return items.map((item, index) => ({
-      id: index + 1,
-      contentId: item.contentId,
-      zone: item.zone ?? generatedCourse?.zone ?? "SEA",
-      name: item.title,
-      time: item.arriveTime,
-      tags: [`#${generatedCourse?.zoneLabel ?? "추천"}`, `#${item.type === "MEAL" ? "식사" : item.type === "STAY" ? "숙소" : "추천 장소"}`],
-      address: item.address ?? "주소 정보가 준비 중입니다.",
-      status: "추천 장소",
-      hours: `예상 체류 ${item.stayMinutes}분`,
-      congestion: generatedCourse?.congestion?.level === "HIGH" ? "높음" : generatedCourse?.congestion?.level === "MEDIUM" ? "보통" : "낮음",
-      congestionTone: generatedCourse?.congestion?.level === "HIGH" ? "text-[#ff1f4c]" : generatedCourse?.congestion?.level === "MEDIUM" ? "text-[#ff8a00]" : "text-[#48a600]",
-      image: item.image ?? "",
-      travelMinutesFromPrev: item.travelMinutesFromPrev,
-      lat: toNumber(item.mapY),
-      lng: toNumber(item.mapX),
-    }));
-  }, [generatedCourse]);
+    return items.map((item, index) => {
+      const level = spotCongestion.get(item.contentId) ?? generatedCourse?.congestion?.level;
+      return {
+        id: index + 1,
+        contentId: item.contentId,
+        zone: item.zone ?? generatedCourse?.zone ?? "SEA",
+        name: item.title,
+        time: item.arriveTime,
+        tags: [`#${generatedCourse?.zoneLabel ?? "추천"}`, `#${item.type === "MEAL" ? "식사" : item.type === "STAY" ? "숙소" : "추천 장소"}`],
+        address: item.address ?? "주소 정보가 준비 중입니다.",
+        status: "추천 장소",
+        hours: `예상 체류 ${item.stayMinutes}분`,
+        congestion: congestionLabel(level),
+        congestionTone: congestionTone(level),
+        image: item.image ?? "",
+        travelMinutesFromPrev: item.travelMinutesFromPrev,
+        lat: toNumber(item.mapY),
+        lng: toNumber(item.mapX),
+      };
+    });
+  }, [generatedCourse, spotCongestion]);
 
   const mappablePlaces = places.filter((place): place is CourseMapPlace & { lat: number; lng: number } => place.lat !== undefined && place.lng !== undefined);
   const hasSelectedPlace = selectedPlaceId !== null;
