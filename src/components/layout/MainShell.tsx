@@ -102,6 +102,7 @@ export function MainShell({
               {accessToken ? "로그아웃" : "로그인"}
             </button>
           </nav>
+          {!accessToken ? <button className="inline-flex h-8 items-center justify-center rounded-full border border-[#f30031] px-3 text-[13px] text-slate-900 md:hidden" onClick={() => router.push("/login")} type="button">로그인</button> : <button className="inline-flex h-8 items-center justify-center rounded-full border border-[#f30031] px-3 text-[13px] text-slate-900 md:hidden" onClick={() => { signOut(); router.push("/"); }} type="button">로그아웃</button>}
         </div>
       </header>
       <main className="flex-1">{children}</main>
