@@ -1,12 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { proxyAuthRequest } from "@/app/api/auth/_utils";
 
 const guestPaths = ["/api/auth/guest"] as const;
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
+    const body = await request.text();
     const { response, upstreamUrl } = await proxyAuthRequest(guestPaths, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body,
     });
 
     const text = await response.text();

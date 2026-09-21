@@ -21,7 +21,7 @@ export function GuestLoginForm({ onSuccess }: { onSuccess: () => void }) {
     try {
       setIsSubmitting(true);
       setErrorMessage(null);
-      const response = await guestLogin();
+      const response = await guestLogin({ guestId: guestId.trim(), password });
       signIn(response);
       onSuccess();
     } catch (error) {
