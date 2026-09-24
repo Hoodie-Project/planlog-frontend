@@ -3,11 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import coffeeIcon from "@/asset/svgs/coffee.svg";
+import coffeeStampIcon from "@/asset/svgs/completed-stamp-coffee.svg";
 import completedStampIcon from "@/asset/svgs/completed-stamp.svg";
 import mountainStampIcon from "@/asset/svgs/completed-stamp-mountain.svg";
 import natureStampIcon from "@/asset/svgs/completed-stamp-nature.svg";
-import photoCameraIcon from "@/asset/svgs/photo-camera.svg";
+import photoStampIcon from "@/asset/svgs/completed-stamp-photo.svg";
 import { StampReviewModal } from "@/components/review/StampReviewModal";
 import { MainShell } from "@/components/layout/MainShell";
 import { listStamps, type StampDto } from "@/api/stamps";
@@ -23,8 +23,8 @@ const themeStyle: Record<StampTheme, { background: string; text: string; icon: s
   바다: { background: "#e8ecff", text: "#5874ff", icon: completedStampIcon.src },
   산악: { background: "#efdff7", text: "#c548ff", icon: mountainStampIcon.src },
   자연: { background: "#d5f0e3", text: "#58cf48", icon: natureStampIcon.src },
-  문화: { background: "#fff0df", text: "#ffa448", icon: coffeeIcon.src },
-  포토: { background: "#ffdfdf", text: "#ff5858", icon: photoCameraIcon.src },
+  문화: { background: "#fff0df", text: "#ffa448", icon: coffeeStampIcon.src },
+  포토: { background: "#ffdfdf", text: "#ff5858", icon: photoStampIcon.src },
 };
 
 type StampItem = { id: string; theme: StampTheme; place: string; date: string; emotion: string; review: string };

@@ -15,8 +15,9 @@ type MappableSpot = {
 
 const fallbackCenter = { lat: 37.7519, lng: 128.8761 };
 
-function markerHtml(id: number) {
-  return `<span style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9999px;background:#ff1f4c;color:#fff;font-weight:700;font-size:20px;line-height:1;box-shadow:0 8px 20px rgba(255,31,76,.28)">${id}</span>`;
+function markerHtml(id: number, selected: boolean) {
+  const size = selected ? 48 : 36;
+  return `<span style="display:flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:9999px;background:#ff1f4c;color:#fff;font-weight:700;font-size:${selected ? 22 : 20}px;line-height:1;box-shadow:0 8px 20px rgba(255,31,76,.28)">${id}</span>`;
 }
 
 function formatVisitedAt(value: string) {
@@ -25,7 +26,11 @@ function formatVisitedAt(value: string) {
   return `${String(date.getFullYear()).slice(-2)}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
 }
 
-function ReviewSidePanel({ summary, isLoading, error }: { summary: CourseReviewSummaryDto | null; isLoading: boolean; error: string | null }) {
+function ReviewSidePanel({ summary, isLoading, error, selectedSpot, onClearSpot }: { summary: CourseReviewSummaryDto | null; isLoading: boolean; error: string | null; selectedSpot: MappableSpot | null; onClearSpot: () => void }) {
+  const visibleReviews = selectedSpot && summary
+    ? summary.reviews.filter((review) => review.contentId === selectedSpot.contentId)
+    : summary?.reviews ?? [];
+
   return (
     <div className="flex h-full flex-col px-5 pb-8 pt-6">
       <div>
@@ -54,12 +59,12 @@ function ReviewSidePanel({ summary, isLoading, error }: { summary: CourseReviewS
 
           <section className="mt-5 min-h-0 flex-1 overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#e5e5ec] pb-3">
-              <h2 className="text-[14px] font-bold tracking-[-0.35px] text-[#111111]">장소별 후기 보기</h2>
-              <span className="text-[12px] text-[#505050]">총 {summary.totalCount}개</span>
+              <h2 className="text-[14px] font-bold tracking-[-0.35px] text-[#111111]">{selectedSpot ? `${selectedSpot.title} 후기` : "장소별 후기 보기"}</h2>
+              <div className="flex items-center gap-2"><span className="text-[12px] text-[#505050]">총 {visibleReviews.length}개</span>{selectedSpot ? <button className="text-[12px] font-semibold text-[#ff1f4c]" onClick={onClearSpot} type="button">전체 보기</button> : null}</div>
             </div>
-            {summary.reviews.length ? (
+            {visibleReviews.length ? (
               <ul>
-                {summary.reviews.map((review, index) => (
+                {visibleReviews.map((review, index) => (
                   <li className="border-b border-[#f1f1f5] py-4" key={`${review.contentId}-${review.visitedAt}-${index}`}>
                     <div className="flex items-start justify-between gap-3"><h3 className="text-[14px] font-bold leading-[1.4] text-[#111111]">{review.title}</h3><time className="shrink-0 text-[12px] text-[#505050]">{formatVisitedAt(review.visitedAt)}</time></div>
                     <p className="mt-2 line-clamp-2 text-[13px] leading-[1.5] tracking-[-0.3px] text-[#505050]">{review.note}</p>
@@ -67,7 +72,7 @@ function ReviewSidePanel({ summary, isLoading, error }: { summary: CourseReviewS
                   </li>
                 ))}
               </ul>
-            ) : <p className="py-10 text-center text-[14px] text-[#767676]">이 코스에 등록된 후기가 없어요.</p>}
+            ) : <p className="py-10 text-center text-[14px] text-[#767676]">{selectedSpot ? "이 장소에 등록된 후기가 없어요." : "이 코스에 등록된 후기가 없어요."}</p>}
           </section>
         </>
       ) : null}
@@ -80,21 +85,22 @@ export default function CourseReviewsPage() {
   const [summary, setSummary] = useState<CourseReviewSummaryDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedContentId, setSelectedContentId] = useState<string | null>(null);
 
-  const spotItems = useMemo(
-    () => generatedCourse?.days.flatMap((day) => day.items.filter((item) => item.type === "SPOT")) ?? [],
+  const courseItems = useMemo(
+    () => generatedCourse?.days.flatMap((day) => day.items) ?? [],
     [generatedCourse],
   );
   const spots = useMemo<MappableSpot[]>(() => {
-    return spotItems.flatMap((item, index) => {
+    return courseItems.flatMap((item, index) => {
       const lat = Number(item.mapY);
       const lng = Number(item.mapX);
       return Number.isFinite(lat) && Number.isFinite(lng) ? [{ id: index + 1, contentId: item.contentId, title: item.title, lat, lng }] : [];
     });
-  }, [spotItems]);
+  }, [courseItems]);
   const contentIds = useMemo(
-    () => Array.from(new Set(spotItems.map((item) => item.contentId).filter(Boolean))),
-    [spotItems],
+    () => Array.from(new Set(courseItems.map((item) => item.contentId).filter(Boolean))),
+    [courseItems],
   );
 
   useEffect(() => {
@@ -126,9 +132,10 @@ export default function CourseReviewsPage() {
     };
   }, [contentIds]);
 
+  const selectedSpot = spots.find((spot) => spot.contentId === selectedContentId) ?? null;
   const mapCenter = spots[0] ? { lat: spots[0].lat, lng: spots[0].lng } : fallbackCenter;
-  const markers = spots.map((spot) => ({ id: spot.id, lat: spot.lat, lng: spot.lng, html: markerHtml(spot.id), anchor: 18 }));
-  const panel = <ReviewSidePanel error={error} isLoading={isLoading} summary={summary} />;
+  const markers = spots.map((spot) => ({ id: spot.id, lat: spot.lat, lng: spot.lng, html: markerHtml(spot.id, spot.contentId === selectedContentId), anchor: spot.contentId === selectedContentId ? 24 : 18 }));
+  const panel = <ReviewSidePanel error={error} isLoading={isLoading} onClearSpot={() => setSelectedContentId(null)} selectedSpot={selectedSpot} summary={summary} />;
 
-  return <CourseMapLayout center={mapCenter} fitBounds={spots.length > 1} markers={markers} mobileSummary={<div><h2 className="text-[20px] font-bold tracking-[-0.5px] text-[#111111]">코스 후기</h2><p className="mt-2 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#505050]">총 {summary?.totalCount ?? 0}개의 후기를 확인해 보세요.</p></div>} panel={panel} path={spots.map(({ lat, lng }) => ({ lat, lng }))} />;
+  return <CourseMapLayout center={mapCenter} fitBounds={!selectedSpot && spots.length > 1} focus={selectedSpot ? { lat: selectedSpot.lat, lng: selectedSpot.lng } : null} markers={markers} mobileSummary={<div><h2 className="text-[20px] font-bold tracking-[-0.5px] text-[#111111]">코스 후기</h2><p className="mt-2 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#505050]">총 {summary?.totalCount ?? 0}개의 후기를 확인해 보세요.</p></div>} onMarkerClick={(markerId) => setSelectedContentId(spots.find((spot) => spot.id === markerId)?.contentId ?? null)} panel={panel} path={spots.map(({ lat, lng }) => ({ lat, lng }))} />;
 }

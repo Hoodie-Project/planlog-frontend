@@ -98,15 +98,13 @@ export function FestivalCarousel() {
   if (festivals.length === 0) return <p className="py-10 text-center text-[14px] text-slate-500">이번 주에 열리는 축제가 없어요.</p>;
 
   return <div className="relative">
-    <div className="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-10 bg-gradient-to-r from-white md:block" />
-    <div className="pointer-events-none absolute inset-y-0 right-0 z-10 hidden w-10 bg-gradient-to-l from-white md:block" />
     <div className="flex justify-end gap-2 pb-3">
       <button aria-label="이전 축제 보기" className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#e5e5ec] bg-white text-[#505050] shadow-sm transition hover:border-[#f30031] hover:text-[#f30031]" onClick={() => moveCarousel("previous")} type="button"><ChevronLeft className="h-5 w-5" /></button>
       <button aria-label="다음 축제 보기" className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#e5e5ec] bg-white text-[#505050] shadow-sm transition hover:border-[#f30031] hover:text-[#f30031]" onClick={() => moveCarousel("next")} type="button"><ChevronRight className="h-5 w-5" /></button>
     </div>
-    <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 [scrollbar-width:none]" ref={carouselRef}>
+    <div className="-mx-2 -my-2 flex snap-x snap-mandatory gap-4 overflow-x-auto px-2 pb-5 pt-2 [scrollbar-width:none]" ref={carouselRef}>
       {festivals.map((festival) => (
-        <article className="flex min-w-full snap-start [scroll-snap-stop:always] items-center gap-3 rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_2px_6px_rgba(17,17,17,0.08)] md:min-w-[calc((100%-32px)/3)]" key={festival.contentId}>
+        <article className="flex min-w-full shrink-0 snap-start [scroll-snap-stop:always] items-center gap-3 rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_2px_6px_rgba(17,17,17,0.08)] md:min-w-0 md:basis-[calc((100%_-_32px)_/_3)]" key={festival.contentId}>
           <FestivalImage festival={festival} />
           <div className="min-w-0">
             <span className="inline-flex h-6 items-center rounded-full bg-slate-100 px-3 text-[12px] font-semibold text-slate-600">{festival.zone ? zoneLabels[festival.zone] ?? "축제" : "축제"}</span>

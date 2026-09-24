@@ -87,11 +87,11 @@ export default function HomePage() {
             <h2 className="text-[24px] font-bold tracking-[-0.6px] text-slate-900">코스 만드는 방법</h2>
             <p className="text-[16px] tracking-[-0.4px] text-slate-600">플랜로그와 함께 여행코스를 만들어보세요</p>
           </div>
-          <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-3 [scrollbar-width:none] md:flex-row md:items-center md:justify-between">
+          <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-3 [scrollbar-width:none] xl:flex-row xl:items-center xl:justify-between xl:overflow-visible xl:pb-0">
             {howToMakeCourse.map((item, index) => (
-              <div key={item.title} className="flex w-full shrink-0 snap-start [scroll-snap-stop:always] items-center gap-3 md:w-auto">
+              <div key={item.title} className="flex w-full shrink-0 snap-start [scroll-snap-stop:always] items-center gap-3 xl:w-auto">
                 <article
-                  className="h-[138px] w-full rounded-2xl border bg-white px-6 py-6 shadow-[0_2px_3px_rgba(17,17,17,0.08)] md:h-auto md:w-[220px] md:pb-10"
+                  className="h-[138px] w-full rounded-2xl border bg-white px-6 py-6 shadow-[0_2px_3px_rgba(17,17,17,0.08)] md:h-auto xl:w-[216px] xl:pb-10"
                   style={{ borderColor: item.accent }}
                 >
                   <div className="flex items-center gap-1">
@@ -105,7 +105,7 @@ export default function HomePage() {
                 {index < howToMakeCourse.length - 1 ? (
                   <span
                     aria-hidden="true"
-                    className="hidden h-[2px] w-3 shrink-0 rounded-full md:block"
+                    className="hidden h-[2px] w-3 shrink-0 rounded-full xl:block"
                     style={{ backgroundColor: item.accent }}
                   />
                 ) : null}
