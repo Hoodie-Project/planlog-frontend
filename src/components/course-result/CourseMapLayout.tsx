@@ -52,7 +52,7 @@ export function CourseMapLayout({ panel, mobileSummary, center, markers, path, m
               })}
             </div>
           </aside>
-          <aside className="relative z-10 hidden h-full w-[350px] shrink-0 overflow-hidden border-r border-[#e8e8ee] bg-white xl:block">{panel}</aside>
+          <aside className="relative z-10 hidden h-full w-[350px] shrink-0 overflow-x-hidden overflow-y-auto border-r border-[#e8e8ee] bg-white xl:block">{panel}</aside>
           <div className="relative h-full flex-1 overflow-hidden">
             <NaverMap center={center} className="absolute inset-0" fitBounds={fitBounds} focus={focus} markers={markers} onMarkerClick={onMarkerClick} path={path} />
             {mapOverlay}

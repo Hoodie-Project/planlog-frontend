@@ -49,7 +49,7 @@ export function toCreateCourseRequest(preferences: CoursePreferenceInput): Creat
     zone: moodToZoneMap[preferences.mood],
     transport: transportModeToTransportMap[preferences.transportMode],
     style: tripStyleToStyleMap[preferences.tripStyle],
-    nights: 0,
+    nights: preferences.nights,
     spotCount: 3,
     travelDate: preferences.arrivalDate,
     startTime: preferences.arrivalTime,

@@ -34,6 +34,7 @@ const defaultPreferences: CoursePreferenceDraft = {
   tripStyle: "",
   arrivalDate: "",
   arrivalTime: "",
+  nights: 0,
   transportMode: "",
   originLabel: "",
 };
@@ -55,6 +56,7 @@ export const useCourseStore = create<CourseStore>()(
         set((state) => ({
           preferences: {
             ...state.preferences,
+            nights: state.preferences.nights ?? 0,
             ...payload,
           },
         })),

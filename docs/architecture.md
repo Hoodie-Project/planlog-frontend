@@ -7,6 +7,7 @@
 - 스타일: Tailwind CSS
 - UI 컴포넌트: shadcn/ui 스타일의 로컬 컴포넌트
 - 모바일 전역 메뉴: `MainShell`이 `MobileBottomNavigation`을 렌더링해 모든 화면에서 코스 만들기·추천 코스·나의 기록 메뉴의 활성 상태와 여백을 통일
+- 지도형 추천 코스 화면의 데스크톱 사이드바는 뷰포트 높이를 유지하고, 긴 일정은 사이드바 내부에서 세로 스크롤한다. 상단에는 전체 코스의 혼잡도, 이동수단별 거리, 코스 소요시간을 함께 표시한다.
 - 서버 상태: TanStack Query
 - 클라이언트 상태: Zustand
 - 폼: React Hook Form + Zod
@@ -15,8 +16,8 @@
 
 ### 입력
 
-- 사용자 선택: 감성, 여행 타입, 날짜/시간, 출발 방식, 출발 지점
-- 사용자 액션: 코스 저장, 숙소 선택, 스탬프 획득, 기록 저장
+- 사용자 선택: 감성, 여행 타입, 날짜/시간, 여행 기간, 출발 방식, 출발 지점
+- 사용자 액션: 코스 저장, 숙소 변경, 스탬프 획득, 기록 저장
 - 시스템 입력: 로그인 상태, 위치 권한, 심사자 모드, API 응답
 
 ### 처리
@@ -54,7 +55,7 @@
 
 - 랜딩, 코스 결과, 코스 상세, 장소 상세, 저장한 코스, 나의 기록, 마이페이지
 - 모바일 전용 Active Trip과 Stamp Complete
-- 로그인 모달, 장소 변경 확인 모달, 숙소 선택 확인 모달
+- 로그인 모달, 장소 변경 확인 모달, 숙소 변경 확인 모달
 - 보호 라우트 진입 시 로그인 모달 가드
 
 ## 3. 폴더 구조
@@ -126,7 +127,7 @@ src/
 - 신규 탐색 API(역·축제·숙소·캠핑·혼잡도·연관 관광지·반려동물·관광지·매칭)는 `src/app/api/[...path]` 공통 프록시를 통해 same-origin으로 전달
 - `GET /api/bookmarks/upcoming`
 
-추천 코스 일정 목록은 시작·종료 지점을 강조하는 체크 배지와 장소별 이동 시간을 표시하며, `숙소 추가하기`는 `/course/result/stays`로 이동한다.
+추천 코스 일정 목록은 일자별 헤더와 장소별 이동 시간을 표시하고, 생성 응답의 `STAY` 항목을 함께 렌더링한다. 추천 숙소의 변경 확인 후에는 기존 `STAY`의 `day`·`order`를 포함해 저장 코스 항목 교체 API를 호출하며, `숙소 추가하기` 버튼은 노출하지 않는다.
 
 장소별 스탬프 수령 후 리뷰는 `POST /api/records`에 해당 스탬프 ID를 `stampIds`로 전달해 기록과 연결한다.
 
@@ -138,6 +139,7 @@ src/
 - tripStyle
 - arrivalDate
 - arrivalTime
+- nights (`0`: 당일치기, `1`: 1박 2일)
 - transportMode
 - originLabel
 
@@ -160,6 +162,7 @@ src/
 - title
 - summaryTags
 - timeline[]
+- days[] (`day`, optional `date`, `items[]`; 1박 2일 생성 시 비마지막 일자의 `STAY` 포함)
 - stats
 - recommendationReasons[]
 - accommodations[]

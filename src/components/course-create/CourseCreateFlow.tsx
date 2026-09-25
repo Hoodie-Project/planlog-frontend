@@ -392,7 +392,7 @@ export function CourseCreateFlow() {
                     </p>
                   </div>
 
-                  <div className="relative h-[190px] w-full">
+                  <div className="relative h-[290px] w-full">
                     <div className="absolute left-0 right-0 top-0">
                       <p className="text-[14px] font-bold leading-[1.4] tracking-[-0.35px] text-[#111]">여행지 도착 날짜</p>
                       <button
@@ -423,6 +423,32 @@ export function CourseCreateFlow() {
                           {arrivalTimeValue?.isValid() ? arrivalTimeValue.locale("ko").format("A hh:mm") : "시간을 선택해 주세요."}
                         </span>
                       </button>
+                    </div>
+
+                    <div className="absolute left-0 right-0 top-[216px]">
+                      <p className="text-[14px] font-bold leading-[1.4] tracking-[-0.35px] text-[#111]">여행 기간</p>
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        {([
+                          { value: 0, label: "당일치기", description: "하루 동안 떠나요" },
+                          { value: 1, label: "1박 2일", description: "여유롭게 머물러요" },
+                        ] as const).map((option) => {
+                          const active = (preferences.nights ?? 0) === option.value;
+
+                          return (
+                            <button
+                              key={option.value}
+                              className={`flex h-[68px] flex-col justify-center rounded-2xl border px-5 text-left transition-colors ${
+                                active ? "border-[#ff1f4c] bg-[#fff7f8]" : "border-[#f1f1f5] bg-white"
+                              }`}
+                              onClick={() => updatePreferences({ nights: option.value })}
+                              type="button"
+                            >
+                              <span className={`text-[15px] font-bold tracking-[-0.35px] ${active ? "text-[#ff1f4c]" : "text-[#111]"}`}>{option.label}</span>
+                              <span className="mt-1 text-[12px] tracking-[-0.3px] text-[#777]">{option.description}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
 
                     <DatePicker

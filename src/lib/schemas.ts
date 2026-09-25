@@ -40,6 +40,7 @@ const coursePreferenceFields = {
   tripStyle: z.string().min(1, "여행 타입을 선택해 주세요."),
   arrivalDate: z.string().min(1, "도착 날짜를 입력해 주세요.").refine(isArrivalDateTodayOrLater, "도착 날짜는 오늘부터 선택할 수 있어요."),
   arrivalTime: z.string().min(1, "도착 시간을 입력해 주세요."),
+  nights: z.union([z.literal(0), z.literal(1)], { message: "여행 기간을 선택해 주세요." }),
   transportMode: z.enum(["역에서 시작", "터미널에서 시작", "자동차로 이동"]),
   originLabel: z.string().min(1, "시작 지점을 입력해 주세요."),
 };
@@ -54,7 +55,7 @@ export const coursePreferenceSchema = z.object(coursePreferenceFields).superRefi
 
 export const courseStep1Schema = z.object({ mood: coursePreferenceFields.mood });
 export const courseStep2Schema = z.object({ tripStyle: coursePreferenceFields.tripStyle });
-export const courseStep3Schema = z.object({ arrivalDate: coursePreferenceFields.arrivalDate, arrivalTime: coursePreferenceFields.arrivalTime }).superRefine(validateTodayArrivalTime);
+export const courseStep3Schema = z.object({ arrivalDate: coursePreferenceFields.arrivalDate, arrivalTime: coursePreferenceFields.arrivalTime, nights: coursePreferenceFields.nights }).superRefine(validateTodayArrivalTime);
 export const courseStep4Schema = z.object({ transportMode: coursePreferenceFields.transportMode, originLabel: coursePreferenceFields.originLabel });
 
 export type CoursePreferenceInput = z.infer<typeof coursePreferenceSchema>;
@@ -63,6 +64,7 @@ export type CoursePreferenceDraft = {
   tripStyle: string;
   arrivalDate: string;
   arrivalTime: string;
+  nights: 0 | 1;
   transportMode: string;
   originLabel: string;
 };

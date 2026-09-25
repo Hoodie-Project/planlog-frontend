@@ -36,6 +36,7 @@ export type CourseItemDto = {
 
 export type CourseDayDto = {
   day: number;
+  date?: string;
   summary: string;
   distance: number;
   travelMinutes: number;

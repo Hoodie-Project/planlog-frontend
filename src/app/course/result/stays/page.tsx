@@ -63,7 +63,7 @@ function StayDetailPanel({ detail, detailError, isLoading, stay, onClose, onSele
       <div className="flex items-center justify-between px-6 py-5"><ChevronLeft className="h-6 w-6" strokeWidth={1.8} /><button aria-label="숙소 상세 닫기" onClick={onClose} type="button"><X className="h-6 w-6" strokeWidth={1.8} /></button></div>
       <div className="px-6 pb-8">
         <h2 className="text-[24px] font-bold tracking-[-0.6px] text-[#111111]">{accommodation.title}</h2>
-        <div className="mt-4 flex gap-2"><button className="h-9 rounded-full border border-[#ff1f4c] px-4 text-[14px] font-semibold text-[#111111]" onClick={onSelect} type="button">숙소 선택하기</button>{homepage ? <a className="inline-flex h-9 items-center rounded-full border border-[#ff1f4c] px-4 text-[14px] font-semibold text-[#111111]" href={homepage} rel="noreferrer" target="_blank">홈페이지</a> : image ? <a className="inline-flex h-9 items-center rounded-full border border-[#ff1f4c] px-4 text-[14px] font-semibold text-[#111111]" href={image} rel="noreferrer" target="_blank">이미지 보기</a> : null}</div>
+        <div className="mt-4 flex gap-2"><button className="h-9 rounded-full border border-[#ff1f4c] px-4 text-[14px] font-semibold text-[#111111]" onClick={onSelect} type="button">숙소 변경하기</button>{homepage ? <a className="inline-flex h-9 items-center rounded-full border border-[#ff1f4c] px-4 text-[14px] font-semibold text-[#111111]" href={homepage} rel="noreferrer" target="_blank">홈페이지</a> : image ? <a className="inline-flex h-9 items-center rounded-full border border-[#ff1f4c] px-4 text-[14px] font-semibold text-[#111111]" href={image} rel="noreferrer" target="_blank">이미지 보기</a> : null}</div>
         {isLoading ? <p className="mt-5 text-[13px] text-[#777]">숙소 상세 정보를 불러오는 중이에요.</p> : null}
         {detailError ? <p className="mt-5 text-[13px] text-[#f30031]">{detailError}</p> : null}
         <div className="mt-6 space-y-2 text-[14px] leading-[1.5] tracking-[-0.35px] text-[#505050]">
@@ -99,11 +99,9 @@ export default function CourseStayPage() {
   const [selectedStayDetail, setSelectedStayDetail] = useState<AccommodationDetailDto | null>(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
-  const [selectionStep, setSelectionStep] = useState<"confirm" | "form" | null>(null);
-  const [stayName, setStayName] = useState("");
-  const [stayAddress, setStayAddress] = useState("");
+  const [selectionStep, setSelectionStep] = useState<"confirm" | null>(null);
   const [selectionError, setSelectionError] = useState<string | null>(null);
-  const [isAddingStay, setIsAddingStay] = useState(false);
+  const [isChangingStay, setIsChangingStay] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -137,6 +135,10 @@ export default function CourseStayPage() {
   );
   const center = mappableStays[0] ? { lat: Number(mappableStays[0].mapY), lng: Number(mappableStays[0].mapX) } : defaultCenter;
   const selectedStay = stays.find((stay) => stay.contentId === selectedStayId) ?? null;
+  const currentStayItem = useMemo(
+    () => generatedCourse?.days.flatMap((day) => day.items.map((item) => ({ day: day.day, item }))).find(({ item }) => item.type === "STAY") ?? null,
+    [generatedCourse]
+  );
 
   useEffect(() => {
     let isActive = true;
@@ -200,33 +202,29 @@ export default function CourseStayPage() {
     setSelectionStep("confirm");
   };
 
-  const openStayForm = () => {
-    if (!selectedStay) return;
-    setStayName(selectedStay.title);
-    setStayAddress(selectedStay.address ?? "");
-    setSelectionError(null);
-    setSelectionStep("form");
-  };
-
-  const addStayToCourse = async () => {
-    if (!accessToken || !selectedStay || !generatedCourse || isAddingStay) return;
-    if (!stayName.trim() || !stayAddress.trim()) return;
+  const changeStayInCourse = async () => {
+    if (!accessToken || !selectedStay || !generatedCourse || isChangingStay) return;
     if (!selectedStay.mapX || !selectedStay.mapY) {
-      setSelectionError("이 숙소의 지도 좌표 정보가 없어 추가할 수 없어요.");
+      setSelectionError("이 숙소의 지도 좌표 정보가 없어 변경할 수 없어요.");
+      return;
+    }
+    if (!currentStayItem) {
+      setSelectionError("변경할 숙소가 아직 코스에 없어요. 1박 2일 코스를 먼저 생성해 주세요.");
       return;
     }
 
     try {
-      setIsAddingStay(true);
+      setIsChangingStay(true);
       const courseId = activeSavedCourseId ?? (await createSavedCourse(accessToken, generatedCourse)).id;
       const updatedCourse = await replaceSavedCourseItem(accessToken, courseId, {
-        day: 1,
+        day: currentStayItem.day,
+        order: currentStayItem.item.order,
         type: "STAY",
         contentId: selectedStay.contentId,
-        title: stayName.trim(),
+        title: selectedStay.title,
         mapX: selectedStay.mapX,
         mapY: selectedStay.mapY,
-        address: stayAddress.trim(),
+        address: selectedStay.address ?? undefined,
         image: selectedStay.image ?? undefined,
         zone: generatedCourse.zone,
       });
@@ -234,9 +232,9 @@ export default function CourseStayPage() {
       setActiveSavedCourseId(updatedCourse.id);
       router.push("/course/result");
     } catch (requestError) {
-      setSelectionError(requestError instanceof Error ? requestError.message : "숙소를 코스에 추가하지 못했어요.");
+      setSelectionError(requestError instanceof Error ? requestError.message : "숙소를 변경하지 못했어요.");
     } finally {
-      setIsAddingStay(false);
+      setIsChangingStay(false);
     }
   };
 
@@ -255,17 +253,10 @@ export default function CourseStayPage() {
 
   return <>
     <CourseMapLayout center={center} focus={selectedStay ? { lat: Number(selectedStay.mapY), lng: Number(selectedStay.mapX) } : center} mapOverlay={selectedStay ? <StayDetailPanel detail={selectedStayDetail} detailError={detailError} isLoading={isDetailLoading} onClose={() => setSelectedStayId(null)} onSelect={openStayConfirmation} stay={selectedStay} /> : null} markers={markers} mobileSummary={<div><h2 className="text-[20px] font-bold tracking-[-0.5px] text-[#111111]">추천 숙소</h2><p className="mt-2 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#505050]">{isLoading ? "추천 숙소를 불러오는 중이에요." : "코스와 가까운 숙소를 확인해 보세요!"}</p></div>} onMarkerClick={selectStayByMarkerId} panel={content} />
-    {selectionStep === "confirm" ? <StaySelectionConfirm onCancel={() => setSelectionStep(null)} onConfirm={openStayForm} /> : null}
-    {selectionStep === "form" ? <StaySelectionForm address={stayAddress} error={selectionError} isSubmitting={isAddingStay} name={stayName} onAddressChange={setStayAddress} onCancel={() => setSelectionStep(null)} onNameChange={setStayName} onSubmit={addStayToCourse} /> : null}
+    {selectionStep === "confirm" ? <StaySelectionConfirm error={selectionError} isSubmitting={isChangingStay} onCancel={() => setSelectionStep(null)} onConfirm={changeStayInCourse} /> : null}
   </>;
 }
 
-function StaySelectionConfirm({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: () => void }) {
-  return <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/20 px-4 backdrop-blur-[5px]" onClick={onCancel}><section aria-modal="true" className="w-full max-w-[390px] rounded-2xl bg-white px-10 py-9 text-center shadow-xl" onClick={(event) => event.stopPropagation()} role="dialog"><h2 className="text-[18px] font-bold tracking-[-0.45px] text-[#111111]">숙소를 추가하시나요?</h2><p className="mt-3 text-[14px] tracking-[-0.35px] text-[#505050]">선택한 숙소가 코스에 추가됩니다.</p><div className="mt-6 flex gap-3"><button className="h-12 flex-1 rounded-2xl border border-[#d4d4d4] text-[15px] font-semibold" onClick={onCancel} type="button">아니요</button><button className="h-12 flex-1 rounded-2xl bg-[#ff1f4c] text-[15px] font-semibold text-white" onClick={onConfirm} type="button">네, 추가할게요</button></div></section></div>;
-}
-
-function StaySelectionForm({ name, address, error, isSubmitting, onNameChange, onAddressChange, onCancel, onSubmit }: { name: string; address: string; error: string | null; isSubmitting: boolean; onNameChange: (value: string) => void; onAddressChange: (value: string) => void; onCancel: () => void; onSubmit: () => void }) {
-  const canSubmit = Boolean(name.trim() && address.trim() && !isSubmitting);
-
-  return <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/20 px-4 backdrop-blur-[5px]" onClick={onCancel}><section aria-modal="true" className="w-full max-w-[390px] rounded-2xl bg-white px-10 py-9 shadow-xl" onClick={(event) => event.stopPropagation()} role="dialog"><h2 className="text-center text-[18px] font-bold tracking-[-0.45px] text-[#111111]">자세한 숙소 정보를 입력해주세요</h2><p className="mt-3 text-center text-[14px] tracking-[-0.35px] text-[#505050]">선택한 숙소가 코스에 추가됩니다.</p><label className="mt-9 block text-[14px] font-semibold text-[#111111]">숙소명<input className="mt-3 h-12 w-full rounded-2xl border border-[#ff1f4c] px-5 text-[14px] outline-none" onChange={(event) => onNameChange(event.target.value)} value={name} /></label><label className="mt-6 block text-[14px] font-semibold text-[#111111]">주소<input className="mt-3 h-12 w-full rounded-2xl border border-[#ff1f4c] px-5 text-[14px] outline-none" onChange={(event) => onAddressChange(event.target.value)} value={address} /></label>{error ? <p className="mt-3 text-[13px] text-[#f30031]">{error}</p> : null}<div className="mt-8 flex gap-3"><button className="h-12 flex-1 rounded-2xl border border-[#d4d4d4] text-[15px] font-semibold" onClick={onCancel} type="button">취소</button><button className="h-12 flex-1 rounded-2xl bg-[#ff1f4c] text-[15px] font-semibold text-white disabled:bg-[#a9a9a9]" disabled={!canSubmit} onClick={onSubmit} type="button">{isSubmitting ? "추가 중..." : "추가할게요"}</button></div></section></div>;
+function StaySelectionConfirm({ error, isSubmitting, onCancel, onConfirm }: { error: string | null; isSubmitting: boolean; onCancel: () => void; onConfirm: () => void }) {
+  return <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/20 px-4 backdrop-blur-[5px]" onClick={onCancel}><section aria-modal="true" className="w-full max-w-[390px] rounded-2xl bg-white px-10 py-9 text-center shadow-xl" onClick={(event) => event.stopPropagation()} role="dialog"><h2 className="text-[18px] font-bold tracking-[-0.45px] text-[#111111]">숙소를 변경하시나요?</h2><p className="mt-3 text-[14px] tracking-[-0.35px] text-[#505050]">현재 코스 내 숙소가 선택한 숙소로 변경됩니다.</p>{error ? <p className="mt-3 text-[13px] text-[#f30031]">{error}</p> : null}<div className="mt-6 flex gap-3"><button className="h-12 flex-1 rounded-2xl border border-[#d4d4d4] text-[15px] font-semibold" disabled={isSubmitting} onClick={onCancel} type="button">아니요</button><button className="h-12 flex-1 rounded-2xl bg-[#ff1f4c] text-[15px] font-semibold text-white disabled:bg-[#a9a9a9]" disabled={isSubmitting} onClick={onConfirm} type="button">{isSubmitting ? "변경 중..." : "네, 변경할게요"}</button></div></section></div>;
 }

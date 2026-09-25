@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, ArrowUpRight, BadgeCheck, Bookmark, ChevronDown, ChevronLeft, Home, MessageCircleMore, Plus, RefreshCw, X } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, Bookmark, ChevronDown, ChevronLeft, Home, MessageCircleMore, Plus, RefreshCw, X } from "lucide-react";
 import { CourseMapLayout } from "@/components/course-result/CourseMapLayout";
 import { MainShell } from "@/components/layout/MainShell";
 import { Button } from "@/components/ui/Button";
@@ -14,9 +14,12 @@ import { StampReviewModal } from "@/components/review/StampReviewModal";
 import type { SavedCourseDto } from "@/types/course";
 import { useAuthStore } from "@/store/auth-store";
 import { useCourseStore } from "@/store/course-store";
+import { formatMetersToKm, formatMinutes } from "@/lib/course-create";
 
 type CourseMapPlace = {
   id: number;
+  day: number;
+  date?: string;
   name: string;
   time: string;
   tags: readonly string[];
@@ -37,6 +40,15 @@ const toNumber = (value?: string) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : undefined;
 };
+
+function getCourseDayDate(day: number, date?: string, travelDate?: string) {
+  if (date) return date;
+  if (!travelDate || !/^\d{4}-\d{2}-\d{2}$/.test(travelDate)) return undefined;
+
+  const [year, month, dayOfMonth] = travelDate.split("-").map(Number);
+  const computed = new Date(year, month - 1, dayOfMonth + day - 1);
+  return `${computed.getFullYear()}-${String(computed.getMonth() + 1).padStart(2, "0")}-${String(computed.getDate()).padStart(2, "0")}`;
+}
 
 const fallbackMapCenter = { lat: 37.7519, lng: 128.8761 };
 type SaveStatus = "idle" | "saving" | "saved" | "error";
@@ -89,10 +101,12 @@ export default function CourseResultPage() {
   }, []);
 
   const places = useMemo<CourseMapPlace[]>(() => {
-    const items = generatedCourse?.days.flatMap((day) => day.items) ?? [];
+    const items = generatedCourse?.days.flatMap((day) => day.items.map((item) => ({ day, item }))) ?? [];
 
-    return items.map((item, index) => ({
+    return items.map(({ day, item }, index) => ({
       id: index + 1,
+      day: day.day,
+      date: getCourseDayDate(day.day, day.date, generatedCourse?.congestion?.date ?? savedCourse?.travelDate ?? undefined),
       contentId: item.contentId,
       zone: item.zone ?? generatedCourse?.zone ?? "SEA",
       name: item.title,
@@ -108,7 +122,7 @@ export default function CourseResultPage() {
       lat: toNumber(item.mapY),
       lng: toNumber(item.mapX),
     }));
-  }, [generatedCourse]);
+  }, [generatedCourse, savedCourse?.travelDate]);
 
   const mappablePlaces = places.filter((place): place is CourseMapPlace & { lat: number; lng: number } => place.lat !== undefined && place.lng !== undefined);
   const hasSelectedPlace = selectedPlaceId !== null;
@@ -130,6 +144,10 @@ export default function CourseResultPage() {
     ? { lat: selectedPlace.lat, lng: selectedPlace.lng }
     : null;
   const courseTitle = generatedCourse ? `${generatedCourse.zoneLabel} 추천 코스` : "추천 코스";
+  const congestionLevel = generatedCourse?.congestion?.level ?? "LOW";
+  const congestionLabel = congestionLevel === "HIGH" ? "높음" : congestionLevel === "MEDIUM" ? "보통" : "낮음";
+  const congestionColor = congestionLevel === "HIGH" ? "text-[#ff1f4c]" : congestionLevel === "MEDIUM" ? "text-[#ff9f43]" : "text-[#227bff]";
+  const transportLabel = generatedCourse?.transport === "WALK" ? "도보" : generatedCourse?.transport === "KTX" ? "KTX" : "자동차";
 
   useEffect(() => {
     if (!accessToken || !activeSavedCourseId) return;
@@ -294,7 +312,7 @@ export default function CourseResultPage() {
         </div>
       }
       panel={
-        <div className="flex h-full flex-col gap-[13px] px-5 pb-8 pt-6">
+        <div className="flex h-full flex-col gap-[13px] px-5 pb-28 pt-6">
           <div>
             <h1 className="text-[24px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111111]">{courseTitle}</h1>
             <div className="mt-[13px] flex flex-wrap items-center gap-1">
@@ -306,22 +324,30 @@ export default function CourseResultPage() {
                 <RefreshCw className="mr-1 h-4 w-4" strokeWidth={2.2} />다시 추천받기
               </button>
             </div>
+            <div className="mt-5 space-y-1 text-[16px] font-medium leading-[1.45] tracking-[-0.4px] text-[#111111]">
+              <p>혼잡도: <span className={`font-semibold ${congestionColor}`}>{congestionLabel}</span></p>
+              <p>{transportLabel}: {formatMetersToKm(generatedCourse.totalDistance)}</p>
+              <p>코스 소요시간: {formatMinutes(generatedCourse.totalTravelMinutes)}</p>
+            </div>
           </div>
           <div className="flex-1 pt-[11px]">
             <div className="space-y-5 border-b border-[#e5e5ec] pb-4 text-[16px] font-semibold leading-[1.4] tracking-[-0.4px] text-[#111111]">
-              {places.map((item) => {
+              {places.map((item, index) => {
                 const stamped = stampedContentIds.has(item.contentId);
+                const isNewDay = index === 0 || places[index - 1]?.day !== item.day;
+                const dateLabel = item.date ? item.date.replaceAll("-", ".") : `${item.day}일차`;
 
                 return (
-                  <button key={item.id} className="flex w-full items-start gap-3 text-left" onClick={() => setSelectedPlaceId(item.id)} type="button">
-                    <BadgeCheck className={`mt-0.5 h-8 w-8 shrink-0 ${stamped ? "fill-[#ff1f4c] text-white" : "fill-[#a9a9a9] text-white"}`} strokeWidth={2.6} />
-                    <span className="min-w-0"><span className="block text-[18px] font-bold leading-[1.35] tracking-[-0.45px] text-[#111111]"><span className="mr-2 inline-block w-[50px] text-[16px]">{item.time}</span>{item.name}</span>{item.travelMinutesFromPrev !== undefined ? <span className="mt-1 block text-[15px] font-medium tracking-[-0.35px] text-[#505050]">이동 {item.travelMinutesFromPrev}분</span> : null}</span>
-                  </button>
+                  <div key={item.id}>
+                    {isNewDay ? <p className="mb-3 text-[14px] font-bold tracking-[-0.35px] text-[#ff1f4c]">{dateLabel} · {item.day}일차</p> : null}
+                    <button className="flex w-full items-start gap-3 text-left" onClick={() => setSelectedPlaceId(item.id)} type="button">
+                      <BadgeCheck className={`mt-0.5 h-8 w-8 shrink-0 ${stamped ? "fill-[#ff1f4c] text-white" : "fill-[#a9a9a9] text-white"}`} strokeWidth={2.6} />
+                      <span className="min-w-0"><span className="block text-[18px] font-bold leading-[1.35] tracking-[-0.45px] text-[#111111]"><span className="mr-2 inline-block w-[50px] text-[16px]">{item.time}</span>{item.name}</span>{item.travelMinutesFromPrev !== undefined ? <span className="mt-1 block text-[15px] font-medium tracking-[-0.35px] text-[#505050]">이동 {item.travelMinutesFromPrev}분</span> : null}</span>
+                    </button>
+                  </div>
                 );
               })}
-              <Link className="flex items-start gap-1 text-left text-[#111111]" href="/course/result/stays"><span className="text-[20px] leading-none text-[#ff1f4c]">+</span><span>숙소 추가하기</span></Link>
             </div>
-            <Link className="mt-4 inline-flex items-center gap-0.5 text-[14px] font-semibold leading-[1.4] tracking-[-0.35px] text-[#505050] transition hover:text-slate-900" href="/course/saved">상세보기<ArrowRight className="h-4 w-4" strokeWidth={2.1} /></Link>
             {saveStatus === "saved" ? <Link className="mt-2 block text-[13px] text-[#f30031] underline" href="/course/saved">저장한 코스에서 확인하기</Link> : null}
             {saveStatus === "error" && saveError ? <p className="mt-2 text-[13px] text-[#f30031]">{saveError}</p> : null}
           </div>
