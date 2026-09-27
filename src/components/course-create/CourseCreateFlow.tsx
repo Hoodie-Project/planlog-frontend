@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import dayjs, { type Dayjs } from "dayjs";
 import "dayjs/locale/ko";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronUp } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -170,6 +170,7 @@ export function CourseCreateFlow() {
   const canProceed = currentStepValidation.success && !isSubmitting;
   const arrivalDateValue = preferences.arrivalDate ? dayjs(preferences.arrivalDate) : null;
   const arrivalTimeValue = preferences.arrivalTime ? dayjs(`2026-01-01T${preferences.arrivalTime}`) : null;
+  const selectedMeridiem = arrivalTimeValue ? (arrivalTimeValue.hour() >= 12 ? "오후" : "오전") : null;
   const minimumArrivalDate = dayjs().startOf("day");
   const minimumArrivalTime = arrivalDateValue?.isSame(dayjs(), "day") ? dayjs(getMinimumArrivalTimeForToday()) : undefined;
 
@@ -239,11 +240,17 @@ export function CourseCreateFlow() {
   };
 
   return (
-    <MainShell>
-      <div className="mx-auto max-w-[1240px] px-4 py-8 sm:py-[60px] lg:px-0">
+    <MainShell mobileFooterHidden mobileHeaderHidden>
+      <div className="mx-auto max-w-[1240px] px-8 pb-[112px] pt-6 sm:px-4 sm:py-[60px] lg:px-0">
         <div className="mx-auto flex w-full max-w-[432px] flex-col gap-10 sm:gap-16">
-          <div className="flex flex-col gap-7 sm:gap-9">
-            <div className="flex h-8 items-center gap-[5px] overflow-hidden text-[14px] font-bold tracking-[-0.35px]">
+          <div className="relative flex h-7 items-center justify-between px-1 sm:hidden">
+            <button aria-label="이전 화면" className="inline-flex h-8 w-8 items-center justify-start text-[#111]" onClick={() => (step > 1 ? goStep(step - 1) : router.back())} type="button">
+              <ChevronLeft className="h-6 w-6" strokeWidth={1.7} />
+            </button>
+            <h1 className="absolute left-1/2 -translate-x-1/2 text-[16px] font-bold tracking-[-0.4px] text-[#111]">코스 만들기</h1>
+            <span className="text-[13px] tracking-[-0.3px] text-[#767676]">{step}/{totalSteps}</span>
+          </div>
+          <div className="hidden h-8 items-center gap-[5px] overflow-hidden text-[14px] font-bold tracking-[-0.35px] sm:flex">
               {stepLabels.map((label, index) => {
                 const current = index + 1;
                 const active = current === step;
@@ -269,11 +276,11 @@ export function CourseCreateFlow() {
                   </div>
                 );
               })}
-            </div>
+          </div>
 
-            {step === 1 ? (
-              <div className="flex flex-col gap-7 sm:gap-10">
-                <div className="w-full max-w-[352px]">
+          {step === 1 ? (
+            <div className="flex flex-col gap-7 sm:gap-10">
+              <div className="w-full max-w-[352px]">
                   <h1 className="text-[22px] font-bold leading-[1.4] tracking-[-0.6px] text-[#111] sm:text-[24px]">
                     오늘은 어떤 감성이 끌리나요?
                   </h1>
@@ -282,7 +289,7 @@ export function CourseCreateFlow() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-5 sm:gap-2">
                   {[
                     { key: "동해 바다", label: "동해 바다", icon: step1ThemeIcons.sea },
                     { key: "설원·산악", label: "설원·산악", icon: step1ThemeIcons.snow },
@@ -295,17 +302,17 @@ export function CourseCreateFlow() {
                     return (
                       <button
                         key={option.key}
-                        className={`relative h-[62px] min-w-0 rounded-lg border text-left shadow-[0px_2px_6px_0px_rgba(17,17,17,0.08)] transition-colors sm:h-[60px] ${
+                        className={`relative h-[108px] min-w-0 rounded-[14px] border text-left shadow-[0px_2px_6px_0px_rgba(17,17,17,0.08)] transition-colors sm:h-[60px] sm:rounded-lg ${
                           active ? "border-[#ff1f4c] bg-[#ffeaee]" : "border-[#f1f1f5] bg-white"
                         }`}
                         onClick={() => updatePreferences({ mood: option.key })}
                         type="button"
                       >
-                        <span aria-hidden="true" className="absolute left-1.5 top-1.5 h-5 w-5 overflow-hidden sm:left-[5px] sm:top-[5px] sm:h-6 sm:w-6">
+                        <span aria-hidden="true" className="absolute left-1/2 top-[29px] h-5 w-5 -translate-x-1/2 overflow-hidden sm:left-[5px] sm:top-[5px] sm:h-6 sm:w-6 sm:translate-x-0">
                           <img alt="" className="h-full w-full object-contain" src={option.icon.base} />
                         </span>
                         <span
-                          className={`absolute bottom-1.5 left-1.5 whitespace-nowrap text-[11px] font-semibold leading-[1.4] sm:bottom-auto sm:left-[5px] sm:top-[33px] sm:text-[14px] ${
+                          className={`absolute left-0 top-[61px] w-full whitespace-nowrap text-center text-[12px] font-semibold leading-[1.4] sm:left-[5px] sm:top-[33px] sm:w-auto sm:text-left sm:text-[14px] ${
                             active ? "text-[#ff1f4c]" : "text-[#111]"
                           }`}
                         >
@@ -315,9 +322,8 @@ export function CourseCreateFlow() {
                     );
                   })}
                 </div>
-              </div>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
 
           {step === 2 ? (
             <div className="flex flex-col gap-10 sm:gap-16">
@@ -338,16 +344,16 @@ export function CourseCreateFlow() {
                     return (
                       <button
                         key={option.key}
-                        className={`relative h-[60px] w-full rounded-2xl border text-left shadow-[0px_2px_6px_0px_rgba(17,17,17,0.08)] transition-colors ${
+                        className={`relative h-[54px] w-full rounded-[14px] border text-left shadow-[0px_2px_6px_0px_rgba(17,17,17,0.08)] transition-colors sm:h-[60px] sm:rounded-2xl ${
                           active ? "border-[#ff1f4c] bg-[#ffeaee]" : "border-[#f1f1f5] bg-white"
                         }`}
                         onClick={() => updatePreferences({ tripStyle: option.key })}
                         type="button"
                       >
-                        <span aria-hidden="true" className="absolute left-[13px] top-[13px] h-8 w-8 overflow-hidden">
+                        <span aria-hidden="true" className="absolute left-[17px] top-[17px] h-5 w-5 overflow-hidden sm:left-[13px] sm:top-[13px] sm:h-8 sm:w-8">
                           <img
                             alt=""
-                            className={`h-8 w-8 object-contain ${
+                            className={`h-5 w-5 object-contain sm:h-8 sm:w-8 ${
                               active
                                 ? "brightness-0 saturate-100% [filter:invert(14%)_sepia(100%)_saturate(5616%)_hue-rotate(339deg)_brightness(96%)_contrast(118%)]"
                                 : ""
@@ -355,16 +361,16 @@ export function CourseCreateFlow() {
                             src={option.icon.base}
                           />
                         </span>
-                        <span className="absolute left-[61px] right-3 top-[12px] flex flex-col items-start gap-0 sm:top-[19px] sm:flex-row sm:items-center sm:gap-2">
+                        <span className="absolute left-[50px] right-3 top-[9px] flex flex-col items-start gap-0 sm:left-[61px] sm:top-[19px] sm:flex-row sm:items-center sm:gap-2">
                           <span
-                            className={`text-[14px] font-semibold leading-[1.4] ${
+                            className={`text-[12px] font-semibold leading-[1.4] sm:text-[14px] ${
                               active ? "text-[#ff1f4c]" : "text-[#111]"
                             }`}
                           >
                             {option.label}
                           </span>
                           <span
-                            className={`text-[12px] leading-[1.4] tracking-[-0.3px] ${
+                            className={`text-[10px] leading-[1.4] tracking-[-0.25px] sm:text-[12px] sm:tracking-[-0.3px] ${
                               active ? "text-[#ff1f4c]" : "text-[#111]"
                             }`}
                           >
@@ -392,40 +398,46 @@ export function CourseCreateFlow() {
                     </p>
                   </div>
 
-                  <div className="relative h-[290px] w-full">
+                  <div className="relative h-[272px] w-full sm:h-[290px]">
                     <div className="absolute left-0 right-0 top-0">
-                      <p className="text-[14px] font-bold leading-[1.4] tracking-[-0.35px] text-[#111]">여행지 도착 날짜</p>
+                      <p className="text-[13px] font-bold leading-[1.4] tracking-[-0.35px] text-[#111] sm:text-[14px]">여행지 도착 날짜</p>
                       <button
                         ref={dateFieldRef}
-                        className={`mt-3 h-[60px] w-full rounded-2xl border px-[19px] text-left shadow-[0px_2px_6px_0px_rgba(17,17,17,0.08)] transition-colors ${
+                        className={`mt-3 h-[46px] w-full rounded-[14px] border px-[14px] text-left shadow-[0px_2px_6px_0px_rgba(17,17,17,0.08)] transition-colors sm:h-[60px] sm:rounded-2xl sm:px-[19px] ${
                           preferences.arrivalDate ? "border-[#ff1f4c]" : "border-[#f1f1f5]"
                         }`}
                         onClick={() => setDatePickerOpen(true)}
                         type="button"
                       >
-                        <span className={preferences.arrivalDate ? "text-[14px] text-[#ff1f4c]" : "text-[14px] text-[#999]"}>
-                          {arrivalDateValue?.isValid() ? arrivalDateValue.format("YYYY.MM.DD dddd") : "날짜를 선택해 주세요."}
+                        <span className={preferences.arrivalDate ? "text-[13px] text-[#ff1f4c] sm:text-[14px]" : "text-[13px] text-[#999] sm:text-[14px]"}>
+                          {arrivalDateValue?.isValid() ? arrivalDateValue.format("YYYY.MM.DD dddd") : <><span className="sm:hidden">YYYY-MM-DD</span><span className="hidden sm:inline">날짜를 선택해 주세요.</span></>}
                         </span>
                       </button>
                     </div>
 
-                    <div className="absolute left-0 right-0 top-[108px]">
-                      <p className="text-[14px] font-bold leading-[1.4] tracking-[-0.35px] text-[#111]">여행지 도착 시간</p>
+                    <div className="absolute left-0 right-0 top-[94px] sm:top-[108px]">
+                      <p className="text-[13px] font-bold leading-[1.4] tracking-[-0.35px] text-[#111] sm:text-[14px]">여행지 도착 시간</p>
                       <button
                         ref={timeFieldRef}
-                        className={`mt-3 h-[60px] w-full rounded-2xl border px-[19px] text-left shadow-[0px_2px_6px_0px_rgba(17,17,17,0.08)] transition-colors ${
+                        className={`mt-3 flex h-[46px] w-full items-center rounded-[14px] border px-[10px] text-left shadow-[0px_2px_6px_0px_rgba(17,17,17,0.08)] transition-colors sm:h-[60px] sm:rounded-2xl sm:px-[19px] ${
                           preferences.arrivalTime ? "border-[#ff1f4c]" : "border-[#f1f1f5]"
                         }`}
                         onClick={() => setTimePickerOpen(true)}
                         type="button"
                       >
-                        <span className={preferences.arrivalTime ? "text-[14px] text-[#ff1f4c]" : "text-[14px] text-[#999]"}>
+                        <span className="flex items-center gap-1 sm:hidden">
+                          {(["오전", "오후"] as const).map((meridiem) => (
+                            <span key={meridiem} className={`rounded-[9px] px-2 py-1 text-[11px] ${selectedMeridiem === meridiem ? "border border-[#ff1f4c] text-[#ff1f4c]" : "bg-[#f1f1f5] text-[#777]"}`}>{meridiem}</span>
+                          ))}
+                          <span className={preferences.arrivalTime ? "ml-2 text-[13px] text-[#ff1f4c]" : "ml-2 text-[13px] text-[#999]"}>{arrivalTimeValue?.isValid() ? arrivalTimeValue.locale("ko").format("hh:mm") : "00:00"}</span>
+                        </span>
+                        <span className={`hidden sm:inline ${preferences.arrivalTime ? "text-[14px] text-[#ff1f4c]" : "text-[14px] text-[#999]"}`}>
                           {arrivalTimeValue?.isValid() ? arrivalTimeValue.locale("ko").format("A hh:mm") : "시간을 선택해 주세요."}
                         </span>
                       </button>
                     </div>
 
-                    <div className="absolute left-0 right-0 top-[216px]">
+                    <div className="absolute left-0 right-0 top-[188px] sm:top-[216px]">
                       <p className="text-[14px] font-bold leading-[1.4] tracking-[-0.35px] text-[#111]">여행 기간</p>
                       <div className="mt-3 grid grid-cols-2 gap-3">
                         {([
@@ -604,7 +616,7 @@ export function CourseCreateFlow() {
                         </button>
 
                         {step4DropdownOpen ? (
-                          <div className="absolute left-0 top-[72px] z-20 w-full overflow-hidden rounded-2xl border border-[#ff1f4c] bg-white shadow-[0px_2px_3px_rgba(17,17,17,0.08)]">
+                          <div className="relative z-50 mt-3 max-h-[300px] w-full touch-pan-y overflow-y-auto overscroll-contain rounded-2xl border border-[#ff1f4c] bg-white shadow-[0px_2px_3px_rgba(17,17,17,0.08)] sm:absolute sm:left-0 sm:top-[72px] sm:mt-0 sm:max-h-[360px]">
                             {originList.map((origin, index) => (
                               <button
                                 key={origin}
@@ -627,9 +639,9 @@ export function CourseCreateFlow() {
 
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
-          <div className="sticky bottom-[88px] -mx-4 flex items-center justify-between border-t border-[#f1f1f5] bg-white/95 px-4 py-4 backdrop-blur sm:bottom-0 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
+          <div className="sticky bottom-[88px] -mx-8 flex items-center justify-between bg-white/95 px-9 py-4 backdrop-blur sm:bottom-0 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
             <button
-              className={`inline-flex h-9 items-center justify-center rounded-full px-5 text-[18px] tracking-[-0.45px] transition-colors disabled:cursor-not-allowed ${
+              className={`hidden h-9 items-center justify-center rounded-full px-5 text-[18px] tracking-[-0.45px] transition-colors disabled:cursor-not-allowed sm:inline-flex ${
                 step === 1 ? "bg-[#f1f1f5] text-[#505050]" : "bg-[#ff1f4c] text-white"
               }`}
               disabled={step === 1 || isSubmitting}
@@ -639,7 +651,7 @@ export function CourseCreateFlow() {
               이전
             </button>
             <button
-              className={`inline-flex h-9 items-center justify-center rounded-full px-5 text-[18px] tracking-[-0.45px] transition-colors disabled:cursor-not-allowed ${
+              className={`inline-flex h-11 w-full items-center justify-center rounded-[14px] px-5 text-[14px] font-semibold tracking-[-0.35px] transition-colors disabled:cursor-not-allowed sm:h-9 sm:w-auto sm:rounded-full sm:text-[18px] sm:font-normal sm:tracking-[-0.45px] ${
                 canProceed ? "bg-[#f30031] text-white" : "bg-[#f1f1f5] text-[#505050]"
               }`}
               disabled={!canProceed}

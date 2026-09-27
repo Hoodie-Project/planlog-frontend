@@ -84,6 +84,43 @@ function StayDetailPanel({ detail, detailError, isLoading, stay, onClose, onSele
   </div>;
 }
 
+function MobileStayDetailPanel({ detail, detailError, isLoading, stay, onClose, onSelect }: { detail: AccommodationDetailDto | null; detailError: string | null; isLoading: boolean; stay: AccommodationDto; onClose: () => void; onSelect: () => void }) {
+  const accommodation = detail ?? stay;
+  const image = secureImageUrl(accommodation.image);
+  const homepage = detail?.homepage ?? detail?.reservationUrl;
+  const checkinTime = detail?.checkinTime ?? detail?.checkin;
+  const checkoutTime = detail?.checkoutTime ?? detail?.checkout;
+  const parking = availabilityLabel(detail?.parkingAvailable ?? detail?.parking);
+  const cooking = availabilityLabel(detail?.cookingAvailable ?? detail?.cooking);
+
+  return <div className="px-5 pb-8 pt-1">
+    <div className="flex items-center justify-between">
+      <button aria-label="숙소 목록으로 돌아가기" className="p-1" onClick={onClose} type="button"><ChevronLeft className="h-6 w-6" strokeWidth={1.8} /></button>
+      <button aria-label="숙소 상세 닫기" className="p-1" onClick={onClose} type="button"><X className="h-6 w-6" strokeWidth={1.8} /></button>
+    </div>
+    <h2 className="mt-5 text-[24px] font-bold tracking-[-0.6px] text-[#111111]">{accommodation.title}</h2>
+    <div className="mt-4 flex flex-wrap gap-2">
+      <button className="h-9 rounded-full border border-[#ff1f4c] px-4 text-[14px] font-semibold text-[#111111]" onClick={onSelect} type="button">숙소 변경하기</button>
+      {homepage ? <a className="inline-flex h-9 items-center rounded-full border border-[#ff1f4c] px-4 text-[14px] font-semibold text-[#111111]" href={homepage} rel="noreferrer" target="_blank">홈페이지</a> : image ? <a className="inline-flex h-9 items-center rounded-full border border-[#ff1f4c] px-4 text-[14px] font-semibold text-[#111111]" href={image} rel="noreferrer" target="_blank">이미지 보기</a> : null}
+    </div>
+    {isLoading ? <p className="mt-5 text-[13px] text-[#777]">숙소 상세 정보를 불러오는 중이에요.</p> : null}
+    {detailError ? <p className="mt-5 text-[13px] text-[#f30031]">{detailError}</p> : null}
+    <div className="mt-6 space-y-2 text-[14px] leading-[1.5] tracking-[-0.35px] text-[#505050]">
+      <p>{accommodation.address ?? "주소 정보가 준비 중입니다."}</p>
+      {accommodation.tel ? <p><strong className="text-[#111111]">연락처</strong> {accommodation.tel}</p> : null}
+      <p><strong className="text-[#111111]">숙소 유형</strong> {stayTypeLabel(accommodation.stayType)}</p>
+      {checkinTime ? <p><strong className="text-[#111111]">체크인</strong> {checkinTime}</p> : null}
+      {checkoutTime ? <p><strong className="text-[#111111]">체크아웃</strong> {checkoutTime}</p> : null}
+      {detail?.roomCount != null ? <p><strong className="text-[#111111]">객실 수</strong> {detail.roomCount}실</p> : null}
+      {parking ? <p className={parking === "불가" ? "text-[#f30031]" : undefined}><strong className="text-[#111111]">주차</strong> {parking}</p> : null}
+      {cooking ? <p><strong className="text-[#111111]">취사</strong> {cooking}</p> : null}
+      {detail?.facilities?.length ? <p><strong className="text-[#111111]">부대시설</strong> {detail.facilities.join(" · ")}</p> : null}
+      {detail?.overview ? <p className="pt-1 text-[#777]">{detail.overview}</p> : null}
+    </div>
+    {image ? <img alt={accommodation.title} className="mt-6 h-[238px] w-full rounded-[2px] object-cover" src={image} /> : <div className="mt-6 flex h-[238px] items-center justify-center rounded-[2px] bg-[#f7f7fa] text-[14px] text-[#777]">숙소 이미지 없음</div>}
+  </div>;
+}
+
 export default function CourseStayPage() {
   const generatedCourse = useCourseStore((state) => state.generatedCourse);
   const setGeneratedCourse = useCourseStore((state) => state.setGeneratedCourse);
@@ -247,12 +284,12 @@ export default function CourseStayPage() {
       {isLoading ? <p className="py-10 text-center text-[14px] text-[#777]">추천 숙소를 불러오는 중이에요.</p> : null}
       {!isLoading && error ? <p className="py-10 text-center text-[14px] text-[#f30031]">{error}</p> : null}
       {!isLoading && !error && stays.length === 0 ? <p className="py-10 text-center text-[14px] text-[#777]">조건에 맞는 추천 숙소가 없어요.</p> : null}
-      {!isLoading && !error && stays.length > 0 ? <div className="space-y-2">{stays.map((stay) => <button key={stay.contentId} className={`flex w-[300px] items-start gap-3 rounded-2xl border bg-white p-5 text-left shadow-[0px_2px_6px_rgba(17,17,17,0.08)] transition hover:-translate-y-[1px] ${selectedStayId === stay.contentId ? "border-[#ff1f4c]" : "border-[#f1f1f5]"}`} onClick={() => setSelectedStayId(stay.contentId)} type="button"><AccommodationImage stay={stay} /><div className="min-w-0 flex-1"><p className="truncate text-[14px] font-semibold leading-[1.4] text-[#111111]">{stay.title}</p><div className="mt-1 flex flex-wrap items-center gap-1 text-[12px] font-semibold leading-[1.4] tracking-[-0.3px] text-[#505050]"><span>{stayTypeLabel(stay.stayType)}</span>{stay.address ? <span className="line-clamp-2">· {stay.address}</span> : null}</div><div className="mt-5 inline-flex items-center text-[12px] font-semibold leading-[1.4] tracking-[-0.3px] text-[#505050]">숙소 정보 확인하기<ChevronRight className="h-3 w-3" strokeWidth={2} /></div></div></button>)}</div> : null}
+      {!isLoading && !error && stays.length > 0 ? <div className="w-full space-y-2">{stays.map((stay) => <button key={stay.contentId} className={`flex w-full items-start gap-3 rounded-2xl border bg-white p-5 text-left shadow-[0px_2px_6px_rgba(17,17,17,0.08)] transition hover:-translate-y-[1px] ${selectedStayId === stay.contentId ? "border-[#ff1f4c]" : "border-[#f1f1f5]"}`} onClick={() => setSelectedStayId(stay.contentId)} type="button"><AccommodationImage stay={stay} /><div className="min-w-0 flex-1"><p className="truncate text-[14px] font-semibold leading-[1.4] text-[#111111]">{stay.title}</p><div className="mt-1 flex flex-wrap items-center gap-1 text-[12px] font-semibold leading-[1.4] tracking-[-0.3px] text-[#505050]"><span>{stayTypeLabel(stay.stayType)}</span>{stay.address ? <span className="line-clamp-2">· {stay.address}</span> : null}</div><div className="mt-5 inline-flex items-center text-[12px] font-semibold leading-[1.4] tracking-[-0.3px] text-[#505050]">숙소 정보 확인하기<ChevronRight className="h-3 w-3" strokeWidth={2} /></div></div></button>)}</div> : null}
     </div>
   );
 
   return <>
-    <CourseMapLayout center={center} focus={selectedStay ? { lat: Number(selectedStay.mapY), lng: Number(selectedStay.mapX) } : center} mapOverlay={selectedStay ? <StayDetailPanel detail={selectedStayDetail} detailError={detailError} isLoading={isDetailLoading} onClose={() => setSelectedStayId(null)} onSelect={openStayConfirmation} stay={selectedStay} /> : null} markers={markers} mobileSummary={<div><h2 className="text-[20px] font-bold tracking-[-0.5px] text-[#111111]">추천 숙소</h2><p className="mt-2 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#505050]">{isLoading ? "추천 숙소를 불러오는 중이에요." : "코스와 가까운 숙소를 확인해 보세요!"}</p></div>} onMarkerClick={selectStayByMarkerId} panel={content} />
+    <CourseMapLayout center={center} focus={selectedStay ? { lat: Number(selectedStay.mapY), lng: Number(selectedStay.mapX) } : center} mapOverlay={selectedStay ? <StayDetailPanel detail={selectedStayDetail} detailError={detailError} isLoading={isDetailLoading} onClose={() => setSelectedStayId(null)} onSelect={openStayConfirmation} stay={selectedStay} /> : null} markers={markers} mobilePanel={selectedStay ? <MobileStayDetailPanel detail={selectedStayDetail} detailError={detailError} isLoading={isDetailLoading} onClose={() => setSelectedStayId(null)} onSelect={openStayConfirmation} stay={selectedStay} /> : undefined} mobilePanelExpandWhenRendered={Boolean(selectedStay)} mobileSummary={<div><h2 className="text-[20px] font-bold tracking-[-0.5px] text-[#111111]">추천 숙소</h2><p className="mt-2 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#505050]">{isLoading ? "추천 숙소를 불러오는 중이에요." : "코스와 가까운 숙소를 확인해 보세요!"}</p></div>} onMarkerClick={selectStayByMarkerId} panel={content} />
     {selectionStep === "confirm" ? <StaySelectionConfirm error={selectionError} isSubmitting={isChangingStay} onCancel={() => setSelectionStep(null)} onConfirm={changeStayInCourse} /> : null}
   </>;
 }

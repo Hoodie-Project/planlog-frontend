@@ -20,6 +20,7 @@ type NaverMapProps = {
   markers: MarkerItem[];
   className?: string;
   onMarkerClick?: (markerId: number) => void;
+  onMapClick?: () => void;
   fitBounds?: boolean;
   focus?: Coordinate | null;
 };
@@ -43,18 +44,23 @@ function createMarkerContent(id: number) {
   `;
 }
 
-export function NaverMap({ center, path = [], markers, className, onMarkerClick, fitBounds = false, focus = null }: NaverMapProps) {
+export function NaverMap({ center, path = [], markers, className, onMarkerClick, onMapClick, fitBounds = false, focus = null }: NaverMapProps) {
   const mapElementRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<any>(null);
   const overlaysRef = useRef<any[]>([]);
   const initialCenterRef = useRef(center);
   const markerClickRef = useRef(onMarkerClick);
+  const mapClickRef = useRef(onMapClick);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
     markerClickRef.current = onMarkerClick;
   }, [onMarkerClick]);
+
+  useEffect(() => {
+    mapClickRef.current = onMapClick;
+  }, [onMapClick]);
 
   useEffect(() => {
     let cancelled = false;
@@ -77,6 +83,8 @@ export function NaverMap({ center, path = [], markers, className, onMarkerClick,
           logoControl: false,
           mapTypeControl: false,
         });
+
+        (maps as any).Event.addListener(mapInstanceRef.current, "click", () => mapClickRef.current?.());
 
         setErrorMessage(null);
         setMapReady(true);

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { ApiError } from "@/api/client";
 import { completeSavedCourse, createSavedCourse, getSavedCourse, startSavedCourse } from "@/api/saved-courses";
 import { createStamp, getStampEligibility, listStamps, type StampEligibilityDto } from "@/api/stamps";
-import { createRecord } from "@/api/platform";
+import { createRecord, getSpot, getSpotImages, type PlaceDto } from "@/api/platform";
 import { StampReviewModal } from "@/components/review/StampReviewModal";
 import type { SavedCourseDto } from "@/types/course";
 import { useAuthStore } from "@/store/auth-store";
@@ -79,6 +79,8 @@ export default function CourseResultPage() {
   const [stampedContentIds, setStampedContentIds] = useState<Set<string>>(new Set());
   const [stampReview, setStampReview] = useState<{ place: CourseMapPlace; stampId?: string } | null>(null);
   const [stampReviewSaving, setStampReviewSaving] = useState(false);
+  const [selectedSpotDetail, setSelectedSpotDetail] = useState<PlaceDto | null>(null);
+  const [selectedSpotImages, setSelectedSpotImages] = useState<string[]>([]);
 
   useEffect(() => {
     const addBackNavigationGuard = () => {
@@ -163,6 +165,34 @@ export default function CourseResultPage() {
     if (!accessToken || !selectedPlace) return;
     getStampEligibility(accessToken, selectedPlace.contentId, location ?? undefined).then(setStampEligibility).catch(() => setStampEligibility(null));
   }, [accessToken, selectedPlace, location]);
+
+  useEffect(() => {
+    if (!selectedPlace) {
+      setSelectedSpotDetail(null);
+      setSelectedSpotImages([]);
+      return;
+    }
+
+    let active = true;
+    getSpot(selectedPlace.contentId)
+      .then((detail) => {
+        if (active) setSelectedSpotDetail(detail);
+      })
+      .catch(() => {
+        if (active) setSelectedSpotDetail(null);
+      });
+    getSpotImages(selectedPlace.contentId)
+      .then((images) => {
+        if (active) setSelectedSpotImages(images.filter(Boolean));
+      })
+      .catch(() => {
+        if (active) setSelectedSpotImages([]);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [selectedPlace]);
 
   useEffect(() => {
     if (!accessToken) {
@@ -295,22 +325,72 @@ export default function CourseResultPage() {
     <>
     <CourseMapLayout
       center={mapData.center}
+      fitBounds
       focus={selectedPlacePosition}
       markers={mapData.markers}
+      mobilePanelExpandWhenRendered={Boolean(selectedPlace)}
       path={mapData.path}
       onMarkerClick={setSelectedPlaceId}
       mapOverlay={selectedPlace ? <PlaceOverlay eligibility={stampEligibility} onReceiveStamp={handleReceiveStamp} onRequestLocation={requestLocation} place={selectedPlace} stampPending={stampPending} onClose={() => setSelectedPlaceId(null)} /> : null}
-      mobileSummary={
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-[28px] font-bold tracking-[-0.7px] text-[#111111]">{courseTitle}</h2>
-            <p className="mt-6 text-[18px] text-[#111]">혼잡도: <span className="font-semibold text-[#227bff]">{generatedCourse.congestion?.level === "HIGH" ? "높음" : generatedCourse.congestion?.level === "MEDIUM" ? "보통" : "낮음"}</span></p>
-            <p className="mt-3 text-[18px] text-[#111]">코스 소요시간: {Math.floor(generatedCourse.totalTravelMinutes / 60)}h {generatedCourse.totalTravelMinutes % 60}m</p>
-            <p className="mt-6 border-t border-[#e5e5ec] pt-5 text-[22px] font-bold text-[#111]">{places[0]?.time} &nbsp;{places[0]?.name}</p>
+      mobilePanel={selectedPlace ? (
+        <MobilePlacePanel
+          detail={selectedSpotDetail}
+          eligibility={stampEligibility}
+          images={selectedSpotImages}
+          onClose={() => setSelectedPlaceId(null)}
+          onReceiveStamp={handleReceiveStamp}
+          onRequestLocation={requestLocation}
+          place={selectedPlace}
+          stampPending={stampPending}
+        />
+      ) : undefined}
+      mobileExpandedPanel={<div className="flex min-h-full flex-col px-8 pb-4 pt-7">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-[28px] font-bold tracking-[-0.7px] text-[#111111]">{courseTitle}</h2>
+              <div className="mt-6 space-y-3 text-[18px] text-[#111]">
+                <p>혼잡도: <span className={`font-semibold ${congestionColor}`}>{congestionLabel}</span></p>
+                <p>{transportLabel}: {formatMetersToKm(generatedCourse.totalDistance)}</p>
+                <p>코스 소요시간: {formatMinutes(generatedCourse.totalTravelMinutes)}</p>
+              </div>
+            </div>
+            <div className="flex shrink-0 gap-3"><button aria-label={savedCourse ? "코스 저장 완료" : "코스 저장"} disabled={saveStatus === "saving" || Boolean(savedCourse)} onClick={handleSaveCourse} type="button"><Bookmark className={`h-8 w-8 text-[#ff1f4c] ${savedCourse ? "fill-[#ff1f4c]" : ""}`} /></button><button aria-label="다시 추천받기" onClick={() => setRefreshOpen(true)} type="button"><RefreshCw className="h-8 w-8" /></button></div>
           </div>
-          <div className="flex gap-3"><button aria-label={savedCourse ? "코스 저장 완료" : "코스 저장"} disabled={saveStatus === "saving" || Boolean(savedCourse)} onClick={handleSaveCourse} type="button"><Bookmark className={`h-8 w-8 text-[#ff1f4c] ${savedCourse ? "fill-[#ff1f4c]" : ""}`} /></button><button aria-label="다시 추천받기" onClick={() => setRefreshOpen(true)} type="button"><RefreshCw className="h-8 w-8" /></button></div>
+          <div className="mt-6 space-y-6 border-t border-[#e5e5ec] pt-5">
+            {places.map((item, index) => {
+              const stamped = stampedContentIds.has(item.contentId);
+
+              return (
+                <button className="flex w-full items-start gap-3 text-left" key={item.id} onClick={() => setSelectedPlaceId(item.id)} type="button">
+                  <BadgeCheck className={`mt-0.5 h-7 w-7 shrink-0 ${stamped ? "fill-[#ff1f4c] text-white" : "fill-[#a9a9a9] text-white"}`} strokeWidth={2.6} />
+                  <span className="min-w-0"><span className="block text-[20px] font-bold leading-[1.35] tracking-[-0.5px] text-[#111111]"><span className="mr-2 inline-block w-[48px] text-[18px]">{item.time}</span>{item.name}</span><span className="mt-1 block text-[15px] font-medium tracking-[-0.35px] text-[#505050]">{index === 0 ? "여행 시작" : `이동 ${item.travelMinutesFromPrev ?? 0}분`}</span></span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="sticky bottom-0 mt-6 bg-white pb-1 pt-3">
+            <button className="inline-flex h-12 w-full items-center justify-center rounded-[16px] bg-[#ff1f4c] text-[18px] font-bold tracking-[-0.45px] text-white disabled:cursor-not-allowed disabled:bg-[#d4d4d4]" disabled={saveStatus === "saving" || savedCourse?.status === "COMPLETED"} onClick={savedCourse?.status === "IN_PROGRESS" ? () => setReviewOpen(true) : handleStartCourse} type="button">
+              {savedCourse?.status === "IN_PROGRESS" ? "코스 종료하기" : savedCourse?.status === "COMPLETED" ? "코스 완료" : "코스 시작하기"}
+            </button>
+          </div>
+        </div>}
+      mobileSummary={<div>
+        <div className="flex items-start justify-between gap-4">
+          <h2 className="text-[22px] font-bold tracking-[-0.55px] text-[#111111]">{courseTitle}</h2>
+          <div className="flex shrink-0 gap-3">
+            <button aria-label={savedCourse ? "코스 저장 완료" : "코스 저장"} disabled={saveStatus === "saving" || Boolean(savedCourse)} onClick={handleSaveCourse} type="button"><Bookmark className={`h-7 w-7 text-[#ff1f4c] ${savedCourse ? "fill-[#ff1f4c]" : ""}`} /></button>
+            <button aria-label="다시 추천받기" onClick={() => setRefreshOpen(true)} type="button"><RefreshCw className="h-7 w-7" /></button>
+          </div>
         </div>
-      }
+        <div className="mt-4 space-y-2 text-[16px] leading-[1.45] text-[#111111]">
+          <p>혼잡도: <span className={`font-semibold ${congestionColor}`}>{congestionLabel}</span></p>
+          <p>{transportLabel}: {formatMetersToKm(generatedCourse.totalDistance)}</p>
+          <p>코스 소요시간: {formatMinutes(generatedCourse.totalTravelMinutes)}</p>
+        </div>
+        <button className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-[16px] bg-[#ff1f4c] text-[18px] font-bold tracking-[-0.45px] text-white disabled:cursor-not-allowed disabled:bg-[#d4d4d4]" disabled={saveStatus === "saving" || savedCourse?.status === "COMPLETED"} onClick={savedCourse?.status === "IN_PROGRESS" ? () => setReviewOpen(true) : handleStartCourse} type="button">
+          {savedCourse?.status === "IN_PROGRESS" ? "코스 종료하기" : savedCourse?.status === "COMPLETED" ? "코스 완료" : "코스 시작하기"}
+        </button>
+      </div>}
       panel={
         <div className="flex h-full flex-col gap-[13px] px-5 pb-28 pt-6">
           <div>
@@ -415,8 +495,35 @@ function PlaceOverlay({ place, onClose, eligibility, onReceiveStamp, onRequestLo
         </div>
         <button className="absolute left-[350px] top-[420px] flex h-[60px] w-10 items-center justify-center rounded-br-[16px] rounded-tr-[16px] border border-[#e5e5ec] border-l-0 bg-white shadow-[0px_2px_6px_rgba(17,17,17,0.08)]" onClick={onClose} type="button"><ChevronLeft className="h-6 w-6 text-[#111111]" strokeWidth={1.9} /></button>
       </div>
-      <div className="absolute inset-x-4 top-4 z-20 xl:hidden"><div className="overflow-hidden rounded-[16px] border border-[#e5e5ec] bg-white shadow-[0px_2px_6px_rgba(17,17,17,0.08)]"><div className="flex items-center justify-between px-4 py-3"><button className="text-[#111111]" onClick={onClose} type="button"><ChevronLeft className="h-5 w-5" strokeWidth={1.9} /></button><button className="text-[#111111]" onClick={onClose} type="button"><X className="h-5 w-5" strokeWidth={1.9} /></button></div><div className="border-t border-[#f2f2f4] px-4 pb-4 pt-1"><p className="text-[20px] font-bold tracking-[-0.5px] text-[#111111]">{place.name}</p><p className="mt-1 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">{place.address}</p><StampControl eligibility={eligibility} onReceiveStamp={onReceiveStamp} onRequestLocation={onRequestLocation} pending={stampPending} /></div></div></div>
+      <div className="absolute inset-x-4 top-4 z-20 hidden md:block xl:hidden"><div className="overflow-hidden rounded-[16px] border border-[#e5e5ec] bg-white shadow-[0px_2px_6px_rgba(17,17,17,0.08)]"><div className="flex items-center justify-between px-4 py-3"><button className="text-[#111111]" onClick={onClose} type="button"><ChevronLeft className="h-5 w-5" strokeWidth={1.9} /></button><button className="text-[#111111]" onClick={onClose} type="button"><X className="h-5 w-5" strokeWidth={1.9} /></button></div><div className="border-t border-[#f2f2f4] px-4 pb-4 pt-1"><p className="text-[20px] font-bold tracking-[-0.5px] text-[#111111]">{place.name}</p><p className="mt-1 text-[14px] leading-[1.4] tracking-[-0.35px] text-[#111111]">{place.address}</p><StampControl eligibility={eligibility} onReceiveStamp={onReceiveStamp} onRequestLocation={onRequestLocation} pending={stampPending} /></div></div></div>
     </>
+  );
+}
+
+function MobilePlacePanel({ place, detail, images, onClose, eligibility, onReceiveStamp, onRequestLocation, stampPending }: { place: CourseMapPlace; detail: PlaceDto | null; images: string[]; onClose: () => void; eligibility: StampEligibilityDto | null; onReceiveStamp: () => void; onRequestLocation: () => void; stampPending: boolean }) {
+  const image = images[0] ?? detail?.image ?? place.image;
+  const address = detail?.address ?? place.address;
+  const overview = detail?.overview?.trim();
+
+  return (
+    <div className="min-h-full px-8 pb-8 pt-2">
+      <div className="flex items-center justify-between">
+        <button aria-label="일정으로 돌아가기" className="-ml-2 p-2 text-[#111111]" onClick={onClose} type="button"><ChevronLeft className="h-7 w-7" strokeWidth={1.8} /></button>
+        <button aria-label="장소 상세 닫기" className="-mr-2 p-2 text-[#111111]" onClick={onClose} type="button"><X className="h-7 w-7" strokeWidth={1.8} /></button>
+      </div>
+      <h2 className="mt-4 text-[28px] font-bold tracking-[-0.7px] text-[#111111]">{detail?.title ?? place.name}</h2>
+      <p className="mt-3 text-[15px] leading-[1.55] tracking-[-0.35px] text-[#333333]">{address}</p>
+      <div className="mt-3 space-y-1 text-[15px] leading-[1.45] tracking-[-0.35px] text-[#111111]">
+        <p><span className="font-bold">추천 방문시간</span> {place.time} · {place.hours.replace("예상 체류 ", "")}</p>
+        <p><span className="font-bold">혼잡도</span> <span className={`font-bold ${place.congestionTone}`}>{place.congestion}</span></p>
+      </div>
+      <StampControl eligibility={eligibility} onReceiveStamp={onReceiveStamp} onRequestLocation={onRequestLocation} pending={stampPending} />
+      <div className="mt-4 rounded-xl border border-[#e5e5ec] px-4 py-3">
+        <p className="text-[15px] font-bold text-[#111111]">이 장소를 추천하는 이유</p>
+        <p className="mt-2 text-[14px] leading-[1.55] text-[#505050]">{overview || `${place.tags.join(" ")} 여행에 어울리는 추천 장소예요.`}</p>
+      </div>
+      {image ? <img alt={place.name} className="mt-4 aspect-[4/3] w-full rounded-[4px] object-cover" src={image} /> : <div className="mt-4 flex aspect-[4/3] items-center justify-center rounded-[4px] bg-[#f5f5f5] text-[14px] text-[#767676]">이미지 준비 중</div>}
+    </div>
   );
 }
 
