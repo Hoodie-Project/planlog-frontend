@@ -114,6 +114,7 @@ src/
 - `POST /api/auth/guest` -> Next proxy -> backend auth endpoint
 - `POST /api/auth/kakao` -> Next proxy -> backend auth endpoint
 - `GET /api/auth/me`
+- `DELETE /api/auth/me`
 - `POST /api/courses/generate`
 - `GET|POST /api/saved-courses`
 - `GET|DELETE /api/saved-courses/:id`

@@ -35,3 +35,36 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const authorization = request.headers.get("Authorization");
+    const { response, upstreamUrl } = await proxyAuthRequest(mePaths, {
+      method: "DELETE",
+      headers: authorization ? { Authorization: authorization } : undefined,
+    });
+
+    const text = await response.text();
+
+    return new NextResponse(text, {
+      status: response.status,
+      headers: {
+        "Content-Type": response.headers.get("Content-Type") ?? "application/json",
+        "x-planlog-auth-source": "upstream",
+        "x-planlog-auth-upstream-url": upstreamUrl ?? "not-resolved",
+      },
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        message: error instanceof Error ? error.message : "회원탈퇴 프록시 요청에 실패했습니다.",
+      },
+      {
+        status: 500,
+        headers: {
+          "x-planlog-auth-source": "proxy",
+        },
+      }
+    );
+  }
+}
