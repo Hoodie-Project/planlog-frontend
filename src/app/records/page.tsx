@@ -177,6 +177,12 @@ export default function RecordsPage() {
             </Card>
           )}
         </section>
+
+        <nav aria-label="정책 및 계정 관리" className="mx-auto mt-12 flex max-w-[820px] items-center justify-center gap-3 text-[13px] leading-[1.4] tracking-[-0.3px] text-[#999999] md:mt-10">
+          <Link className="transition-colors hover:text-[#505050]" href="/privacy">개인정보처리방침</Link>
+          <span aria-hidden="true">|</span>
+          <Link className="transition-colors hover:text-[#505050]" href="/withdraw">회원탈퇴</Link>
+        </nav>
       </main>
     </MainShell>
   );

@@ -101,6 +101,8 @@ src/
 /records/stamps        완료한 스탬프
 /records/[id]          기록 카드 상세
 /my                    마이페이지
+/privacy               개인정보처리방침(공개)
+/withdraw              회원탈퇴 안내(공개)
 ```
 
 ## 5. API 경계
